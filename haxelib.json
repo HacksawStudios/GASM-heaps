@@ -11,8 +11,8 @@
 	"contributors": [
 		"leo.bergman"
 	],
-	"releasenote": "See https://github.com/lbergman/gasm-heaps/blob/master/doc/changes.md",
-	"version": "0.0.1.0",
+	"releasenote": "",
+	"version": "1.0.0",
 	"url": "https://github.com/lbergman/gasm-heaps",
 	 "dependencies": {
 	    "heaps": "",
