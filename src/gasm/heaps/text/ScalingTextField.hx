@@ -5,8 +5,11 @@ class ScalingTextField extends h2d.Text {
         super(font, parent);
     }
     public inline function scaleToFit(w:Float) {
-        while(getSize().width > w) {
-            scale(scaleX-0.00001);
+        var actualW = getSize().width;
+        var baseScale = scaleX;
+        while(actualW > w) {
+            scale((scaleX/baseScale)*0.997);
+            actualW = getSize().width;
         }
     }
 }
