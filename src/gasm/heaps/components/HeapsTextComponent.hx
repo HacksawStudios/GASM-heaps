@@ -27,9 +27,10 @@ class HeapsTextComponent extends Component {
     var _lastH:Float;
 
     public function new(config:TextConfig) {
-
-        _font = Res.loader.load(config.font).toFont().build(config.size);
+        _font = cast(config.font, h2d.Font);
         textField = new ScalingTextField(_font);
+        var scale = config.size / _font.size;
+        textField.scale(scale);
         textField.smooth = true;
         componentType = ComponentType.Text;
         _text = config.text != null ? config.text : '';
