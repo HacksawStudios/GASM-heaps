@@ -51,7 +51,10 @@ class HeapsContext extends App implements Context {
 				loader.queueItem(snd, AssetType.Sound);
 			}
 			for (fnt in Type.getClassFields(_assetContainers.fonts)) {
-				loader.queueItem(fnt, AssetType.BitmapFont);
+				loader.queueItem(fnt, AssetType.Font);
+			}
+			for (bmFnt in Type.getClassFields(_assetContainers.bitmapFonts)) {
+				loader.queueItem(bmFnt, AssetType.BitmapFont);
 			}
 			loader.load();
 		}
@@ -179,5 +182,6 @@ typedef AssetContainers = {
 	?images:Dynamic,
 	?sounds:Dynamic,
 	?fonts:Dynamic,
+	?bitmapFonts:Dynamic,
 	?atlases:Dynamic,
 }
