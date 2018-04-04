@@ -23,8 +23,6 @@ class HeapsSpriteComponent extends Component {
     public var mousePos(default, null):Point;
 
     var _model:SpriteModelComponent;
-    var _lastModelProps:SpriteProps;
-    var _lastSpriteProps:SpriteProps;
     var _interactive:h2d.Interactive;
     var _stage:hxd.Stage;
     var _appModel:AppModelComponent;
@@ -64,8 +62,6 @@ class HeapsSpriteComponent extends Component {
             sprite.mask = mask;
         }*/
         _stage = hxd.Stage.getInstance();
-        _lastModelProps = {x:_model.x + _model.offsetX, y:_model.y + _model.offsetY, width:_model.width, height:_model.height};
-        _lastSpriteProps = {x:sprite.x, y:sprite.y, width:w, height:h};
         if (_interactive != null) {
             addEventListeners();
         }
