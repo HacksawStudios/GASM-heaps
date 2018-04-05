@@ -9,7 +9,6 @@ package_release:
     - npm i
   script:
     - $(npm bin)/gitlab-ci-releaser --npm
-    - npm run release
   only:
     - master
 
@@ -21,6 +20,5 @@ package_rc:
     - npm i
   script:
     - $(npm bin)/gitlab-ci-releaser --npm --preid rc
-    - npm run release
   only:
     - develop

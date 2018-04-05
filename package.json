@@ -14,8 +14,7 @@
   },
   "scripts": {
     "postinstall": "node_modules/.bin/haxe-module-installer",
-    "test": "",
-    "release": "node updateHaxelib.js"
+    "test": ""
   },
   "repository": {
     "type": "git",
