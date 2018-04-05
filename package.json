@@ -15,7 +15,7 @@
   "scripts": {
     "postinstall": "node_modules/.bin/haxe-module-installer",
     "test": "",
-    "release": "node updateHaxelib.js && zip -r temp.zip src haxelib.json README.md LICENSE && haxelib submit temp.zip && rm temp.zip"
+    "release": "node updateHaxelib.js"
   },
   "repository": {
     "type": "git",
