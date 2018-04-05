@@ -1,5 +1,6 @@
 package gasm.heaps.components;
 
+import gasm.core.math.geom.Point;
 import gasm.core.Component;
 import gasm.core.components.AppModelComponent;
 import gasm.core.components.SpriteModelComponent;
@@ -18,13 +19,14 @@ class HeapsSpriteComponent extends Component {
     public var mouseEnabled(default, set):Bool;
     public var root(default, default):Bool;
     public var roundPixels(default, default):Bool;
+    public var dirty(default, default):Bool;
+    public var mousePos(default, null):Point;
 
     var _model:SpriteModelComponent;
-    var _lastW:Float;
-    var _lastH:Float;
     var _interactive:h2d.Interactive;
     var _stage:hxd.Stage;
     var _appModel:AppModelComponent;
+    var _inited:Bool;
 
     public function new(sprite:Null<Sprite> = null, mouseEnabled:Bool = false, roundPixels:Bool = false) {
         if (sprite == null) {
@@ -67,65 +69,32 @@ class HeapsSpriteComponent extends Component {
     }
 
     override public function update(dt:Float) {
-        if(owner.id == 'winCountupHolder') {
-            trace("winCountupHolder:" + _model.visible + "::" + _model.x + "::" + _model.y);
-        }
-        if(owner.id == 'winCountup') {
-            trace("winCountup:" + _model.visible + "::" + _model.x + "::" + _model.y);
-        }
-        sprite.x = _model.x + _model.offsetX;
-        sprite.y = _model.y + _model.offsetY;
-        var bounds = sprite.getBounds();
-
-        var w = bounds.width;
-        var h = bounds.height;
-
-        if (w != _lastW) {
-            _model.width = w;
-            if(_interactive != null) {
-                _interactive.width = w;
+        if(_model.dirty) {
+            if (roundPixels) {
+                _model.x = Math.round(_model.x);
+                _model.y = Math.round(_model.y);
+                _model.width = Math.round(_model.width);
+                _model.height = Math.round(_model.height);
             }
-        }
-        if (h != _lastH) {
-            _model.height = h;
-            if(_interactive != null) {
-                _interactive.height = h;
-            }
-        }
-
-        if (_model.width != _lastW) {
-            w = _model.width;
-        }
-        if (_model.height != _lastH) {
-            h = _model.height;
-        }
-        if (_model.xScale != sprite.scaleX) {
+            sprite.x = _model.x + _model.offsetX;
+            sprite.y = _model.y + _model.offsetY;
             sprite.scaleX = _model.xScale;
-        }
-        if (_model.yScale != sprite.scaleY) {
             sprite.scaleY = _model.yScale;
+            if(_interactive != null) {
+                _interactive.width = _model.width;
+                _interactive.height = _model.height;
+            }
+            _model.dirty = false;
         }
-
-        if (roundPixels) {
-            _model.x = Math.round(_model.x);
-            _model.y = Math.round(_model.y);
-            _model.width = Math.round(_model.width);
-            _model.height = Math.round(_model.height);
-            _model.stageSize.x = Math.round(_model.stageSize.x);
-            _model.stageSize.y = Math.round(_model.stageSize.y);
-        }
-
-        if (_model.width != _lastW || _model.height != _lastH) {
-            onResize();
-        }
-
-        _lastW = _model.width;
-        _lastH = _model.height;
+        _model.stageMouseX = _stage.mouseX;
+        _model.stageMouseY = _stage.mouseY;
         sprite.visible = _model.visible;
     }
 
     override public function dispose() {
         removeEventListeners();
+        _model.dispose();
+        _model = null;
         if (sprite.parent != null) {
             sprite.parent.removeChild(sprite);
         }
@@ -161,6 +130,11 @@ class HeapsSpriteComponent extends Component {
     }
 
     function onMove(event:Event) {
+        var p:h2d.col.Point  = sprite.globalToLocal(new h2d.col.Point(_stage.mouseX, _stage.mouseY));
+        _model.mouseX = p.x;
+        _model.mouseY = p.y;
+        _model.stageMouseX = _stage.mouseX;
+        _model.stageMouseY = _stage.mouseY;
         _model.triggerEvent(EventType.MOVE, { x:_stage.mouseX, y:_stage.mouseY }, owner);
     }
 
@@ -208,8 +182,6 @@ class HeapsSpriteComponent extends Component {
             _interactive.onMove = null;
             var rootSmc:SpriteModelComponent = owner.getFromRoot(SpriteModelComponent);
             rootSmc.removeHandler(EventType.UP, onStageUp);
-            var smc:SpriteModelComponent = owner.get(SpriteModelComponent);
-            smc.removeHandler(EventType.UP, onStageUp);
             if (_model != null) {
                 _model.removeHandler(EventType.MOVE, onDrag);
             }
@@ -224,4 +196,11 @@ class HeapsSpriteComponent extends Component {
         }
         return val;
     }
+}
+
+typedef SpriteProps = {
+    x:Float,
+    y:Float,
+    width:Float,
+    height:Float,
 }

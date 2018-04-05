@@ -80,7 +80,11 @@ class HeapsTextComponent extends Component {
         if (_config.font != _model.font || _config.size != _model.size) {
             _config.font = _model.font;
             _config.size = _model.size;
+            #if (heaps > "1.1.0")
+            textField.font = Res.load(_config.font).to(hxd.res.Font).build(_config.size);
+            #else
             textField.font = Res.load(_config.font).toFont().build(_config.size);
+            #end
             formatChanged = true;
         }
         if (_config.color != _model.color) {

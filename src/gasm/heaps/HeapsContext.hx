@@ -38,7 +38,8 @@ class HeapsContext extends App implements Context {
         super();
 
         appModel = new AppModelComponent();
-    } 
+    }
+
     public function preload(progress:Int -> Void, done:Void -> Void) {
 		engine.render(this);
         var bitmapFonts = new haxe.ds.StringMap<haxe.io.Bytes>();
@@ -77,7 +78,11 @@ class HeapsContext extends App implements Context {
 		});
 
 		loader.addHandler(AssetType.Font, function(item:HandlerItem) {
+			#if (heaps > "1.1.0")
+            Reflect.setField(_assetContainers.fonts, item.id, hxd.res.Any.fromBytes('font/${item.id}', item.data).to(hxd.res.Font));
+            #else
 			Reflect.setField(_assetContainers.fonts, item.id, hxd.res.Any.fromBytes('font/${item.id}', item.data).toFont());
+			#end
 		});
 		
 		loader.addHandler(AssetType.BitmapFont, function(item:HandlerItem) {
