@@ -5,6 +5,7 @@ package_release:
   image: hacksawgaming/hacksaw-build
   stage: release
   before_script:
+    - apk add --update zip
     - npm i
   script:
     - $(npm bin)/gitlab-ci-releaser --npm
@@ -16,6 +17,7 @@ package_rc:
   image: hacksawgaming/hacksaw-build
   stage: release
   before_script:
+    - apk add --update zip
     - npm i
   script:
     - $(npm bin)/gitlab-ci-releaser --npm --preid rc
