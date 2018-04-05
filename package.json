@@ -1,6 +1,6 @@
 {
   "name": "@hacksawstudios/gasm-heaps",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "HEAPS adapter for GASM",
   "main": "index.js",
   "directories": {
