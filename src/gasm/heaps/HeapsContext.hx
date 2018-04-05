@@ -21,14 +21,13 @@ class HeapsContext extends App implements Context {
     public var systems(default, null):Array<ISystem>;
     public var appModel(default, null):AppModelComponent;
 
-
     var _engine:IEngine;
     var _core:ISystem;
     var _renderer:ISystem;
     var _sound:ISystem;
+	// Populate in subclass with bindings to asset containers
 	var _assetContainers:AssetContainers;
     var _assetConfig:AssetConfig;
-	
 
     public function new(?core:ISystem, ?renderer:ISystem, ?sound:ISystem, ?engine:IEngine) {
         _core = core;
@@ -43,6 +42,7 @@ class HeapsContext extends App implements Context {
     public function preload(progress:Int -> Void, done:Void -> Void) {
 		engine.render(this);
         var bitmapFonts = new haxe.ds.StringMap<haxe.io.Bytes>();
+        var atlases = new haxe.ds.StringMap<haxe.io.Bytes>();
 		var loader = new Loader('assets/desc.json', _assetConfig);
 		loader.onReady = function () {
 			for (img in Type.getClassFields(_assetContainers.images)) {
@@ -57,10 +57,13 @@ class HeapsContext extends App implements Context {
 			for (bmFnt in Type.getClassFields(_assetContainers.bitmapFonts)) {
 				loader.queueItem(bmFnt, AssetType.BitmapFont);
 			}
+			for (atlas in Type.getClassFields(_assetContainers.atlases)) {
+				loader.queueItem(atlas, AssetType.Atlas);
+			}
 			loader.load();
 		}
 		loader.onComplete = function () {
-			done();
+			haxe.Timer.delay(done, 0);
 		}
 		loader.onProgress = function(percent:Int) {
 			progress(percent);
@@ -104,6 +107,26 @@ class HeapsContext extends App implements Context {
 				bitmapFonts.set(item.id, item.data);
 			}
 		});
+
+		loader.addHandler(AssetType.Atlas, function(item:HandlerItem) {
+			if(atlases.exists(item.id)) {
+				var atlasImg = atlases.get(item.id);
+				var atlas = parseAtlas(item.id, item.data, atlasImg);
+				Reflect.setField(_assetContainers.atlases, item.id, atlas);
+			} else {
+				atlases.set(item.id, item.data);
+			}
+		});
+
+		loader.addHandler(AssetType.AtlasImage, function(item:HandlerItem) {
+			if(atlases.exists(item.id)) {
+				var atlasDef = atlases.get(item.id);
+				var atlas = parseAtlas(item.id, atlasDef, item.data);
+				Reflect.setField(_assetContainers.atlases, item.id, atlas);
+			} else {
+				atlases.set(item.id, item.data);
+			}
+		});
     }
 
     override function init() {
@@ -129,6 +152,80 @@ class HeapsContext extends App implements Context {
     override function update(dt:Float) {
         _engine.tick();
     }
+
+	function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Array<h2d.Tile>  {
+		var contents = new Map();
+		var lines = definition.toString().split("\n");
+		while( lines.length > 0 ) {
+			var line = StringTools.trim(lines.shift());
+			if ( line == "" ) continue;
+			var file = hxd.res.Any.fromBytes('font/$id', image).toTile();
+			while( lines.length > 0 ) {
+				var line = StringTools.trim(lines.shift());
+				if( line == "" ) break;
+				var prop = line.split(": ");
+				if( prop.length > 1 ) continue;
+				var key = line;
+				var tileX = 0, tileY = 0, tileW = 0, tileH = 0, tileDX = 0, tileDY = 0, origW = 0, origH = 0, index = 0;
+				while( lines.length > 0 ) {
+					var line = StringTools.trim(lines.shift());
+					var prop = line.split(": ");
+					if( prop.length == 1 ) {
+						lines.unshift(line);
+						break;
+					}
+					var v = prop[1];
+					switch( prop[0] ) {
+						case "rotate":
+							if( v == "true" ) throw "Rotation not supported in atlas";
+						case "xy":
+							var vals = v.split(", ");
+							tileX = Std.parseInt(vals[0]);
+							tileY = Std.parseInt(vals[1]);
+						case "size":
+							var vals = v.split(", ");
+							tileW = Std.parseInt(vals[0]);
+							tileH = Std.parseInt(vals[1]);
+						case "offset":
+							var vals = v.split(", ");
+							tileDX = Std.parseInt(vals[0]);
+							tileDY = Std.parseInt(vals[1]);
+						case "orig":
+							var vals = v.split(", ");
+							origW = Std.parseInt(vals[0]);
+							origH = Std.parseInt(vals[1]);
+						case "index":
+							index = Std.parseInt(v);
+							if( index < 0 ) index = 0;
+						default:
+							trace("Unknown prop " + prop[0]);
+					}
+				}
+				// offset is bottom-relative
+				tileDY = origH - (tileH + tileDY);
+
+				var t = file.sub(tileX, tileY, tileW, tileH, tileDX, tileDY);
+				var tl = contents.get(key);
+				if( tl == null ) {
+					tl = [];
+					contents.set(key, tl);
+				}
+				tl[index] = { t : t, width : origW, height : origH };
+			}
+		}
+		var tiles:Array<h2d.Tile> = [];
+		for(tile in Reflect.fields(contents)) {
+			var tileData:h2d.Tile = Reflect.field(contents, tile);
+			var fields:Array<String> = Reflect.fields(tileData);
+			for (a in fields) {
+				var d:Array<Dynamic> = Reflect.field(tileData, a);
+				for(t in d) {
+					tiles.push(Reflect.field(t, 't'));
+				}
+			}
+		}
+		return tiles;
+	}
 
 	@:access(h2d.Font)
 	function parseFont(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):h2d.Font {
@@ -177,10 +274,10 @@ class HeapsContext extends App implements Context {
 
 		return font;
 	}
+
     public function get_baseEntity():Entity {
         return _engine.baseEntity;
     }
-
 }
 
 typedef AssetContainers = {
