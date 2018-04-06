@@ -11,6 +11,7 @@ import gasm.core.ISystem;
 import gasm.heaps.systems.HeapsRenderingSystem;
 import gasm.heaps.systems.HeapsSoundSystem;
 import gasm.assets.Loader;
+import gasm.assets.Loader.AssetType;
 import hxd.App;
 /**
  * ...
