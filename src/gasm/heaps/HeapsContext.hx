@@ -78,7 +78,11 @@ class HeapsContext extends App implements Context {
 		});
 
 		loader.addHandler(AssetType.Sound, function(item:HandlerItem) {
+			#if byteSounds
+			Reflect.setField(_assetContainers.sounds, item.id, item.data);
+			#else
 			Reflect.setField(_assetContainers.sounds, item.id, hxd.res.Any.fromBytes('sound/${item.id}', item.data).toSound());
+			#end
 		});
 
 		loader.addHandler(AssetType.Font, function(item:HandlerItem) {
