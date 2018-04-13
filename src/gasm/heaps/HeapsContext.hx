@@ -29,6 +29,7 @@ class HeapsContext extends App implements Context {
 	// Populate in subclass with bindings to asset containers
 	var _assetContainers:AssetContainers;
     var _assetConfig:AssetConfig;
+	var _soundSupport:Bool;
 
     public function new(?core:ISystem, ?renderer:ISystem, ?sound:ISystem, ?engine:IEngine) {
         _core = core;
@@ -38,9 +39,34 @@ class HeapsContext extends App implements Context {
         super();
 
         appModel = new AppModelComponent();
+		_assetConfig = {};
+		
     }
 
     public function preload(progress:Int -> Void, done:Void -> Void) {
+		#if js
+		var myAudio:js.html.AudioElement = cast js.Browser.document.createElement('audio');
+		if (myAudio.canPlayType != null) {
+			var canPlayAac = myAudio.canPlayType('audio/aac');
+			var canPlayOgg = myAudio.canPlayType('audio/ogg; codecs="vorbis"');
+			var supported = {ogg: canPlayOgg, aac: canPlayAac};
+			var ext:String = switch(supported) {
+				case {ogg:'probably'}: '.ogg';
+				case {ogg:'maybe', aac:'probably'}: '.mp4';
+				case {ogg:'maybe', aac:'maybe'}: '.ogg';
+				case {ogg:'maybe', aac:''}: '.ogg';
+				case {ogg:'', aac:'maybe'}: '.mp4';
+				case {ogg:'', aac:'probably'}: '.mp4';
+				default: null;
+			}
+			if(ext == null) {
+				trace('Neither ogg or m4a supprted, no audio will play');
+			} else {
+				_soundSupport = true;
+				_assetConfig.formats = [{type:AssetType.Sound, extension: ext}];
+			}
+		}
+		#end
 		engine.render(this);
         var bitmapFonts = new haxe.ds.StringMap<haxe.io.Bytes>();
         var atlases = new haxe.ds.StringMap<haxe.io.Bytes>();
@@ -49,8 +75,10 @@ class HeapsContext extends App implements Context {
 			for (img in Type.getClassFields(_assetContainers.images)) {
 				loader.queueItem(img, AssetType.Image);
 			}
-			for (snd in Type.getClassFields(_assetContainers.sounds)) {
-				loader.queueItem(snd, AssetType.Sound);
+			if(_soundSupport) {
+				for (snd in Type.getClassFields(_assetContainers.sounds)) {
+					loader.queueItem(snd, AssetType.Sound);
+				}
 			}
 			for (fnt in Type.getClassFields(_assetContainers.fonts)) {
 				loader.queueItem(fnt, AssetType.Font);
