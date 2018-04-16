@@ -50,8 +50,6 @@ class HeapsContext extends App implements Context {
 			var canPlayMp4 = myAudio.canPlayType('video/mp4');
 			var canPlayWebm = myAudio.canPlayType('audio/webm; codecs="vorbis"');
 			var supported = {webm: canPlayWebm, mp4: canPlayMp4};
-			trace('mp4: $canPlayMp4');
-			trace('webm: $canPlayWebm');
 			var ext:String = switch(supported) {
 				case {webm:'probably'}: '.webm';
 				case {webm:'maybe', mp4:'probably'}: '.mp4';
@@ -61,7 +59,6 @@ class HeapsContext extends App implements Context {
 				case {webm:'', mp4:'probably'}: '.mp4';
 				default: null;
 			}
-			trace('ext: $ext');
 			if(ext == null) {
 				trace('Neither webm or m4a supprted, no audio will play');
 			} else {
