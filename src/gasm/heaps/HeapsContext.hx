@@ -47,20 +47,23 @@ class HeapsContext extends App implements Context {
 		#if js
 		var myAudio:js.html.AudioElement = cast js.Browser.document.createElement('audio');
 		if (myAudio.canPlayType != null) {
-			var canPlayAac = myAudio.canPlayType('audio/aac');
-			var canPlayOgg = myAudio.canPlayType('audio/ogg; codecs="vorbis"');
-			var supported = {ogg: canPlayOgg, aac: canPlayAac};
+			var canPlayMp4 = myAudio.canPlayType('video/mp4');
+			var canPlayWebm = myAudio.canPlayType('audio/webm; codecs="vorbis"');
+			var supported = {webm: canPlayWebm, mp4: canPlayMp4};
+			trace('mp4: $canPlayMp4');
+			trace('webm: $canPlayWebm');
 			var ext:String = switch(supported) {
-				case {ogg:'probably'}: '.ogg';
-				case {ogg:'maybe', aac:'probably'}: '.mp4';
-				case {ogg:'maybe', aac:'maybe'}: '.ogg';
-				case {ogg:'maybe', aac:''}: '.ogg';
-				case {ogg:'', aac:'maybe'}: '.mp4';
-				case {ogg:'', aac:'probably'}: '.mp4';
+				case {webm:'probably'}: '.webm';
+				case {webm:'maybe', mp4:'probably'}: '.mp4';
+				case {webm:'maybe', mp4:'maybe'}: '.webm';
+				case {webm:'maybe', mp4:''}: '.webm';
+				case {webm:'', mp4:'maybe'}: '.mp4';
+				case {webm:'', mp4:'probably'}: '.mp4';
 				default: null;
 			}
+			trace('ext: $ext');
 			if(ext == null) {
-				trace('Neither ogg or m4a supprted, no audio will play');
+				trace('Neither webm or m4a supprted, no audio will play');
 			} else {
 				_soundSupport = true;
 				_assetConfig.formats = [{type:AssetType.Sound, extension: ext}];
