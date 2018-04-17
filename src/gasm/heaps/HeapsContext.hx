@@ -46,27 +46,32 @@ class HeapsContext extends App implements Context {
 
     public function preload(progress:Int -> Void, done:Void -> Void) {
 		#if js
-		var myAudio:js.html.AudioElement = cast js.Browser.document.createElement('audio');
-		if (myAudio.canPlayType != null) {
-			var canPlayMp4 = myAudio.canPlayType('video/mp4');
-			var canPlayWebm = myAudio.canPlayType('audio/webm; codecs="vorbis"');
-			var supported = {webm: canPlayWebm, mp4: canPlayMp4};
-			var ext:String = switch(supported) {
-				case {webm:'probably'}: '.webm';
-				case {webm:'maybe', mp4:'probably'}: '.mp4';
-				case {webm:'maybe', mp4:'maybe'}: '.webm';
-				case {webm:'maybe', mp4:''}: '.webm';
-				case {webm:'', mp4:'maybe'}: '.mp4';
-				case {webm:'', mp4:'probably'}: '.mp4';
-				default: null;
-			}
-			if(ext == null) {
-				trace('Neither webm or m4a supprted, no audio will play');
-			} else {
-				_soundSupport = true;
-				_assetConfig.formats = [{type:AssetType.Sound, extension: ext}];
+		_soundSupport = (Reflect.field(js.Browser.window, "AudioContext") != null || Reflect.field(js.Browser.window, "webkitAudioContext") != null);
+		if(_soundSupport) {
+			var myAudio:js.html.AudioElement = cast js.Browser.document.createElement('audio');
+			if (myAudio.canPlayType != null) {
+				var canPlayMp4 = myAudio.canPlayType('video/mp4');
+				var canPlayWebm = myAudio.canPlayType('audio/webm; codecs="vorbis"');
+				var supported = {webm: canPlayWebm, mp4: canPlayMp4};
+				var ext:String = switch(supported) {
+					case {webm:'probably'}: '.webm';
+					case {webm:'maybe', mp4:'probably'}: '.mp4';
+					case {webm:'maybe', mp4:'maybe'}: '.webm';
+					case {webm:'maybe', mp4:''}: '.webm';
+					case {webm:'', mp4:'maybe'}: '.mp4';
+					case {webm:'', mp4:'probably'}: '.mp4';
+					default: null;
+				}
+				if(ext == null) {
+					_soundSupport = false;
+					trace('Neither webm or m4a supprted, no audio will play');
+				} else {
+					_soundSupport = true;
+					_assetConfig.formats = [{type:AssetType.Sound, extension: ext}];
+				}
 			}
 		}
+
 		#end
 		engine.render(this);
         var bitmapFonts = new haxe.ds.StringMap<haxe.io.Bytes>();
