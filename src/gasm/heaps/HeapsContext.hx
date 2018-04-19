@@ -123,11 +123,17 @@ class HeapsContext extends App implements Context {
 		});
 
 		loader.addHandler(AssetType.Font, function(item:HandlerItem) {
+
 			#if (heaps > "1.1.0")
-            Reflect.setField(_assetContainers.fonts, item.id, hxd.res.Any.fromBytes('font/${item.id}', item.data).to(hxd.res.Font));
+			var fnt = hxd.res.Any.fromBytes('font/${item.id}', item.data).to(hxd.res.Font);
             #else
-			Reflect.setField(_assetContainers.fonts, item.id, hxd.res.Any.fromBytes('font/${item.id}', item.data).toFont());
+            var fnt =  hxd.res.Any.fromBytes('font/${item.id}', item.data).toFont();
 			#end
+            if(fnt != null) {
+			    Reflect.setField(_assetContainers.fonts, item.id, fnt);
+            } else {
+                throw 'Unable to parse font ' + item.id;
+            }
 		});
 		
 		loader.addHandler(AssetType.BitmapFont, function(item:HandlerItem) {
