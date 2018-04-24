@@ -209,7 +209,6 @@ class HeapsContext extends App implements Context {
             } else {
                 motion.Actuate.resumeAll();
             }
-			trace("appModel.frozen:" + appModel.frozen);
 		}
 		js.Browser.document.addEventListener(visibilityChange, handleVisibilityChange, false);
         #end
