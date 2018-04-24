@@ -1,18 +1,17 @@
 package gasm.heaps;
 
-import haxe.io.Bytes;
-import gasm.heaps.components.HeapsSpriteComponent;
-import gasm.heaps.systems.HeapsCoreSystem;
-import gasm.core.IEngine;
+import gasm.assets.Loader.AssetType;
+import gasm.assets.Loader;
 import gasm.core.components.AppModelComponent;
 import gasm.core.Context;
 import gasm.core.Engine;
 import gasm.core.Entity;
+import gasm.core.IEngine;
 import gasm.core.ISystem;
+import gasm.heaps.components.HeapsSpriteComponent;
+import gasm.heaps.systems.HeapsCoreSystem;
 import gasm.heaps.systems.HeapsRenderingSystem;
 import gasm.heaps.systems.HeapsSoundSystem;
-import gasm.assets.Loader;
-import gasm.assets.Loader.AssetType;
 import hxd.App;
 /**
  * ...
@@ -101,6 +100,7 @@ class HeapsContext extends App implements Context {
 			loader.load();
 		}
 		loader.onComplete = function () {
+
 			haxe.Timer.delay(done, 0);
 		}
 		loader.onProgress = function(percent:Int) {
@@ -130,6 +130,7 @@ class HeapsContext extends App implements Context {
             var fnt =  hxd.res.Any.fromBytes('font/${item.id}', item.data).toFont();
 			#end
             if(fnt != null) {
+                trace('parsed:' + item.id);
 			    Reflect.setField(_assetContainers.fonts, item.id, fnt);
             } else {
                 throw 'Unable to parse font ' + item.id;
@@ -188,6 +189,31 @@ class HeapsContext extends App implements Context {
         systems = [_core, _renderer, _sound];
         _engine = _engine != null ? _engine : new Engine(systems);
 
+        #if js
+		var hidden:String;
+		var visibilityChange:String = null;
+		if (js.Browser.document.hidden != null) { // Opera 12.10 and Firefox 18 and later support
+			hidden = "hidden";
+			visibilityChange = "visibilitychange";
+		} else if (Reflect.field(js.Browser.document, 'msHidden') != null) {
+			hidden = "msHidden";
+			visibilityChange = "msvisibilitychange";
+		} else if (Reflect.field(js.Browser.document, 'webkitHidden') != null) {
+			hidden = "webkitHidden";
+			visibilityChange = "webkitvisibilitychange";
+		}
+		var handleVisibilityChange = function() {
+			appModel.frozen = Reflect.field(js.Browser.document, hidden);
+			if(appModel.frozen) {
+                motion.Actuate.pauseAll();
+            } else {
+                motion.Actuate.resumeAll();
+            }
+			trace("appModel.frozen:" + appModel.frozen);
+		}
+		js.Browser.document.addEventListener(visibilityChange, handleVisibilityChange, false);
+        #end
+
         var comp = new HeapsSpriteComponent(cast s2d);
         baseEntity.add(comp);
         baseEntity.add(appModel);
@@ -202,7 +228,9 @@ class HeapsContext extends App implements Context {
     }
 
     override function update(dt:Float) {
-        _engine.tick();
+		if(!appModel.frozen) {
+        	_engine.tick();
+		}
     }
 
 	function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Array<h2d.Tile>  {
