@@ -17,6 +17,7 @@
 	 "dependencies": {
 	    "heaps": "",
 	    "gasm": "",
-	    "msignal": ""
+	    "msignal": "",
+	    "actuate": ""
 	  }
 }
