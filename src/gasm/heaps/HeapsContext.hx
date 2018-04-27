@@ -111,7 +111,7 @@ class HeapsContext extends App implements Context {
             throw error;
         }
         loader.addHandler(AssetType.Image, function(item:HandlerItem) {
-            Reflect.setField(_assetContainers.images, item.id, hxd.res.Any.fromBytes('image/${item.id}', item.data).toTile());
+            Reflect.setField(_assetContainers.images, item.id, hxd.res.Any.fromBytes('${item.path}', item.data).toTile());
         });
 
         loader.addHandler(AssetType.Sound, function(item:HandlerItem) {
