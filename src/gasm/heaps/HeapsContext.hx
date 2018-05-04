@@ -1,5 +1,6 @@
 package gasm.heaps;
 
+import hxd.Charset;
 import gasm.assets.Loader.AssetType;
 import gasm.assets.Loader;
 import gasm.core.components.AppModelComponent;
@@ -36,6 +37,7 @@ class HeapsContext extends App implements Context {
         _renderer = renderer;
         _sound = sound;
         _engine = engine;
+        Charset.DEFAULT_CHARS = Charset.DEFAULT_CHARS + Charset.POLISH + Charset.GREEK + Charset.CURRENCY;
         super();
 
         appModel = new AppModelComponent();
