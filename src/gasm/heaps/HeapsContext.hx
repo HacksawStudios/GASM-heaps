@@ -102,7 +102,6 @@ class HeapsContext extends App implements Context {
             loader.load();
         }
         loader.onComplete = function() {
-
             haxe.Timer.delay(done, 0);
         }
         loader.onProgress = function(percent:Int) {
@@ -132,7 +131,6 @@ class HeapsContext extends App implements Context {
             var fnt = hxd.res.Any.fromBytes('font/${item.id}', item.data).toFont();
             #end
             if (fnt != null) {
-                trace('parsed:' + item.id);
                 Reflect.setField(_assetContainers.fonts, item.id, fnt);
             } else {
                 throw 'Unable to parse font ' + item.id;
@@ -192,7 +190,7 @@ class HeapsContext extends App implements Context {
         _engine = _engine != null ? _engine : new Engine(systems);
 
         #if js
-		var hidden:String;
+		var hidden:String = null;
 		var visibilityChange:String = null;
 		if (js.Browser.document.hidden != null) { // Opera 12.10 and Firefox 18 and later support
 			hidden = "hidden";
@@ -213,6 +211,12 @@ class HeapsContext extends App implements Context {
             }
 		}
 		js.Browser.document.addEventListener(visibilityChange, handleVisibilityChange, false);
+		appModel.frozen = Reflect.field(js.Browser.document, hidden);
+        if(appModel.frozen) {
+            motion.Actuate.pauseAll();
+        } else {
+            motion.Actuate.resumeAll();
+        }
         #end
 
         var comp = new HeapsSpriteComponent(cast s2d);
