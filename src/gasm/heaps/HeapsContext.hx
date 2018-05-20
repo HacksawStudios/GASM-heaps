@@ -1,5 +1,6 @@
 package gasm.heaps;
 
+import tweenx909.TweenX;
 import hxd.Charset;
 import gasm.assets.Loader.AssetType;
 import gasm.assets.Loader;
@@ -65,7 +66,7 @@ class HeapsContext extends App implements Context {
 				}
 				if(ext == null) {
 					_soundSupport = false;
-					trace('Neither webm or m4a supprted, no audio will play');
+					trace('Neither webm or m4a supported, no audio will play');
 				} else {
 					_soundSupport = true;
 					_assetConfig.formats = [{type:AssetType.Sound, extension: ext}];
@@ -205,17 +206,17 @@ class HeapsContext extends App implements Context {
 		var handleVisibilityChange = function() {
 			appModel.frozen = Reflect.field(js.Browser.document, hidden);
 			if(appModel.frozen) {
-                motion.Actuate.pauseAll();
+                TweenX.stopAll(TweenX.tweens);
             } else {
-                motion.Actuate.resumeAll();
+                TweenX.playAll(TweenX.tweens);
             }
 		}
 		js.Browser.document.addEventListener(visibilityChange, handleVisibilityChange, false);
 		appModel.frozen = Reflect.field(js.Browser.document, hidden);
         if(appModel.frozen) {
-            motion.Actuate.pauseAll();
+            TweenX.stopAll(TweenX.tweens);
         } else {
-            motion.Actuate.resumeAll();
+            TweenX.playAll(TweenX.tweens);
         }
         #end
 
