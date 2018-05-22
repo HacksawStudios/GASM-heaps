@@ -69,26 +69,28 @@ class HeapsSpriteComponent extends Component {
     }
 
     override public function update(dt:Float) {
-        if(_model.dirty) {
-            if (roundPixels) {
-                _model.x = Math.round(_model.x);
-                _model.y = Math.round(_model.y);
-                _model.width = Math.round(_model.width);
-                _model.height = Math.round(_model.height);
+        if(_model != null) {
+            if(_model.dirty) {
+                if (roundPixels) {
+                    _model.x = Math.round(_model.x);
+                    _model.y = Math.round(_model.y);
+                    _model.width = Math.round(_model.width);
+                    _model.height = Math.round(_model.height);
+                }
+                sprite.x = _model.x + _model.offsetX;
+                sprite.y = _model.y + _model.offsetY;
+                sprite.scaleX = _model.xScale;
+                sprite.scaleY = _model.yScale;
+                if(_interactive != null) {
+                    _interactive.width = _model.width;
+                    _interactive.height = _model.height;
+                }
+                _model.dirty = false;
             }
-            sprite.x = _model.x + _model.offsetX;
-            sprite.y = _model.y + _model.offsetY;
-            sprite.scaleX = _model.xScale;
-            sprite.scaleY = _model.yScale;
-            if(_interactive != null) {
-                _interactive.width = _model.width;
-                _interactive.height = _model.height;
-            }
-            _model.dirty = false;
+            _model.stageMouseX = _stage.mouseX;
+            _model.stageMouseY = _stage.mouseY;
+            sprite.visible = _model.visible;
         }
-        _model.stageMouseX = _stage.mouseX;
-        _model.stageMouseY = _stage.mouseY;
-        sprite.visible = _model.visible;
     }
 
     override public function dispose() {
