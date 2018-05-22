@@ -205,19 +205,9 @@ class HeapsContext extends App implements Context {
 		}
 		var handleVisibilityChange = function() {
 			appModel.frozen = Reflect.field(js.Browser.document, hidden);
-			if(appModel.frozen) {
-                TweenX.stopAll(TweenX.tweens);
-            } else {
-                TweenX.playAll(TweenX.tweens);
-            }
 		}
 		js.Browser.document.addEventListener(visibilityChange, handleVisibilityChange, false);
 		appModel.frozen = Reflect.field(js.Browser.document, hidden);
-        if(appModel.frozen) {
-            TweenX.stopAll(TweenX.tweens);
-        } else {
-            TweenX.playAll(TweenX.tweens);
-        }
         #end
 
         var comp = new HeapsSpriteComponent(cast s2d);
