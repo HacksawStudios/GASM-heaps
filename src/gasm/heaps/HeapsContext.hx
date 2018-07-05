@@ -292,7 +292,7 @@ class HeapsContext extends App implements Context {
                 tl[index] = { t : t, width : origW, height : origH };
             }
         }
-
+        
         var tiles:Array<h2d.Tile> = [];
         for (tile in Reflect.fields(atlas.contents)) {
             var tileData:h2d.Tile = Reflect.field(atlas.contents, tile);
