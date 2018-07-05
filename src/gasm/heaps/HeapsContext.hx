@@ -38,12 +38,10 @@ class HeapsContext extends App implements Context {
         _renderer = renderer;
         _sound = sound;
         _engine = engine;
-        Charset.DEFAULT_CHARS = Charset.DEFAULT_CHARS + Charset.POLISH + Charset.GREEK + Charset.CURRENCY;
         super();
 
         appModel = new AppModelComponent();
         _assetConfig = {};
-
     }
 
     public function preload(progress:Int -> Void, done:Void -> Void) {
@@ -229,13 +227,16 @@ class HeapsContext extends App implements Context {
         }
     }
 
-    function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Array<h2d.Tile> {
-        var contents = new Map();
+    function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):{tile:h2d.Tile, contents:Map<String, Array<{width:Int, height:Int, t:h2d.Tile}>>} {
+        var file = hxd.res.Any.fromBytes('font/$id', image).toTile();
+        var atlas = {
+            tile:file,
+            contents:new Map(),
+        }
         var lines = definition.toString().split("\n");
         while (lines.length > 0) {
             var line = StringTools.trim(lines.shift());
             if (line == "") continue;
-            var file = hxd.res.Any.fromBytes('font/$id', image).toTile();
             while (lines.length > 0) {
                 var line = StringTools.trim(lines.shift());
                 if (line == "") break;
@@ -281,26 +282,15 @@ class HeapsContext extends App implements Context {
                 tileDY = origH - (tileH + tileDY);
 
                 var t = file.sub(tileX, tileY, tileW, tileH, tileDX, tileDY);
-                var tl = contents.get(key);
+                var tl = atlas.contents.get(key);
                 if (tl == null) {
                     tl = [];
-                    contents.set(key, tl);
+                    atlas.contents.set(key, tl);
                 }
                 tl[index] = { t : t, width : origW, height : origH };
             }
         }
-        var tiles:Array<h2d.Tile> = [];
-        for (tile in Reflect.fields(contents)) {
-            var tileData:h2d.Tile = Reflect.field(contents, tile);
-            var fields:Array<String> = Reflect.fields(tileData);
-            for (a in fields) {
-                var d:Array<Dynamic> = Reflect.field(tileData, a);
-                for (t in d) {
-                    tiles.push(Reflect.field(t, 't'));
-                }
-            }
-        }
-        return tiles;
+        return atlas;
     }
 
     @:access(h2d.Font)
