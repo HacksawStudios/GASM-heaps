@@ -96,9 +96,6 @@ class HeapsContext extends App implements Context {
             for (atlas in Type.getClassFields(_assetContainers.atlases)) {
                 loader.queueItem(atlas, AssetType.Atlas);
             }
-            for (config in Type.getClassFields(_assetContainers.configs)) {
-                loader.queueItem(config, AssetType.Config);
-            }
             loader.load();
         }
         loader.onComplete = function() {
@@ -175,10 +172,6 @@ class HeapsContext extends App implements Context {
             } else {
                 atlases.set(item.id, item.data);
             }
-        });
-
-        loader.addHandler(AssetType.Config, function(item:HandlerItem) {
-            Reflect.setField(_assetContainers.configs, item.id, haxe.Json.parse(item.data.toString()));
         });
     }
 
