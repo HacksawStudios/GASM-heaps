@@ -1,5 +1,10 @@
 package gasm.heaps.text;
 
+import h2d.Tile;
+import h2d.Bitmap;
+import h3d.mat.Data.TextureFlags;
+import h3d.mat.Texture;
+
 class ScalingTextField extends h2d.Text {
     public function new(font:h2d.Font, ?parent) {
         super(font, parent);
