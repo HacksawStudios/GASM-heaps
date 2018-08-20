@@ -10,7 +10,11 @@ package_release:
   script:
     - $(npm bin)/gitlab-ci-releaser --npm
   only:
-    - master
+    refs:
+      - master
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/ 
 
 package_rc:
   image: hacksawgaming/hacksaw-build
@@ -22,3 +26,6 @@ package_rc:
     - $(npm bin)/gitlab-ci-releaser --npm --preid rc
   only:
     - develop
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+(?:-rc\.[0-9]+)?/

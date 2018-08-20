@@ -87,7 +87,7 @@ class HeapsContext extends App implements Context {
                     loader.queueItem(snd, AssetType.Sound);
                 }
             }
-            for (fnt in Type.getClassFields(_assetContainers.fonts)) {
+            for (fnt in Type.getClassFields(hacksaw.core.data.FontList)) {
                 loader.queueItem(fnt, AssetType.Font);
             }
             for (bmFnt in Type.getClassFields(_assetContainers.bitmapFonts)) {
@@ -128,7 +128,7 @@ class HeapsContext extends App implements Context {
             var fnt = hxd.res.Any.fromBytes('font/${item.id}', item.data).toFont();
             #end
             if (fnt != null) {
-                Reflect.setField(_assetContainers.fonts, item.id, fnt);
+                _assetContainers.fonts.set(item.id, fnt);
             } else {
                 throw 'Unable to parse font ' + item.id;
             }
@@ -357,7 +357,7 @@ class HeapsContext extends App implements Context {
 typedef AssetContainers = {
 ?images:Dynamic,
 ?sounds:Dynamic,
-?fonts:Dynamic,
+?fonts:haxe.ds.StringMap<hxd.res.Font>,
 ?bitmapFonts:Dynamic,
 ?atlases:Dynamic,
 ?configs:Dynamic,
