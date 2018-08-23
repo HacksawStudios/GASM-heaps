@@ -35,6 +35,7 @@ class HeapsTextComponent extends Component {
         componentType = ComponentType.Text;
         _text = config.text != null ? config.text : '';
         config.scaleToFit = config.scaleToFit == null ? true : config.scaleToFit;
+        config.letterSpacing = config.letterSpacing == null ? 0 : config.letterSpacing;
         _config = config;
     }
 
@@ -43,17 +44,17 @@ class HeapsTextComponent extends Component {
         _model.font = _config.font;
         _model.size = _config.size;
         _model.color = textField.textColor = _config.color;
-
-        textField.text = _model.text = _text;
         textField.textAlign = switch(_config.align) {
             case 'left': Align.Left;
             case 'right': Align.Right;
             default: Align.Center;
         };
-        textField.letterSpacing = _config.letterSpacing;
+        textField.text = _model.text = _text;
         if(_config.filters != null) {
            textField.filter = new h2d.filter.Group(cast _config.filters);
         }
+        
+        textField.letterSpacing = _config.letterSpacing != null ? _config.letterSpacing : 0;
         var w = textField.getSize().width;
         var h = textField.getSize().height;
         if (w > 0) {
@@ -65,8 +66,8 @@ class HeapsTextComponent extends Component {
         }
     }
 
-    public function outline(color:Int = 0x000000, alpha:Float = 1.0, quality:Int = 1, passes:Int = 1, sigma:Float = 1.0) {
-        var glow = new Glow(color, alpha, quality, passes, sigma);
+    public function outline(color:Int = 0x000000, alpha:Float = 1.0, radius:Float = 1.0, gain:Float = 1.0, quality:Float = 1.0) {
+        var glow = new Glow(color, alpha, radius, gain, quality, true);
         textField.filter = glow;
     }
 
@@ -74,7 +75,7 @@ class HeapsTextComponent extends Component {
         var textChanged = false;
         if (textField.text != _model.text) {
             textField.text = _model.text;
-            textChanged = true;
+            textChanged = true; 
         }
         var formatChanged = false;
         if (_config.font != _model.font || _config.size != _model.size) {
@@ -88,7 +89,7 @@ class HeapsTextComponent extends Component {
             formatChanged = true;
         }
         if (_config.color != _model.color) {
-            textField.textColor = _model.color;
+            textField.textColor = _config.color = _model.color;
         }
         textField.x = _model.x + _model.offsetX;
         textField.y = _model.y + _model.offsetY;
