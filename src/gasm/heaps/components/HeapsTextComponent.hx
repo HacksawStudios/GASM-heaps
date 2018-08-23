@@ -50,7 +50,7 @@ class HeapsTextComponent extends Component {
             case 'right': Align.Right;
             default: Align.Center;
         };
-        textField.letterSpacing = 1;
+        textField.letterSpacing = _config.letterSpacing;
         if(_config.filters != null) {
            textField.filter = new h2d.filter.Group(cast _config.filters);
         }
