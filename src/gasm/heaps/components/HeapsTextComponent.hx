@@ -89,7 +89,11 @@ class HeapsTextComponent extends HeapsSpriteComponent {
             _outlineMargin += outline.radius;
             filters.push(new Glow(outline.color, outline.alpha, outline.radius, outline.gain, outline.quality, true));
         }
-        textField.x = textField.y = _outlineMargin;
+        if(_config.align == 'left') {
+            textField.x = textField.y = _outlineMargin;
+        } else if(_config.align == 'right') {
+            textField.x = textField.y = textField.textWidth - _outlineMargin;
+        }
         textField.filter = new h2d.filter.Group(filters);
     }
 
@@ -105,7 +109,7 @@ class HeapsTextComponent extends HeapsSpriteComponent {
         var tile = Tile.fromTexture(tex);
         _bitmap = new Bitmap(tile);
         _holder.visible = false;
-        sprite.addChild(bm);
+        sprite.addChild(_bitmap);
     }
 
     override public function update(delta:Float) {
