@@ -26,6 +26,6 @@ class ScalingTextField extends h2d.Text {
         var tile = Tile.fromTexture(tex);
         var bm = new Bitmap(tile);
 
-        return bm;
+        return bm; 
     }
 }
