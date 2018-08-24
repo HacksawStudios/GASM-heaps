@@ -102,7 +102,7 @@ class HeapsTextComponent extends HeapsSpriteComponent {
             _bitmap.remove();
         }
         _holder.visible = true;
-        var tex = new Texture(Std.int(sprite.getSize().xMax + _outlineMargin) , Std.int(sprite.getSize().yMax + _outlineMargin), [TextureFlags.Target]);
+        var tex = new Texture(Std.int(sprite.getSize().width + _outlineMargin) , Std.int(sprite.getSize().height + _outlineMargin), [TextureFlags.Target]);
         cast(_appModel.stage, h2d.Scene).addChild(_holder);
         _holder.drawTo(tex);
         cast(_appModel.stage, h2d.Scene).removeChild(_holder);
