@@ -89,6 +89,13 @@ class HeapsTextComponent extends HeapsSpriteComponent {
             _bitmap.remove();
         }
         _holder.visible = true;
+        var bounds = textField.getBounds();
+        var xOff = switch(_config.align) {
+            case 'center': bounds.width / 2;
+            case 'right': bounds.width;
+            default: 0;
+        }
+        textField.x = xOff;
         var tex = new Texture(Std.int(_holder.getBounds().width) , Std.int(_holder.getSize().height), [TextureFlags.Target]);
         cast(_appModel.stage, h2d.Scene).addChild(_holder);
         _holder.drawTo(tex);
