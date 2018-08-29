@@ -30,23 +30,36 @@ class HeapsTextComponent extends HeapsSpriteComponent {
     var _textModel:TextModelComponent;
     var _lastW:Float;
     var _lastH:Float;
-    var _outlineMargin = 0.0;
     var _holder:Sprite;
     var _bitmap:Bitmap;
 
     public function new(config:TextConfig) {
         super(new Sprite());
-        _font = cast(config.font, h2d.Font);
         _holder = new Sprite(sprite);
-        textField = new ScalingTextField(_font, _holder);
-        var scale = config.size / _font.size;
-        textField.scale(scale);
-        textField.smooth = true;
         componentType = ComponentType.Text;
         _text = config.text != null ? config.text : '';
         config.scaleToFit = config.scaleToFit == null ? true : config.scaleToFit;
         config.letterSpacing = config.letterSpacing == null ? 0 : config.letterSpacing;
         _config = config;
+    }
+
+    override public function setup() {
+        super.setup();
+        _font = cast(_config.font, h2d.Font);
+        textField = new ScalingTextField(_font, _holder);
+        var scale = _config.size / _font.size;
+        textField.scale(scale);
+        textField.smooth = true;
+        textField.letterSpacing = _config.letterSpacing != null ? _config.letterSpacing : 0;
+        textField.textAlign = switch(_config.align) {
+            case 'left': Align.Left;
+            case 'right': Align.Right;
+            default: Align.Center;
+        };
+
+        if(_config.filters != null) {
+           sprite.filter = new h2d.filter.Group(cast _config.filters);
+        }
     }
 
     override public function init() {
@@ -55,46 +68,20 @@ class HeapsTextComponent extends HeapsSpriteComponent {
         _textModel.font = _config.font;
         _textModel.size = _config.size;
         _textModel.color = textField.textColor = _config.color;
-        textField.textAlign = switch(_config.align) {
-            case 'left': Align.Left;
-            case 'right': Align.Right;
-            default: Align.Center;
-        };
         textField.text = _textModel.text = _text;
-        if(_config.filters != null) {
-           _holder.filter = new h2d.filter.Group(cast _config.filters);
+        if(_config.scaleToFit){
+            textField.scaleToFit(_config.width);
         }
         
-        textField.letterSpacing = _config.letterSpacing != null ? _config.letterSpacing : 0;
-        var w = textField.getSize().width;
-        var h = textField.getSize().height;
+        var w = textField.getBounds().width;
+        var h = textField.getBounds().height;
         if (w > 0) {
             _textModel.width = w;
             _textModel.height = h;
         }
-        if(_config.scaleToFit){
-            textField.scaleToFit(_config.width);
-        }
-        if(_config.outlines != null && _config.outlines.length > 0) {
-            outline(cast _config.outlines);
-        }
         if(_config.bitmap) {
             toBitmap();
         }
-    }
-
-    function outline(outlines:Array<TextOutlineConfig>) {
-        var filters:Array<h2d.filter.Filter> = [];
-        for (outline in outlines) {
-            _outlineMargin += outline.radius;
-            filters.push(new Glow(outline.color, outline.alpha, outline.radius, outline.gain, outline.quality, true));
-        }
-        if(_config.align == 'left') {
-            textField.x = textField.y = _outlineMargin;
-        } else if(_config.align == 'right') {
-            textField.x = textField.y = textField.textWidth - _outlineMargin;
-        }
-        textField.filter = new h2d.filter.Group(filters);
     }
 
     function toBitmap() {
@@ -102,14 +89,14 @@ class HeapsTextComponent extends HeapsSpriteComponent {
             _bitmap.remove();
         }
         _holder.visible = true;
-        var tex = new Texture(Std.int(sprite.getSize().width + _outlineMargin) , Std.int(sprite.getSize().height + _outlineMargin), [TextureFlags.Target]);
+        var tex = new Texture(Std.int(_holder.getBounds().width) , Std.int(_holder.getSize().height), [TextureFlags.Target]);
         cast(_appModel.stage, h2d.Scene).addChild(_holder);
         _holder.drawTo(tex);
+        _holder.visible = false;
         cast(_appModel.stage, h2d.Scene).removeChild(_holder);
         var tile = Tile.fromTexture(tex);
         _bitmap = new Bitmap(tile);
-        _holder.visible = false;
-        sprite.addChild(_bitmap);
+        sprite.addChild(_bitmap); 
     }
 
     override public function update(delta:Float) {
@@ -132,8 +119,8 @@ class HeapsTextComponent extends HeapsSpriteComponent {
         if (_config.color != _textModel.color) {
             textField.textColor = _config.color = _textModel.color;
         }
-        textField.x = _textModel.x + _textModel.offsetX;
-        textField.y = _textModel.y + _textModel.offsetY;
+        sprite.x = _textModel.x + _textModel.offsetX;
+        sprite.y = _textModel.y + _textModel.offsetY;
         var w = textField.getBounds().width;
         var h = textField.getBounds().height;
         if (w != _lastW) {
@@ -154,12 +141,4 @@ class HeapsTextComponent extends HeapsSpriteComponent {
             }
         }
     }
-}
-
-class TextOutlineConfig implements DataClass {
-    public var color:Int = 0x00000000;
-    public var alpha:Float = 1.0;
-    public var radius:Float = 1.0;
-    public var gain:Float = 1.0;
-    public var quality:Float = 1.0;
 }
