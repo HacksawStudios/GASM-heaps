@@ -44,7 +44,7 @@ class HeapsRenderingSystem extends System implements ISystem {
                         model.origWidth = size.width;
                         model.origHeight = size.height;
                     case ComponentType.Text:
-                        var child = cast(comp, HeapsTextComponent).textField;
+                        var child = cast(comp, HeapsTextComponent).sprite;
                         if (parent != null && parent != comp) {
                             parent.sprite.addChild(child);
                         } else {
