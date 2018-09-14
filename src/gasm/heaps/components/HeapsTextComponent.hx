@@ -103,7 +103,6 @@ class HeapsTextComponent extends HeapsSpriteComponent {
         cast(_appModel.stage, h2d.Scene).removeChild(_holder);
         var tile = Tile.fromTexture(tex);
         _bitmap = new Bitmap(tile);
-        _bitmap.blendMode = h3d.mat.BlendMode.AlphaAdd;
         _bitmap.x = -xOff;
         sprite.addChild(_bitmap); 
     }
