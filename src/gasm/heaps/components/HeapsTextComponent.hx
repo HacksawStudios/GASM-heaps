@@ -79,7 +79,7 @@ class HeapsTextComponent extends HeapsSpriteComponent {
             _textModel.width = w;
             _textModel.height = h;
         }
-        if(_config.bitmap) {
+        if(_config.cacheFiltersAsBitmap) {
             toBitmap();
         }
     }
@@ -144,7 +144,7 @@ class HeapsTextComponent extends HeapsSpriteComponent {
             if(_config.scaleToFit){
                 textField.scaleToFit(_textModel.width);
             }
-            if(_config.bitmap) {
+            if(_config.cacheFiltersAsBitmap) {
                 toBitmap();
             }
         }
