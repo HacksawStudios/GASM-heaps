@@ -51,6 +51,7 @@ class HeapsTextComponent extends HeapsSpriteComponent {
         textField.scale(scale);
         textField.smooth = true;
         textField.letterSpacing = _config.letterSpacing != null ? _config.letterSpacing : 0;
+        textField.rotation = _config.rotation != null ? _config.rotation : 0.0;
         textField.textAlign = switch(_config.align) {
             case 'left': Align.Left;
             case 'right': Align.Right;
