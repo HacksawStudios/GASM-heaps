@@ -97,6 +97,9 @@ class HeapsContext extends App implements Context {
 			for (atlas in Type.getClassFields(_assetContainers.atlases)) {
 				loader.queueItem(atlas, AssetType.Atlas);
 			}
+			for (gradient in Type.getClassFields(_assetContainers.gradients)) {
+				loader.queueItem(gradient, AssetType.Gradient);
+			}
 			for (config in Reflect.fields(_assetContainers.brandingConfigs)) {
 				loader.queueItem(config, AssetType.Config);
 			}
@@ -165,6 +168,10 @@ class HeapsContext extends App implements Context {
 			} else {
 				atlases.set(item.id, item.data);
 			}
+		});
+		loader.addHandler(AssetType.Gradient, function(item:HandlerItem) {
+			var grd = hxd.res.Any.fromBytes('${item.path}', item.data).to(hxd.res.Gradients);
+			Reflect.setField(_assetContainers.gradients, item.id, grd);
 		});
 
 		loader.addHandler(AssetType.AtlasImage, function(item:HandlerItem) {
@@ -378,6 +385,7 @@ typedef AssetContainers = {
 	?fonts:haxe.ds.StringMap<hxd.res.Font>,
 	?bitmapFonts:Dynamic,
 	?atlases:Dynamic,
+	?gradients:Dynamic,
 	?configs:Dynamic,
 	?brandingConfigs:BrandingConfigs,
 }
