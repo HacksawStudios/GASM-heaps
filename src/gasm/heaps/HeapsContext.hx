@@ -1,6 +1,5 @@
 package gasm.heaps;
 
-import hacksaw.core.data.GameConfig;
 import tweenx909.TweenX;
 import hxd.Charset;
 import gasm.assets.Loader.AssetType;
@@ -128,11 +127,7 @@ class HeapsContext extends App implements Context {
 		});
 
 		loader.addHandler(AssetType.Font, function(item:HandlerItem) {
-			#if (heaps > "1.1.0")
 			var fnt = hxd.res.Any.fromBytes('font/${item.id}', item.data).to(hxd.res.Font);
-			#else
-			var fnt = hxd.res.Any.fromBytes('font/${item.id}', item.data).toFont();
-			#end
 			if (fnt != null) {
 				_assetContainers.fonts.set(item.id, fnt);
 			} else {
@@ -229,7 +224,7 @@ class HeapsContext extends App implements Context {
 	}
 
 	override function onResize() {
-		var stage = hxd.Stage.getInstance();
+		var stage = hxd.Window.getInstance();
 		appModel.stageSize.x = stage.width;
 		appModel.stageSize.y = stage.height;
 		appModel.resizeSignal.emit({width: appModel.stageSize.x, height: appModel.stageSize.y});
@@ -329,7 +324,7 @@ class HeapsContext extends App implements Context {
 	@:access(h2d.Font)
 	function parseFont(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):h2d.Font {
 		// Taken from https://github.com/HeapsIO/heaps/blob/master/hxd/res/BitmapFont.hx since there seems to be no way to parse bitmap font without using heaps resrouce system directly.
-		var xml = new haxe.xml.Fast(Xml.parse(definition.toString()).firstElement());
+		var xml = new haxe.xml.Access(Xml.parse(definition.toString()).firstElement());
 		var tile = hxd.res.Any.fromBytes('font/$id', image).toTile();
 		var glyphs = new Map();
 		var size = Std.parseInt(xml.att.size);
