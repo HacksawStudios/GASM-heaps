@@ -228,13 +228,21 @@ class HeapsContext extends App implements Context {
 		var stage = hxd.Window.getInstance();
 		appModel.stageSize.x = stage.width;
 		appModel.stageSize.y = stage.height;
+		appModel.freezeSignal.connect(frozen -> {
+			if (frozen) {
+				hxd.System.setLoop(null);
+				_engine.pause();
+			} else {
+				hxd.Timer.reset();
+				hxd.System.setLoop(mainLoop);
+				_engine.resume();
+			}
+		});
 		appModel.resizeSignal.emit({width: appModel.stageSize.x, height: appModel.stageSize.y});
 	}
 
 	override function update(dt:Float) {
-		if (!appModel.frozen) {
-			_engine.tick();
-		}
+		_engine.tick();
 	}
 
 	function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Atlas {
