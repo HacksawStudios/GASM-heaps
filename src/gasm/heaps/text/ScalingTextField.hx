@@ -1,6 +1,5 @@
 package gasm.heaps.text;
 
-import h2d.col.Bounds;
 import h2d.Tile;
 import h2d.Bitmap;
 import h3d.mat.Data.TextureFlags;
@@ -9,23 +8,25 @@ import h3d.mat.Texture;
 class ScalingTextField extends h2d.Text {
 	public var currSize(default, null):{w:Float, h:Float};
 
+	var _origSize:Int;
+	var _size:Int;
+
 	public function new(font:h2d.Font, ?parent) {
-		super(font, parent);
+		_origSize = _size = font.size;
+		var f = font.clone();
+		f.tile.innerTex.preventAutoDispose();
+		super(f, parent);
 	}
 
 	public inline function scaleToFit(w:Float) {
 		var actualW = calcTextWidth(text);
-		var i = 0;
-		var size = font.size;
-		var origSize = font.size;
-		while (actualW > w && i < 150) {
-			size--;
+		var scale = w / actualW;
+		var size = Std.int(Math.min(_origSize, Std.int(_origSize * scale)));
+		if (size != _size) {
 			font.resizeTo(size);
-			i++;
-			actualW = calcTextWidth(text);
+			_size = size;
 		}
-		var scaleRatio = size / origSize;
-		currSize = {w: getBounds().width / scaleRatio, h: getBounds().height / scaleRatio};
+		currSize = {w: getBounds().width, h: getBounds().height};
 	}
 
 	public inline function toBitmap(?marginX:Int = 0, ?marginY:Int = 0):Bitmap {
