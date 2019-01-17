@@ -22,6 +22,7 @@ class HeapsRenderingSystem extends System implements ISystem {
 		this.root = root;
 		type = SystemType.RENDERING;
 		componentFlags.set(ComponentType.Graphics);
+		componentFlags.set(ComponentType.Graphics3D);
 		componentFlags.set(ComponentType.Text);
 	}
 
