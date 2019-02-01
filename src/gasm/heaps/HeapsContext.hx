@@ -229,6 +229,7 @@ class HeapsContext extends App implements Context {
 		appModel.stageSize.x = stage.width;
 		appModel.stageSize.y = stage.height;
 		appModel.freezeSignal.connect(frozen -> {
+			appModel.frozen = frozen;
 			if (frozen) {
 				hxd.System.setLoop(null);
 				_engine.pause();
