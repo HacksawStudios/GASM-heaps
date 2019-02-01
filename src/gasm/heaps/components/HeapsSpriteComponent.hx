@@ -54,13 +54,8 @@ class HeapsSpriteComponent extends Component {
 			_model.width = w;
 			_model.height = h;
 		}
-		// TODO: Implement mask support
-		/*
-			var mask:Mask = _model.mask;
-			if (mask != null) {
-				sprite.addChild(mask);
-				sprite.mask = mask;
-		}*/
+		_model.xScale = sprite.scaleX;
+		_model.yScale = sprite.scaleY;
 		_stage = hxd.Window.getInstance();
 		if (_interactive != null) {
 			addEventListeners();
@@ -79,6 +74,7 @@ class HeapsSpriteComponent extends Component {
 				}
 				sprite.x = _model.x + _model.offsetX;
 				sprite.y = _model.y + _model.offsetY;
+				sprite.alpha = _model.alpha;
 				sprite.scaleX = _model.xScale;
 				sprite.scaleY = _model.yScale;
 				if (_interactive != null) {
@@ -95,8 +91,10 @@ class HeapsSpriteComponent extends Component {
 
 	override public function dispose() {
 		removeEventListeners();
-		_model.dispose();
-		_model = null;
+		if (_model != null) {
+			owner.remove(_model);
+			_model = null;
+		}
 		if (sprite.parent != null) {
 			sprite.parent.removeChild(sprite);
 		}
