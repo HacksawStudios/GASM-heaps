@@ -1,11 +1,9 @@
 package gasm.heaps.components;
 
-import gasm.core.Component;
 import gasm.heaps.text.ScalingTextField;
 import h2d.Tile;
 import h2d.Bitmap;
 import h2d.Object;
-import h2d.filter.Glow;
 import h3d.mat.Texture;
 import h3d.mat.Data.TextureFlags;
 import gasm.core.data.TextConfig;
@@ -46,10 +44,9 @@ class HeapsTextComponent extends HeapsSpriteComponent {
 		super.setup();
 		_font = cast(_config.font, h2d.Font);
 		textField = new ScalingTextField(_font, _holder);
-		var scale = _config.size / _font.size;
-		textField.scale(scale);
 		textField.smooth = true;
 		textField.letterSpacing = _config.letterSpacing != null ? _config.letterSpacing : 0;
+		textField.lineSpacing = _config.lineSpacing != null ? _config.lineSpacing : 0;
 		textField.rotation = _config.rotation != null ? _config.rotation : 0.0;
 		textField.textAlign = switch (_config.align) {
 			case 'left': Align.Left;
@@ -65,8 +62,8 @@ class HeapsTextComponent extends HeapsSpriteComponent {
 	override public function init() {
 		super.init();
 		_textModel = owner.get(TextModelComponent);
-		_textModel.font = _config.font;
-		_textModel.size = _config.size;
+		_textModel.font = _font.name;
+		_textModel.size = _font.size;
 		_textModel.color = textField.textColor = _config.color;
 		textField.text = _textModel.text = _text;
 		if (_config.scaleToFit) {
@@ -91,9 +88,9 @@ class HeapsTextComponent extends HeapsSpriteComponent {
 		_holder.visible = true;
 		var bounds = textField.getBounds();
 		var xOff = switch (_config.align) {
-			case 'center': bounds.width / 2;
+			case 'left': 0;
 			case 'right': bounds.width;
-			default: 0;
+			default: bounds.width / 2;
 		}
 		textField.x = xOff;
 		var tex = new Texture(Std.int(_holder.getBounds().width), Std.int(_holder.getSize().height), [TextureFlags.Target]);
@@ -103,7 +100,6 @@ class HeapsTextComponent extends HeapsSpriteComponent {
 		cast(_appModel.stage, h2d.Scene).removeChild(_holder);
 		var tile = Tile.fromTexture(tex);
 		_bitmap = new Bitmap(tile);
-		_bitmap.x = -xOff;
 		sprite.addChild(_bitmap);
 	}
 
@@ -114,14 +110,9 @@ class HeapsTextComponent extends HeapsSpriteComponent {
 			textChanged = true;
 		}
 		var formatChanged = false;
-		if (_config.font != _textModel.font || _config.size != _textModel.size) {
+		if (_font.name != _textModel.font || _font.size != _textModel.size) {
 			_config.font = _textModel.font;
-			_config.size = _textModel.size;
-			#if (heaps > "1.1.0")
-			textField.font = Res.load(_config.font).to(hxd.res.Font).build(_config.size);
-			#else
-			textField.font = Res.load(_config.font).toFont().build(_config.size);
-			#end
+			_font.resizeTo(_textModel.size);
 			formatChanged = true;
 		}
 		if (_config.color != _textModel.color) {
