@@ -8,9 +8,9 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@hacksawstudios/gitlab-ci-releaser": "^1.5.9",
-    "@hacksawstudios/haxe-module-installer": "^1.0.5",
-    "fs-extra": "^5.0.0"
+    "@hacksawstudios/gitlab-ci-releaser": "2.0.1",
+    "@hacksawstudios/haxe-module-installer": "1.0.7",
+    "fs-extra": "^7.0.1"
   },
   "scripts": {
     "postinstall": "node_modules/.bin/haxe-module-installer",
@@ -18,12 +18,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@gitlab.com/hacksawgaming/GASM-heaps.git"
+    "url": "git+ssh://git@gitlab.hacksawstudios.com:gameclient/client-common/GASM-heaps.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://gitlab.com/hacksawgaming/GASM-heaps/issues"
+    "url": "https://gitlab.hacksawstudios.com/gameclient/client-common/GASM-heaps/issues"
   },
-  "homepage": "https://gitlab.com/hacksawgaming/GASM-heaps#README"
+  "homepage": "https://gitlab.hacksawstudios.com/gameclient/client-common/GASM-heaps"
 }
