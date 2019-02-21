@@ -28,40 +28,32 @@ class HeapsRenderingSystem extends System implements ISystem {
 
 	public function update(comp:Component, delta:Float) {
 		if (!comp.inited) {
-			comp.inited = true;
-			comp.init();
-			var model:SpriteModelComponent = comp.owner.get(SpriteModelComponent);
-			if (comp.owner.parent != null) {
-				var parent:HeapsSpriteComponent = comp.owner.parent.get(HeapsSpriteComponent);
-				switch (comp.componentType) {
-					case ComponentType.Graphics:
-						var child = cast(comp, HeapsSpriteComponent).sprite;
-						if (parent != null && parent != comp) {
-							parent.sprite.addChild(child);
-						} else {
-							root.addChild(child);
+			switch comp.componentType {
+				case Graphics, Text:
+						var model:SpriteModelComponent = comp.owner.get(SpriteModelComponent);
+						var child:HeapsSpriteComponent = cast comp;
+						if (comp.owner.parent != null) {
+							var parent:HeapsSpriteComponent = comp.owner.parent.get(HeapsSpriteComponent);
+							if (parent != null && parent != comp) {
+								parent.sprite.addChild(child.sprite);
+							} else {
+								root.addChild(child.sprite);
+							}
+						} else if (Std.is(comp, HeapsSpriteComponent)) {
+							// This is the root sprite, so flag it as such instead of adding
+							var spc:HeapsSpriteComponent = cast comp;
+							spc.root = true;
 						}
-						var size = child.getSize();
+						comp.inited = true;
+						comp.init();
+
+						var size = child.sprite.getSize();
 						model.origWidth = size.width;
 						model.origHeight = size.height;
-					case ComponentType.Text:
-						var child = cast(comp, HeapsTextComponent).sprite;
-						if (parent != null && parent != comp) {
-							parent.sprite.addChild(child);
-						} else {
-							root.addChild(child);
-						}
-						var size = child.getSize();
-						model.origWidth = size.width;
-						model.origHeight = size.height;
-					default:
-				}
-			} else if (Std.is(comp, HeapsSpriteComponent)) {
-				var spc:HeapsSpriteComponent = cast comp;
-				spc.root = true;
-				var size = spc.sprite.getSize();
-				model.origWidth = size.width;
-				model.origHeight = size.height;
+				default: 
+					// TODO: Add functionality for Graphics3D. Right now they just work as an actor, and for example getting camera or parent object will not work
+					comp.inited = true;
+					comp.init();
 			}
 		}
 		comp.update(delta);

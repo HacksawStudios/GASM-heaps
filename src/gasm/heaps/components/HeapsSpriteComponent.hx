@@ -60,7 +60,6 @@ class HeapsSpriteComponent extends Component {
 		if (_interactive != null) {
 			addEventListeners();
 		}
-		onResize();
 	}
 
 	override public function update(dt:Float) {
@@ -140,10 +139,6 @@ class HeapsSpriteComponent extends Component {
 	function onDrag(event:IEvent) {
 		var stage = hxd.Window.getInstance();
 		_model.triggerEvent(EventType.DRAG, {x: _appModel.stageMouseX, y: _appModel.stageMouseY}, owner);
-	}
-
-	function onResize(?event:Event) {
-		// _model.triggerEvent(EventType.RESIZE, { x:_stage.width, y:_stage.height}, owner);
 	}
 
 	function stopDrag() {
