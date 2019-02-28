@@ -1,5 +1,6 @@
 package gasm.heaps;
 
+import h2d.Tile;
 import tweenx909.TweenX;
 import hxd.Charset;
 import gasm.assets.Loader.AssetType;
@@ -267,6 +268,7 @@ class HeapsContext extends App implements Context {
 					continue;
 				var key = line;
 				var tileX = 0, tileY = 0, tileW = 0, tileH = 0, tileDX = 0, tileDY = 0, origW = 0, origH = 0, index = 0;
+				var scale9Tiles:Scale9 = null;
 				while (lines.length > 0) {
 					var line = StringTools.trim(lines.shift());
 					var prop = line.split(": ");
@@ -299,6 +301,27 @@ class HeapsContext extends App implements Context {
 							index = Std.parseInt(v);
 							if (index < 0)
 								index = 0;
+						case "split":
+							var vals = v.split(", ").map(val -> Std.parseInt(val));
+							var lw = vals[0];
+							var rw = vals[1];
+							var mw = tileW - (lw + rw);
+							var th = vals[2];
+							var bh = vals[3];
+							var mh = tileH - (th + bh);
+							scale9Tiles = {
+								tl: file.sub(tileX, tileY, lw, th, tileDX, tileDY),
+								tm: file.sub(tileX + lw, tileY, mw, th, tileDX, tileDY),
+								tr: file.sub(tileX + lw + mw, tileY, rw, th, tileDX, tileDY),
+								ml: file.sub(tileX, tileY + th, lw, mh, tileDX, tileDY),
+								mm: file.sub(tileX + lw, tileY + th, mw, mh, tileDX, tileDY),
+								mr: file.sub(tileX + lw + mw, tileY + th, rw, mh, tileDX, tileDY),
+								bl: file.sub(tileX, tileY + th + mh, lw, bh, tileDX, tileDY),
+								bm: file.sub(tileX + lw, tileY + th + mh, mw, bh, tileDX, tileDY),
+								br: file.sub(tileX + lw + mw, tileY + th + mh, rw, bh, tileDX, tileDY),
+							};
+						case "pad":
+						// Represents scale9 with padding instead, already done what's needed in split
 						default:
 							trace("Unknown prop " + prop[0]);
 					}
@@ -312,7 +335,12 @@ class HeapsContext extends App implements Context {
 					tl = [];
 					atlas.contents.set(key, tl);
 				}
-				tl[index] = {t: t, width: origW, height: origH};
+				tl[index] = {
+					t: t,
+					width: origW,
+					height: origH,
+					scale9: scale9Tiles
+				};
 			}
 		}
 
@@ -364,7 +392,7 @@ class HeapsContext extends App implements Context {
 		var padding = 0;
 		var space = glyphs.get(" ".code);
 		if (space != null)
-			padding = (space.t.height >> 1);
+			padding = (Std.int(space.t.height) >> 1);
 
 		var a = glyphs.get("A".code);
 		if (a == null)
