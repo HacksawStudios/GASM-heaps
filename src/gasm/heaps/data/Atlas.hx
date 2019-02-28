@@ -1,7 +1,28 @@
 package gasm.heaps.data;
 
+import h2d.Tile;
+
 typedef Atlas = {
-    tile:h2d.Tile, 
-    contents:Map<String, Array<{width:Int, height:Int, t:h2d.Tile}>>, 
-    tiles:Array<h2d.Tile>
+	tile:Tile,
+	contents:Map<String, Array<AtlasContents>>,
+	tiles:Array<Tile>
 };
+
+typedef AtlasContents = {
+	width:Int,
+	height:Int,
+	t:Tile,
+	?scale9:Scale9
+};
+
+typedef Scale9 = {
+	tl:Tile,
+	tm:Tile,
+	tr:Tile,
+	ml:Tile,
+	mm:Tile,
+	mr:Tile,
+	bl:Tile,
+	bm:Tile,
+	br:Tile,
+}
