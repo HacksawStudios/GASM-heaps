@@ -271,9 +271,6 @@ class HeapsContext extends App implements Context {
 
 	override function update(dt:Float) {
 		_engine.tick();
-		if (appModel.customUpdateCallback != null) {
-			appModel.customUpdateCallback(dt);
-		}
 	}
 
 	function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Atlas {
