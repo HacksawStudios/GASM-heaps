@@ -64,9 +64,8 @@ class HeapsRenderingSystem extends System implements ISystem {
 						// parent has no sprite component. means, we are root
 						if (parentSpriteComponent == null) {
 							spriteComponent.root = true;
-						}
-						// else, we make sure we parent
-						else {
+						} else {
+							// else, we make sure we parent
 							parentSpriteComponent.sprite.addChild(spriteComponent.sprite);
 						}
 					}
