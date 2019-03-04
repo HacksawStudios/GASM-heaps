@@ -12,10 +12,14 @@ import gasm.core.Entity;
 import gasm.core.IEngine;
 import gasm.core.ISystem;
 import gasm.heaps.components.HeapsSpriteComponent;
+import gasm.heaps.components.HeapsSceneComponent;
+import gasm.heaps.components.HeapsScene2DComponent;
+import gasm.heaps.components.HeapsScene3DComponent;
 import gasm.heaps.systems.HeapsCoreSystem;
 import gasm.heaps.systems.HeapsRenderingSystem;
 import gasm.heaps.systems.HeapsSoundSystem;
 import gasm.heaps.data.Atlas;
+import haxe.ds.StringMap;
 import hxd.App;
 
 /**
@@ -26,6 +30,7 @@ class HeapsContext extends App implements Context {
 	public var baseEntity(get, null):Entity;
 	public var systems(default, null):Array<ISystem>;
 	public var appModel(default, null):AppModelComponent;
+	public var sceneEntityMap = new StringMap<Entity>();
 
 	var _engine:IEngine;
 	var _core:ISystem;
@@ -45,6 +50,30 @@ class HeapsContext extends App implements Context {
 
 		appModel = new AppModelComponent();
 		_assetConfig = {};
+	}
+
+	public function addSceneEntity(name:String, is3D = false, useDefaultScene = false) {
+		// Create a scene with matching name for base entity
+		// or just pass the s2d if needed.
+		var scene:Any;
+		if (!useDefaultScene) {
+			scene = cast(_renderer, HeapsRenderingSystem).addScene(name, is3D);
+			// make sure the new scene recieves events.
+			sevents.addScene(cast(scene, hxd.SceneEvents.InteractiveScene));
+		} else {
+			scene = (is3D) ? s3d : s2d;
+		}
+		// create a scene entity
+		var entity = new Entity(name);
+		if (is3D) {
+			entity.add(new HeapsScene3DComponent(scene));
+		} else {
+			entity.add(new HeapsScene2DComponent(scene));
+			entity.add(new HeapsSpriteComponent(cast(scene, h2d.Scene)));
+		}
+		sceneEntityMap.set(name, entity);
+		baseEntity.addChild(entity);
+		return entity;
 	}
 
 	public function preload(progress:Int->Void, done:Void->Void) {
@@ -219,8 +248,6 @@ class HeapsContext extends App implements Context {
 		appModel.frozen = Reflect.field(js.Browser.document, hidden);
 		#end
 
-		var comp = new HeapsSpriteComponent(cast s2d);
-		baseEntity.add(comp);
 		baseEntity.add(appModel);
 		onResize();
 	}

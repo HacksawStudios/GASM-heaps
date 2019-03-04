@@ -59,6 +59,8 @@ class HeapsSpriteComponent extends Component {
 		_stage = hxd.Window.getInstance();
 		if (_interactive != null) {
 			addEventListeners();
+			_interactive.width = w;
+			_interactive.height = h;
 		}
 	}
 
