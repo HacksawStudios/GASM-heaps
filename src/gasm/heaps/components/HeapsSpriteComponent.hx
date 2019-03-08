@@ -193,10 +193,3 @@ class HeapsSpriteComponent extends Component {
 		return val;
 	}
 }
-
-typedef SpriteProps = {
-	x:Float,
-	y:Float,
-	width:Float,
-	height:Float,
-}

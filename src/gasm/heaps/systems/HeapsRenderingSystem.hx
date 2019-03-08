@@ -7,8 +7,10 @@ import gasm.core.Component;
 import gasm.core.enums.SystemType;
 import gasm.core.ISystem;
 import gasm.core.System;
+import gasm.core.utils.Assert;
+import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.HeapsSpriteComponent;
-import gasm.heaps.components.HeapsSceneComponent;
+import gasm.heaps.components.HeapsSceneBase;
 import gasm.heaps.components.HeapsScene2DComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
 import haxe.ds.StringMap;
@@ -19,7 +21,6 @@ import haxe.ds.StringMap;
  */
 class HeapsRenderingSystem extends System implements ISystem {
 	public var root(default, null):h2d.Scene;
-	public var sceneMap = new StringMap<Any>();
 
 	public function new(root:h2d.Scene) {
 		super();
@@ -30,55 +31,61 @@ class HeapsRenderingSystem extends System implements ISystem {
 		componentFlags.set(ComponentType.Text);
 	}
 
-	public function addScene(name:String, is3D = false) {
-		var scene:Any;
-		if (!is3D) {
-			var scene2d = new h2d.Scene();
-			// if we don't do this. all is blocky.
-			scene2d.defaultSmooth = true;
-			scene = scene2d;
-		} else {
-			scene = new h3d.scene.Scene();
-		}
-		sceneMap.set(name, scene);
-		return scene;
-	}
-
 	public function update(comp:Component, delta:Float) {
 		if (!comp.inited) {
+			// For all types or display components add them to display graph
 			switch comp.componentType {
 				case Graphics, Text:
-					var model = comp.owner.get(SpriteModelComponent);
-
-					// find scenecomponent in tree. if not found, this is a spritecomponent on a baseEntity and this is not permitted
-					if (comp.owner.getFromParents(HeapsScene2DComponent) == null && comp.owner.get(HeapsScene2DComponent) == null) {
-						throw("You can't add a HeapsSpriteComponent on baseEntity");
-					}
-
+					// Find scenecomponent in tree, if not found this is a spritecomponent on a baseEntity and this is not permitted
+					Assert.that(comp.owner.getFromParents(HeapsSceneBase) != null, "You can't add a HeapsSpriteComponent on baseEntity");
 					var spriteComponent:HeapsSpriteComponent = cast comp;
 					var parentEntity = comp.owner.parent;
 					// If the entity has a parent,it can be either a scene or a sprite
-					// in case of root sprite, parent is baseEntity
+					// In case of root sprite, parent is baseEntity
 					if (parentEntity != null) {
-						var parentSpriteComponent:HeapsSpriteComponent = comp.owner.parent.get(HeapsSpriteComponent);
-						// parent has no sprite component. means, we are root
+						var parentSpriteComponent = comp.owner.parent.getFromParents(HeapsSpriteComponent);
 						if (parentSpriteComponent == null) {
+							// Parent has no sprite component, we are root
 							spriteComponent.root = true;
 						} else {
-							// else, we make sure we parent
+							// Else, add to parent
 							parentSpriteComponent.sprite.addChild(spriteComponent.sprite);
 						}
 					}
-					comp.inited = true;
-					comp.init();
+				case Graphics3D:
+					// Find scenecomponent in tree, if not found this is a 3d component on a baseEntity and this is not permitted
+					Assert.that(comp.owner.getFromParents(HeapsSceneBase) != null, "You can't add a Heaps3DComponent on baseEntity");
+					var component:Heaps3DComponent = cast comp;
+					var parentEntity = comp.owner.parent;
+					// If the entity has a parent,it can be either a scene or a sprite
+					// In case of root sprite, parent is baseEntity
+					if (parentEntity != null) {
+						var parentComponent = comp.owner.parent.getFromParents(Heaps3DComponent);
+						if (parentComponent == null) {
+							// Parent has no sprite component, we are root
+							component.root = true;
+						} else {
+							// Else, add to parent
+							parentComponent.object.addChild(component.object);
+						}
+					}
+				default:
+					null;
+			}
 
-					var size = spriteComponent.sprite.getSize();
+			// We have a parent, component ready to init
+			comp.inited = true;
+			comp.init();
+
+			// Component initialized, should be able to pick up original size to use when scaling
+			switch comp.componentType {
+				case Graphics, Text:
+					var model = comp.owner.get(SpriteModelComponent);
+					var size = cast(comp, HeapsSpriteComponent).sprite.getSize();
 					model.origWidth = size.width;
 					model.origHeight = size.height;
 				default:
-					// TODO: Add functionality for Graphics3D. Right now they just work as an actor, and for example getting camera or parent object will not work
-					comp.inited = true;
-					comp.init();
+					null;
 			}
 		}
 		comp.update(delta);

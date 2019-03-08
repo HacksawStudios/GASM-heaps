@@ -1,20 +1,25 @@
 package gasm.heaps;
 
+import hxd.SceneEvents;
+import hex.di.Injector;
 import h2d.Tile;
 import tweenx909.TweenX;
 import hxd.Charset;
 import gasm.assets.Loader.AssetType;
 import gasm.assets.Loader;
 import gasm.core.components.AppModelComponent;
+import gasm.core.components.SceneModelComponent;
 import gasm.core.Context;
 import gasm.core.Engine;
 import gasm.core.Entity;
 import gasm.core.IEngine;
 import gasm.core.ISystem;
+import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.HeapsSpriteComponent;
-import gasm.heaps.components.HeapsSceneComponent;
+import gasm.heaps.components.HeapsSceneBase;
 import gasm.heaps.components.HeapsScene2DComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
+import gasm.heaps.components.HeapsSceneModelComponent;
 import gasm.heaps.systems.HeapsCoreSystem;
 import gasm.heaps.systems.HeapsRenderingSystem;
 import gasm.heaps.systems.HeapsSoundSystem;
@@ -30,7 +35,7 @@ class HeapsContext extends App implements Context {
 	public var baseEntity(get, null):Entity;
 	public var systems(default, null):Array<ISystem>;
 	public var appModel(default, null):AppModelComponent;
-	public var sceneEntityMap = new StringMap<Entity>();
+	public var sceneModel(default, null):SceneModelComponent;
 
 	var _engine:IEngine;
 	var _core:ISystem;
@@ -40,6 +45,7 @@ class HeapsContext extends App implements Context {
 	var _assetContainers:AssetContainers;
 	var _assetConfig:AssetConfig;
 	var _soundSupport:Bool;
+	var _injector:Injector;
 
 	public function new(?core:ISystem, ?renderer:ISystem, ?sound:ISystem, ?engine:IEngine) {
 		_core = core;
@@ -52,33 +58,10 @@ class HeapsContext extends App implements Context {
 		_assetConfig = {};
 	}
 
-	public function addSceneEntity(name:String, is3D = false, useDefaultScene = false) {
-		// Create a scene with matching name for base entity
-		// or just pass the s2d if needed.
-		var scene:Any;
-		if (!useDefaultScene) {
-			scene = cast(_renderer, HeapsRenderingSystem).addScene(name, is3D);
-			// make sure the new scene recieves events.
-			sevents.addScene(cast(scene, hxd.SceneEvents.InteractiveScene));
-		} else {
-			scene = (is3D) ? s3d : s2d;
-		}
-		// create a scene entity
-		var entity = new Entity(name);
-		if (is3D) {
-			entity.add(new HeapsScene3DComponent(scene));
-		} else {
-			entity.add(new HeapsScene2DComponent(scene));
-			entity.add(new HeapsSpriteComponent(cast(scene, h2d.Scene)));
-		}
-		sceneEntityMap.set(name, entity);
-		baseEntity.addChild(entity);
-		return entity;
-	}
-
 	public function preload(progress:Int->Void, done:Void->Void) {
 		#if js
-		_soundSupport = (Reflect.field(js.Browser.window, "AudioContext") != null || Reflect.field(js.Browser.window, "webkitAudioContext") != null);
+		_soundSupport = (Reflect.field(js.Browser.window, "AudioContext") != null
+			|| Reflect.field(js.Browser.window, "webkitAudioContext") != null);
 		if (_soundSupport) {
 			var myAudio:js.html.AudioElement = cast js.Browser.document.createElement('audio');
 			if (myAudio.canPlayType != null) {
@@ -226,7 +209,7 @@ class HeapsContext extends App implements Context {
 		_sound = _sound != null ? _sound : new HeapsSoundSystem();
 		systems = [_core, _renderer, _sound];
 		_engine = _engine != null ? _engine : new Engine(systems);
-
+		mapInjections();
 		#if js
 		var hidden:String = null;
 		var visibilityChange:String = null;
@@ -247,7 +230,7 @@ class HeapsContext extends App implements Context {
 		js.Browser.document.addEventListener(visibilityChange, handleVisibilityChange, false);
 		appModel.frozen = Reflect.field(js.Browser.document, hidden);
 		#end
-
+		baseEntity.add(sceneModel);
 		baseEntity.add(appModel);
 		onResize();
 	}
@@ -272,6 +255,40 @@ class HeapsContext extends App implements Context {
 
 	override function update(dt:Float) {
 		_engine.tick();
+	}
+
+	override public function render(e:h3d.Engine) {
+		super.render(e);
+		var scenes = 0;
+		if (sceneModel != null) {
+			for (scene in sceneModel.scenes) {
+				var ent = scene.entity;
+				var comp2d = ent.get(HeapsScene2DComponent);
+				if (comp2d != null) {
+					comp2d.scene2d.render(engine);
+				}
+				var comp3d = ent.get(HeapsScene3DComponent);
+				if (comp3d != null) {
+					comp3d.scene3d.render(engine);
+				}
+				scenes++;
+			}
+		}
+		// If no scenes added, just render default s3d and s2d
+		if (scenes == 0) {
+			s3d.render(engine);
+			s2d.render(engine);
+		}
+	}
+
+	function mapInjections() {
+		_injector = new Injector();
+		sceneModel = new HeapsSceneModelComponent(_injector);
+		_injector.mapToValue(SceneEvents, sevents);
+		_injector.mapToValue(SceneModelComponent, sceneModel);
+		_injector.mapToValue(Entity, baseEntity);
+		_injector.mapToValue(AppModelComponent, appModel);
+		_injector.mapToValue(SceneModelComponent, sceneModel);
 	}
 
 	function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Atlas {
@@ -339,13 +356,20 @@ class HeapsContext extends App implements Context {
 							scale9Tiles = {
 								tl: file.sub(tileX, tileY, lw, th, tileDX, tileDY),
 								tm: file.sub(tileX + lw, tileY, mw, th, tileDX, tileDY),
-								tr: file.sub(tileX + lw + mw, tileY, rw, th, tileDX, tileDY),
-								ml: file.sub(tileX, tileY + th, lw, mh, tileDX, tileDY),
-								mm: file.sub(tileX + lw, tileY + th, mw, mh, tileDX, tileDY),
-								mr: file.sub(tileX + lw + mw, tileY + th, rw, mh, tileDX, tileDY),
-								bl: file.sub(tileX, tileY + th + mh, lw, bh, tileDX, tileDY),
-								bm: file.sub(tileX + lw, tileY + th + mh, mw, bh, tileDX, tileDY),
-								br: file.sub(tileX + lw + mw, tileY + th + mh, rw, bh, tileDX, tileDY),
+								tr: file.sub(tileX
+									+ lw + mw, tileY, rw, th, tileDX, tileDY),
+								ml: file.sub(tileX,
+									tileY + th, lw, mh, tileDX, tileDY),
+								mm: file.sub(tileX
+									+ lw, tileY + th, mw, mh, tileDX, tileDY),
+								mr: file.sub(tileX
+									+ lw + mw, tileY + th, rw, mh, tileDX, tileDY),
+								bl: file.sub(tileX,
+									tileY + th + mh, lw, bh, tileDX, tileDY),
+								bm: file.sub(tileX
+									+ lw, tileY + th + mh, mw, bh, tileDX, tileDY),
+								br: file.sub(tileX
+									+ lw + mw, tileY + th + mh, rw, bh, tileDX, tileDY),
 							};
 						case "pad":
 						// Represents scale9 with padding instead, already done what's needed in split
