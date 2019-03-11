@@ -1,6 +1,5 @@
 package gasm.heaps;
 
-import js.html.webgl.GL2;
 import h3d.impl.GlDriver;
 import hxd.SceneEvents;
 import hex.di.Injector;
