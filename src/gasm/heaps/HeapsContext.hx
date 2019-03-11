@@ -1,5 +1,7 @@
 package gasm.heaps;
 
+import js.html.webgl.GL2;
+import h3d.impl.GlDriver;
 import hxd.SceneEvents;
 import hex.di.Injector;
 import h2d.Tile;
@@ -279,16 +281,23 @@ class HeapsContext extends App implements Context {
 			s3d.render(engine);
 			s2d.render(engine);
 		}
+		// Workaround for issue with webgl 2 on Mali GPU:
+		// https://bugs.chromium.org/p/chromium/issues/detail?id=934823
+		var canvas:js.html.CanvasElement = cast js.Browser.document.getElementById('webgl');
+		var gl = canvas.getContext('webgl2');
+		if (gl != null) {
+			gl.bindVertexArray(null);
+		}
 	}
 
 	function mapInjections() {
 		_injector = new Injector();
 		sceneModel = new HeapsSceneModelComponent(_injector);
-		_injector.mapToValue(SceneEvents, sevents);
-		_injector.mapToValue(SceneModelComponent, sceneModel);
-		_injector.mapToValue(Entity, baseEntity);
-		_injector.mapToValue(AppModelComponent, appModel);
-		_injector.mapToValue(SceneModelComponent, sceneModel);
+		_injector.map(SceneEvents).toValue(sevents);
+		_injector.map(SceneModelComponent).toValue(sceneModel);
+		_injector.map(Entity).toValue(baseEntity);
+		_injector.map(AppModelComponent).toValue(appModel);
+		_injector.map(SceneModelComponent).toValue(sceneModel);
 	}
 
 	function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Atlas {
