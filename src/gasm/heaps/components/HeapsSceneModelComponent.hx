@@ -54,7 +54,7 @@ class HeapsSceneModelComponent extends SceneModelComponent {
 			var is = cast(anyScene, hxd.SceneEvents.InteractiveScene);
 			_sceneEvents.addScene(is, scene.layerIndex);
 		}
-		_injector.mapToValue(Entity, entity, scene.name);
+		_injector.map(Entity, scene.name).toValue(entity);
 		sceneMap.set(scene.name, anyScene);
 
 		baseEntity.addChild(entity);
