@@ -23,6 +23,9 @@ class Heaps3DViewportComponent extends Component {
 		cam.target = _config.cameraTarget;
 		cam.zNear = _config.zNear;
 		cam.zFar = _config.zFar;
+		if (_config.fov != null) {
+			cam.setFovX(_config.fov, cam.screenRatio);
+		}
 		_s3d.visible = false;
 	}
 
@@ -46,7 +49,11 @@ class Heaps3DViewportComponent extends Component {
 				var ratio = Math.min(wRatio, hRatio);
 				if (_scale != ratio) {
 					_s3d.setScale(ratio);
+					_s3d.camera.update();
 					_scale = ratio;
+					if (_config.fov != null) {
+						_s3d.camera.setFovX(_config.fov, ratio);
+					}
 				}
 				_hasBounds = true;
 			}
@@ -56,11 +63,12 @@ class Heaps3DViewportComponent extends Component {
 
 @:structInit
 class Heaps3DViewportConfig {
-	public var boundsObject:h3d.scene.Object = null;
+	public var boundsObject:h3d.scene.Object;
 	public var boundsMult = new Vector(1, 1, 1);
 	public var bounds2d:h2d.col.Bounds;
 	public var cameraPos = new Vector(2, 3, 4);
 	public var cameraTarget = new Vector(-.00001);
 	public var zNear = 1.;
 	public var zFar = 100.;
+	public var fov:Null<Float> = null;
 }
