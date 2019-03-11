@@ -41,9 +41,7 @@ class Heaps3DViewportComponent extends Component {
 				var w = _config.bounds2d.width / pixelRatio;
 				var h = _config.bounds2d.height / pixelRatio;
 				var wFactor = top / w;
-				// var wFactor = 0.002;
 				var hFactor = right / h;
-				// var hFactor = 0.15;
 				var wRatio = w * wFactor * _config.boundsMult.x;
 				var hRatio = h * hFactor * _config.boundsMult.y;
 				var ratio = Math.min(wRatio, hRatio);
