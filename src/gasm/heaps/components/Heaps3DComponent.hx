@@ -1,9 +1,9 @@
 package gasm.heaps.components;
 
-import h3d.Vector;
 import h3d.scene.Interactive;
 import h3d.col.ObjectCollider;
 import gasm.core.math.geom.Point;
+import gasm.core.math.geom.Vector;
 import gasm.core.Component;
 import gasm.core.components.ThreeDModelComponent;
 import gasm.core.enums.ComponentType;
