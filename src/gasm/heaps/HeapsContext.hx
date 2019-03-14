@@ -1,6 +1,5 @@
 package gasm.heaps;
 
-import h3d.impl.GlDriver;
 import hxd.SceneEvents;
 import hex.di.Injector;
 import h2d.Tile;
@@ -87,6 +86,7 @@ class HeapsContext extends App implements Context {
 				}
 			}
 		}
+		appModel.pixelRatio = js.Browser.window.devicePixelRatio;
 		#end
 		engine.render(this);
 		var bitmapFonts = new haxe.ds.StringMap<haxe.io.Bytes>();
@@ -259,33 +259,28 @@ class HeapsContext extends App implements Context {
 	}
 
 	override public function render(e:h3d.Engine) {
-		super.render(e);
-		var scenes = 0;
-		if (sceneModel != null) {
-			for (scene in sceneModel.scenes) {
-				var ent = scene.entity;
-				var comp2d = ent.get(HeapsScene2DComponent);
-				if (comp2d != null) {
-					comp2d.scene2d.render(engine);
+		if (appModel.customRenderCallback != null) {
+			appModel.customRenderCallback(engine);
+		} else {
+			var scenes = 0;
+			if (sceneModel != null) {
+				for (scene in sceneModel.scenes) {
+					var ent = scene.entity;
+					var comp2d = ent.get(HeapsScene2DComponent);
+					if (comp2d != null) {
+						comp2d.scene2d.render(engine);
+					}
+					var comp3d = ent.get(HeapsScene3DComponent);
+					if (comp3d != null) {
+						comp3d.scene3d.render(engine);
+					}
+					scenes++;
 				}
-				var comp3d = ent.get(HeapsScene3DComponent);
-				if (comp3d != null) {
-					comp3d.scene3d.render(engine);
-				}
-				scenes++;
 			}
-		}
-		// If no scenes added, just render default s3d and s2d
-		if (scenes == 0) {
-			s3d.render(engine);
-			s2d.render(engine);
-		}
-		// Workaround for issue with webgl 2 on Mali GPU:
-		// https://bugs.chromium.org/p/chromium/issues/detail?id=934823
-		var canvas:js.html.CanvasElement = cast js.Browser.document.getElementById('webgl');
-		var gl = canvas.getContext('webgl2');
-		if (gl != null) {
-			gl.bindVertexArray(null);
+			// If no scenes added, just render default s3d and s2d
+			if (scenes == 0) {
+				super.render(e);
+			}
 		}
 	}
 
