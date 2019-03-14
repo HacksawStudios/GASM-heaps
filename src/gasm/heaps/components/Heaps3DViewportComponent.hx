@@ -1,6 +1,7 @@
 package gasm.heaps.components;
 
 import gasm.core.Component;
+import gasm.core.components.AppModelComponent;
 import gasm.core.enums.ComponentType;
 import gasm.heaps.components.HeapsScene3DComponent;
 import h3d.Vector;
@@ -10,6 +11,7 @@ class Heaps3DViewportComponent extends Component {
 	var _scale:Float;
 	var _s3d:h3d.scene.Scene;
 	var _hasBounds = false;
+	var _appModel:AppModelComponent;
 
 	public function new(config:Heaps3DViewportConfig) {
 		_config = config;
@@ -17,6 +19,7 @@ class Heaps3DViewportComponent extends Component {
 	}
 
 	override public function init() {
+		_appModel = owner.getFromParents(AppModelComponent);
 		_s3d = owner.getFromParents(HeapsScene3DComponent).scene3d;
 		var cam = _s3d.camera;
 		cam.pos = _config.cameraPos;
@@ -26,20 +29,21 @@ class Heaps3DViewportComponent extends Component {
 		if (_config.fov != null) {
 			cam.setFovX(_config.fov, cam.screenRatio);
 		}
-		_s3d.visible = false;
+		if (_config.boundsObject != null) {
+			_s3d.visible = false;
+		}
 	}
 
 	override public function update(dt:Float) {
-		if (!_hasBounds) {
+		if (!_hasBounds && _config.boundsObject != null) {
 			var bounds = _config.boundsObject.getBounds();
 			// Empty bounds has values between -1e20 and 1e20
 			if (bounds.xMin != 1e20) {
 				_s3d.visible = true;
 				var top = bounds.ySize;
 				var right = bounds.xSize;
-				var pixelRatio = js.Browser.window.devicePixelRatio;
-				var w = _config.bounds2d.width / pixelRatio;
-				var h = _config.bounds2d.height / pixelRatio;
+				var w = _config.bounds2d.width / _appModel.pixelRatio;
+				var h = _config.bounds2d.height / _appModel.pixelRatio;
 				var wFactor = top / w;
 				var hFactor = right / h;
 				var wRatio = w * wFactor * _config.boundsMult.x;
@@ -61,8 +65,8 @@ class Heaps3DViewportComponent extends Component {
 
 @:structInit
 class Heaps3DViewportConfig {
-	public var boundsObject:h3d.scene.Object;
-	public var boundsMult = new Vector(1, 1, 1);
+	public var boundsObject:h3d.scene.Object = null;
+	public var boundsMult = new Vector(1, 1);
 	public var bounds2d:h2d.col.Bounds;
 	public var cameraPos = new Vector(2, 3, 4);
 	public var cameraTarget = new Vector(-.00001);
