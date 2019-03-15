@@ -42,11 +42,12 @@ class HeapsSceneModelComponent extends SceneModelComponent {
 		var entity = scene.entity;
 		var anyScene:Any;
 		if (scene.is3D) {
-			var s = anyScene = new h3d.scene.Scene();
+			var s:h3d.scene.Scene = anyScene = new h3d.scene.Scene();
 			entity.add(new HeapsScene3DComponent(s));
 			entity.add(new Heaps3DComponent(s));
 		} else {
-			var s = anyScene = new h2d.Scene();
+			var s:h2d.Scene = anyScene = new h2d.Scene();
+			s.defaultSmooth = true;
 			entity.add(new HeapsScene2DComponent(s));
 			entity.add(new HeapsSpriteComponent(s));
 		}

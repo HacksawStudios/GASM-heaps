@@ -5,7 +5,7 @@ import h2d.Tile;
 typedef Atlas = {
 	tile:Tile,
 	contents:Map<String, Array<AtlasContents>>,
-	tiles:Array<Tile>
+	animation:AtlasAnimation,
 };
 
 typedef AtlasContents = {
@@ -14,6 +14,12 @@ typedef AtlasContents = {
 	t:Tile,
 	?scale9:Scale9
 };
+
+typedef AtlasAnimation = {
+	frames:Array<Tile>,
+	width:Int,
+	height:Int,
+}
 
 typedef Scale9 = {
 	tl:Tile,
