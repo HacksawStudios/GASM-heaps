@@ -260,7 +260,7 @@ class HeapsContext extends App implements Context {
 
 	override public function render(e:h3d.Engine) {
 		if (appModel.customRenderCallback != null) {
-			appModel.customRenderCallback(engine);
+			appModel.customRenderCallback(e);
 		} else {
 			var scenes = 0;
 			if (sceneModel != null) {
@@ -268,11 +268,11 @@ class HeapsContext extends App implements Context {
 					var ent = scene.entity;
 					var comp2d = ent.get(HeapsScene2DComponent);
 					if (comp2d != null) {
-						comp2d.scene2d.render(engine);
+						comp2d.scene2d.render(e);
 					}
 					var comp3d = ent.get(HeapsScene3DComponent);
 					if (comp3d != null) {
-						comp3d.scene3d.render(engine);
+						comp3d.scene3d.render(e);
 					}
 					scenes++;
 				}
@@ -296,11 +296,8 @@ class HeapsContext extends App implements Context {
 
 	function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Atlas {
 		var file = hxd.res.Any.fromBytes('font/$id', image).toTile();
-		var atlas:Atlas = {
-			tile: file,
-			contents: new Map(),
-			tiles: [],
-		}
+		var contents = new Map();
+
 		var lines = definition.toString().split("\n");
 		while (lines.length > 0) {
 			var line = StringTools.trim(lines.shift());
@@ -384,10 +381,10 @@ class HeapsContext extends App implements Context {
 				tileDY = origH - (tileH + tileDY);
 
 				var t = file.sub(tileX, tileY, tileW, tileH, tileDX, tileDY);
-				var tl = atlas.contents.get(key);
+				var tl = contents.get(key);
 				if (tl == null) {
 					tl = [];
-					atlas.contents.set(key, tl);
+					contents.set(key, tl);
 				}
 				tl[index] = {
 					t: t,
@@ -398,18 +395,28 @@ class HeapsContext extends App implements Context {
 			}
 		}
 
-		var tiles:Array<h2d.Tile> = [];
-		for (tile in Reflect.fields(atlas.contents)) {
-			var tileData:h2d.Tile = Reflect.field(atlas.contents, tile);
-			var fields:Array<String> = Reflect.fields(tileData);
-			for (a in fields) {
-				var d:Array<Dynamic> = Reflect.field(tileData, a);
-				for (t in d) {
-					tiles.push(Reflect.field(t, 't'));
-				}
+		var maxW = 0;
+		var maxH = 0;
+		var frames:Array<h2d.Tile> = [];
+
+		for (key in contents.keys()) {
+			var c:Array<AtlasContents> = contents.get(key);
+			for (frame in c) {
+				maxW = Std.int(Math.max(maxW, frame.width));
+				maxH = Std.int(Math.max(maxW, frame.height));
+				frames.push(frame.t);
 			}
 		}
-		atlas.tiles = tiles;
+		var animation:AtlasAnimation = {
+			width: maxW,
+			height: maxH,
+			frames: frames,
+		};
+		var atlas:Atlas = {
+			tile: file,
+			contents: contents,
+			animation: animation,
+		}
 		return atlas;
 	}
 
