@@ -51,6 +51,7 @@ class HeapsSceneModelComponent extends SceneModelComponent {
 			entity.add(new HeapsScene2DComponent(s));
 			entity.add(new HeapsSpriteComponent(s));
 		}
+		scene.instance = anyScene;
 		if (scene.interactive) {
 			var is = cast(anyScene, hxd.SceneEvents.InteractiveScene);
 			_sceneEvents.addScene(is, scene.layerIndex);
