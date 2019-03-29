@@ -116,6 +116,9 @@ class HeapsContext extends App implements Context {
 			for (config in Reflect.fields(_assetContainers.brandingConfigs)) {
 				loader.queueItem(config, AssetType.Config);
 			}
+			for (config in Reflect.fields(_assetContainers.models)) {
+				loader.queueItem(config, AssetType.Model);
+			}
 			loader.load();
 		}
 		loader.onComplete = function() {
@@ -201,6 +204,10 @@ class HeapsContext extends App implements Context {
 				default:
 					null;
 			}
+		});
+		loader.addHandler(AssetType.Model, function(item:HandlerItem) {
+			var model = hxd.res.Any.fromBytes('${item.path}', item.data).to(hxd.res.Model);
+			Reflect.setField(_assetContainers.models, item.id, model);
 		});
 	}
 
@@ -481,6 +488,7 @@ typedef AssetContainers = {
 	?gradients:Dynamic,
 	?configs:Dynamic,
 	?brandingConfigs:BrandingConfigs,
+	?models:Dynamic,
 }
 
 typedef BrandingConfigs = {
