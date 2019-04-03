@@ -408,9 +408,13 @@ class HeapsContext extends App implements Context {
 		for (key in contents.keys()) {
 			var c:Array<AtlasContents> = contents.get(key);
 			for (frame in c) {
-				maxW = Std.int(Math.max(maxW, frame.width));
-				maxH = Std.int(Math.max(maxW, frame.height));
-				frames.push(frame.t);
+				if (frame != null) {
+					maxW = Std.int(Math.max(maxW, frame.width));
+					maxH = Std.int(Math.max(maxW, frame.height));
+					frames.push(frame.t);
+				} else {
+					frames.push(null);
+				}
 			}
 		}
 		var animation:AtlasAnimation = {
