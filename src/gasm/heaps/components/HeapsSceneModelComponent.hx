@@ -11,8 +11,10 @@ import gasm.heaps.components.HeapsScene3DComponent;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.HeapsSpriteComponent;
 
+using Lambda;
+
 class HeapsSceneModelComponent extends SceneModelComponent {
-	var _injector:Injector;
+	final _injector:Injector;
 	var _sceneEvents:SceneEvents;
 
 	public function new(injector:Injector) {
@@ -24,14 +26,36 @@ class HeapsSceneModelComponent extends SceneModelComponent {
 		_sceneEvents = _injector.getInstance(SceneEvents);
 	}
 
-	override function disableScene(name:String) {
-		var scene = sceneMap.get(name);
+	override public function hideScene(name:String) {
+		final scene = scenes.find(s -> s.name == name);
+		if (scene.is3D) {
+			final s3d:h3d.scene.Scene = scene.instance;
+			s3d.visible = false;
+		} else {
+			final s2d:h2d.Scene = scene.instance;
+			s2d.visible = false;
+		}
+	}
+
+	override public function showScene(name:String) {
+		final scene = scenes.find(s -> s.name == name);
+		if (scene.is3D) {
+			final s3d:h3d.scene.Scene = scene.instance;
+			s3d.visible = true;
+		} else {
+			final s2d:h2d.Scene = scene.instance;
+			s2d.visible = true;
+		}
+	}
+
+	override public function disableScene(name:String) {
+		final scene = sceneMap.get(name);
 		if (scene != null) {
 			_sceneEvents.removeScene(cast(scene, hxd.SceneEvents.InteractiveScene));
 		}
 	}
 
-	override function enableScene(name:String) {
+	override public function enableScene(name:String) {
 		var scene = sceneMap.get(name);
 		if (scene != null) {
 			_sceneEvents.addScene(cast(scene, hxd.SceneEvents.InteractiveScene));
@@ -39,21 +63,21 @@ class HeapsSceneModelComponent extends SceneModelComponent {
 	}
 
 	override function addEntity(scene:SceneLayer, baseEntity:Entity) {
-		var entity = scene.entity;
+		final entity = scene.entity;
 		var anyScene:Any;
 		if (scene.is3D) {
-			var s:h3d.scene.Scene = anyScene = new h3d.scene.Scene();
+			final s:h3d.scene.Scene = anyScene = new h3d.scene.Scene();
 			entity.add(new HeapsScene3DComponent(s));
 			entity.add(new Heaps3DComponent(s));
 		} else {
-			var s:h2d.Scene = anyScene = new h2d.Scene();
+			final s:h2d.Scene = anyScene = new h2d.Scene();
 			s.defaultSmooth = true;
 			entity.add(new HeapsScene2DComponent(s));
 			entity.add(new HeapsSpriteComponent(s));
 		}
 		scene.instance = anyScene;
 		if (scene.interactive) {
-			var is = cast(anyScene, hxd.SceneEvents.InteractiveScene);
+			final is = cast(anyScene, hxd.SceneEvents.InteractiveScene);
 			_sceneEvents.addScene(is, scene.layerIndex);
 		}
 		_injector.map(Entity, scene.name).toValue(entity);
@@ -61,5 +85,10 @@ class HeapsSceneModelComponent extends SceneModelComponent {
 
 		baseEntity.addChild(entity);
 		return entity;
+	}
+
+	override public function removeScene(name:String) {
+		_injector.unmap(Entity, name);
+		super.removeScene(name);
 	}
 }
