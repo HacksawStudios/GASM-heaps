@@ -29,6 +29,7 @@ class Heaps3DViewportComponent extends Component {
 		if (_config.fov != null) {
 			cam.setFovX(_config.fov, cam.screenRatio);
 		}
+
 		if (_config.boundsObject != null) {
 			_s3d.visible = false;
 		}
@@ -67,7 +68,7 @@ class Heaps3DViewportComponent extends Component {
 class Heaps3DViewportConfig {
 	public var boundsObject:h3d.scene.Object = null;
 	public var boundsMult = new Vector(1, 1);
-	public var bounds2d:h2d.col.Bounds;
+	public var bounds2d:h2d.col.Bounds = null;
 	public var cameraPos = new Vector(2, 3, 4);
 	public var cameraTarget = new Vector(-.00001);
 	public var zNear = 1.;
