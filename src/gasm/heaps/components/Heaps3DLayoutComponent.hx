@@ -12,6 +12,8 @@ import gasm.core.utils.SignalConnection;
 import h3d.scene.Scene;
 
 class Heaps3DLayoutComponent extends Component {
+	public final margins:Margins;
+
 	final _config:Heaps3DLayoutConfig;
 	var _s3d:Scene;
 	var _comp:Heaps3DComponent;
@@ -24,6 +26,7 @@ class Heaps3DLayoutComponent extends Component {
 	public function new(config:Heaps3DLayoutConfig) {
 		componentType = Actor;
 		_config = config;
+		margins = _config.margins;
 	}
 
 	override public function init() {
@@ -73,15 +76,15 @@ class Heaps3DLayoutComponent extends Component {
 
 		switch _config.scale {
 			case PROPORTIONAL:
-				scaleProportional(width, height, _config.margins, _comp.object);
+				scaleProportional(width, height, _comp.object);
 			case FIT:
-				scaleFit(width, height, _config.margins, _comp.object);
+				scaleFit(width, height, _comp.object);
 			case CROP:
-				scaleCrop(width, height, _config.margins, _comp.object);
+				scaleCrop(width, height, _comp.object);
 		}
 	}
 
-	function scaleProportional(width:Float, height:Float, margins:Margins, object:Object) {
+	function scaleProportional(width:Float, height:Float, object:Object) {
 		var size:h3d.col.Point;
 		if (_config.size != null) {
 			size = new h3d.col.Point(_config.size.x, _config.size.y, 0);
@@ -110,8 +113,8 @@ class Heaps3DLayoutComponent extends Component {
 		object.y = yRatio == ratio ? rMarg - (xoff * 0.5) : 0;
 	}
 
-	function scaleFit(width:Float, height:Float, margins:Margins, object:Object) {
-		Assert.that(_config.margins == null, 'Margins for FIT scale to be done...');
+	function scaleFit(width:Float, height:Float, object:Object) {
+		Assert.that(margins == null, 'Margins for FIT scale to be done...');
 		var size:h3d.col.Point;
 		if (_config.size != null) {
 			size = new h3d.col.Point(_config.size.x, _config.size.y, 0);
@@ -125,7 +128,7 @@ class Heaps3DLayoutComponent extends Component {
 		object.scaleY = yRatio;
 	}
 
-	function scaleCrop(width:Float, height:Float, margins:Margins, object:Object) {
+	function scaleCrop(width:Float, height:Float, object:Object) {
 		var size:h3d.col.Point;
 		if (_config.size != null) {
 			size = new h3d.col.Point(_config.size.x, _config.size.y, 0);
