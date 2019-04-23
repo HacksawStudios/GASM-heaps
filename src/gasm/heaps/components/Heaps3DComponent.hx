@@ -81,7 +81,12 @@ class Heaps3DComponent extends Component {
 				object.scaleZ = _model.scale.z;
 				object.visible = _model.visible;
 			} else {
-				_model.pos = new Vector(object.x, object.y, object.z);
+				_model.pos.x = object.x;
+				_model.pos.y = object.y;
+				_model.pos.z = object.z;
+				_model.scale.x = object.scaleX;
+				_model.scale.y = object.scaleY;
+				_model.scale.z = object.scaleZ;
 			}
 			_model.dirty = false;
 		}
