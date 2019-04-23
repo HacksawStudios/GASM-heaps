@@ -5,6 +5,8 @@ import gasm.core.enums.ComponentType;
 import gasm.core.utils.Assert;
 
 class Heaps3DPosFollowComponent extends Component {
+	public var freeze = false;
+
 	final _config:Heaps3DPosFollowConfig;
 	var _comp:Heaps3DComponent;
 
@@ -19,12 +21,14 @@ class Heaps3DPosFollowComponent extends Component {
 	}
 
 	override public function update(dt:Float) {
-		final o = _comp.object;
-		final offset = _config.offset;
-		final follow = _config.follow;
-		o.x = follow.x + (offset.x * o.scaleX);
-		o.y = follow.y + (offset.y * o.scaleY);
-		o.z = follow.z + (offset.z * o.scaleZ);
+		if (!freeze) {
+			final o = _comp.object;
+			final offset = _config.offset;
+			final follow = _config.follow;
+			o.x = follow.x + (offset.x * o.scaleX);
+			o.y = follow.y + (offset.y * o.scaleY);
+			o.z = follow.z + (offset.z * o.scaleZ);
+		}
 	}
 }
 
