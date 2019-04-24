@@ -75,6 +75,6 @@ class Heaps3DViewportConfig {
 	public var cameraPos = new Vector(2, 3, 4);
 	public var cameraTarget = new Vector(-.00001);
 	public var zNear = 1.;
-	public var zFar = 100.;
+	public var zFar = -100.;
 	public var fov:Null<Float> = null;
 }
