@@ -18,6 +18,12 @@ class Heaps3DViewportComponent extends Component {
 		componentType = ComponentType.Actor;
 	}
 
+	public function getSizeAtZ(z:Float) {
+		var a = _s3d.camera.unproject(1.0, 1.0, z);
+		var b = _s3d.camera.unproject(-1.0, -1.0, z);
+		return new h3d.Vector(Math.abs(a.x - b.x), Math.abs(a.y - b.y), z);
+	}
+
 	override public function init() {
 		_appModel = owner.getFromParents(AppModelComponent);
 		_s3d = owner.getFromParents(HeapsScene3DComponent).scene3d;
