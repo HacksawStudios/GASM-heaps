@@ -109,8 +109,8 @@ class Heaps3DLayoutComponent extends Component {
 		final ratio = Math.min(xRatio, yRatio);
 
 		object.scale(ratio);
-		object.x = xRatio == ratio ? tMarg - (xoff * 0.5) : 0;
-		object.y = yRatio == ratio ? rMarg - (yoff * 0.5) : 0;
+		object.x = xRatio == ratio ? rMarg - (xoff * 0.5) : 0;
+		object.y = yRatio == ratio ? tMarg - (yoff * 0.5) : 0;
 	}
 
 	function scaleFit(width:Float, height:Float, object:Object) {
