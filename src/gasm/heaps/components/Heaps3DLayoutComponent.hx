@@ -59,6 +59,7 @@ class Heaps3DLayoutComponent extends Component {
 	function onResize(?size:TResize) {
 		layout();
 		haxe.Timer.delay(layout, 100);
+		haxe.Timer.delay(layout, 200);
 	}
 
 	function layout() {
