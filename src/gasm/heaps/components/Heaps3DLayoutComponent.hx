@@ -12,9 +12,8 @@ import gasm.core.utils.SignalConnection;
 import h3d.scene.Scene;
 
 class Heaps3DLayoutComponent extends Component {
-	public final margins:Margins;
-
 	final _config:Heaps3DLayoutConfig;
+	final _margins:Margins;
 	var _s3d:Scene;
 	var _comp:Heaps3DComponent;
 	var _resizeConnection:SignalConnection;
@@ -26,7 +25,7 @@ class Heaps3DLayoutComponent extends Component {
 	public function new(config:Heaps3DLayoutConfig) {
 		componentType = Actor;
 		_config = config;
-		margins = _config.margins;
+		_margins = _config.margins;
 	}
 
 	override public function init() {
@@ -56,13 +55,18 @@ class Heaps3DLayoutComponent extends Component {
 		super.dispose();
 	}
 
-	function onResize(?size:TResize) {
+	public function updateMargins(m:Margins) {
+		_margins.top = m.top != null ? m.top : _margins.top;
+		_margins.bottom = m.bottom != null ? m.bottom : _margins.bottom;
+		_margins.left = m.left != null ? m.left : _margins.left;
+		_margins.right = m.right != null ? m.right : _margins.right;
 		layout();
-		haxe.Timer.delay(layout, 100);
-		haxe.Timer.delay(layout, 200);
 	}
 
 	function layout() {
+		if (_appModel == null) {
+			return;
+		}
 		_stageW = _appModel.stageSize.x;
 		_stageH = _appModel.stageSize.y;
 		final zDepth = _s3d.camera.zFar - _s3d.camera.zNear;
@@ -85,6 +89,12 @@ class Heaps3DLayoutComponent extends Component {
 		}
 	}
 
+	function onResize(?size:TResize) {
+		layout();
+		haxe.Timer.delay(layout, 100);
+		haxe.Timer.delay(layout, 200);
+	}
+
 	function scaleProportional(width:Float, height:Float, object:Object) {
 		var size:h3d.col.Point;
 		if (_config.size != null) {
@@ -97,11 +107,11 @@ class Heaps3DLayoutComponent extends Component {
 		var bMarg = 0.0;
 		var lMarg = 0.0;
 		var rMarg = 0.0;
-		if (margins != null) {
-			lMarg = margins.left != null ? margins.left * 0.01 : 0;
-			rMarg = margins.right != null ? margins.right * 0.01 : 0;
-			tMarg = margins.top != null ? margins.top * 0.01 : 0;
-			bMarg = margins.bottom != null ? margins.bottom * 0.01 : 0;
+		if (_margins != null) {
+			lMarg = _margins.left != null ? _margins.left * 0.01 : 0;
+			rMarg = _margins.right != null ? _margins.right * 0.01 : 0;
+			tMarg = _margins.top != null ? _margins.top * 0.01 : 0;
+			bMarg = _margins.bottom != null ? _margins.bottom * 0.01 : 0;
 		}
 		final xoff = lMarg + rMarg;
 		final yoff = tMarg + bMarg;
@@ -115,7 +125,7 @@ class Heaps3DLayoutComponent extends Component {
 	}
 
 	function scaleFit(width:Float, height:Float, object:Object) {
-		Assert.that(margins == null, 'Margins for FIT scale to be done...');
+		Assert.that(_margins == null, 'Margins for FIT scale to be done...');
 		var size:h3d.col.Point;
 		if (_config.size != null) {
 			size = new h3d.col.Point(_config.size.x, _config.size.y, 0);
@@ -141,11 +151,11 @@ class Heaps3DLayoutComponent extends Component {
 		var bMarg = 0.0;
 		var lMarg = 0.0;
 		var rMarg = 0.0;
-		if (margins != null) {
-			lMarg = margins.left != null ? margins.left * 0.01 : 0;
-			rMarg = margins.right != null ? margins.right * 0.01 : 0;
-			tMarg = margins.top != null ? margins.top * 0.01 : 0;
-			bMarg = margins.bottom != null ? margins.bottom * 0.01 : 0;
+		if (_margins != null) {
+			lMarg = _margins.left != null ? _margins.left * 0.01 : 0;
+			rMarg = _margins.right != null ? _margins.right * 0.01 : 0;
+			tMarg = _margins.top != null ? _margins.top * 0.01 : 0;
+			bMarg = _margins.bottom != null ? _margins.bottom * 0.01 : 0;
 		}
 		final xoff = lMarg + rMarg;
 		final yoff = tMarg + bMarg;
