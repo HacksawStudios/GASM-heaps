@@ -20,7 +20,6 @@ class Heaps3DLayoutComponent extends Component {
 	var _appModel:AppModelComponent;
 	var _stageW = 0.0;
 	var _stageH = 0.0;
-	var _origSize:h3d.col.Point;
 
 	public function new(config:Heaps3DLayoutConfig) {
 		componentType = Actor;
@@ -36,15 +35,7 @@ class Heaps3DLayoutComponent extends Component {
 		Assert.that(_comp != null, 'Heaps3DLayoutComponent needs to be in an enitity with a Heaps3DComponent.');
 		_appModel = owner.getFromParents(AppModelComponent);
 		_resizeConnection = _appModel.resizeSignal.connect(onResize);
-		_origSize = _comp.object.getBounds().getSize();
-		// HACK: For some reason layout need repeated triggers, which should not be the case, espacially since unlike 2d layout it is not heirarchical
 		haxe.Timer.delay(layout, 0);
-		haxe.Timer.delay(layout, 50);
-		haxe.Timer.delay(layout, 100);
-		haxe.Timer.delay(layout, 150);
-		haxe.Timer.delay(() -> {
-			layout();
-		}, 200);
 		super.init();
 	}
 
@@ -91,8 +82,6 @@ class Heaps3DLayoutComponent extends Component {
 
 	function onResize(?size:TResize) {
 		layout();
-		haxe.Timer.delay(layout, 100);
-		haxe.Timer.delay(layout, 200);
 	}
 
 	function scaleProportional(width:Float, height:Float, object:Object) {
@@ -102,6 +91,7 @@ class Heaps3DLayoutComponent extends Component {
 		} else {
 			final bounds = object.getBounds();
 			size = bounds.getSize();
+			_config.size = {x: size.x, y: size.y};
 		}
 		var tMarg = 0.0;
 		var bMarg = 0.0;
@@ -119,7 +109,7 @@ class Heaps3DLayoutComponent extends Component {
 		final yRatio = Math.abs((height / size.y) - yoff);
 		final ratio = Math.min(xRatio, yRatio);
 
-		object.scale(ratio);
+		object.setScale(ratio);
 		object.x = xRatio == ratio ? lMarg - (xoff * 0.5) : 0;
 		object.y = yRatio == ratio ? bMarg - (yoff * 0.5) : 0;
 	}
@@ -146,6 +136,7 @@ class Heaps3DLayoutComponent extends Component {
 		} else {
 			final bounds = object.getBounds();
 			size = bounds.getSize();
+			_config.size = {x: size.x, y: size.y};
 		}
 		var tMarg = 0.0;
 		var bMarg = 0.0;
@@ -163,7 +154,7 @@ class Heaps3DLayoutComponent extends Component {
 		final yRatio = Math.abs((height / size.y) - yoff);
 		final shortest = Math.min(xRatio, yRatio);
 		final longest = xRatio == shortest ? yRatio : xRatio;
-		final ratio = xRatio == longest ? Math.abs(longest - yoff) : Math.abs(longest - xoff);
+		final ratio = xRatio == longest ? Math.abs(longest - xoff) : Math.abs(longest - yoff);
 		object.setScale(ratio);
 		object.x = xRatio == ratio ? lMarg - (xoff * 0.5) : 0;
 		object.y = yRatio == ratio ? bMarg - (yoff * 0.5) : 0;
