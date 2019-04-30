@@ -25,8 +25,8 @@ class Heaps2DPosFollowComponent extends Component {
 			final o = _comp.sprite;
 			final offset = _config.offset;
 			final follow = _config.follow;
-			o.x = follow.x + (offset.x * o.scaleX);
-			o.y = follow.y + (offset.y * o.scaleY);
+			o.x = follow.x + offset.x;
+			o.y = follow.y + offset.y;
 		}
 	}
 
