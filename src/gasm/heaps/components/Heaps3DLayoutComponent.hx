@@ -81,7 +81,8 @@ class Heaps3DLayoutComponent extends Component {
 	}
 
 	function onResize(?size:TResize) {
-		layout();
+		haxe.Timer.delay(layout, 0);
+		haxe.Timer.delay(layout, 10);
 	}
 
 	function scaleProportional(width:Float, height:Float, object:Object) {
