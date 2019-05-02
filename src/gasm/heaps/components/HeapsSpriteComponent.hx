@@ -78,20 +78,21 @@ class HeapsSpriteComponent extends Component {
 				sprite.alpha = _model.alpha;
 				sprite.scaleX = _model.xScale;
 				sprite.scaleY = _model.yScale;
+				sprite.visible = _model.visible;
 				if (_interactive != null) {
 					_interactive.width = _model.width;
 					_interactive.height = _model.height;
 				}
-				_model.dirty = false;
 			} else {
 				_model.x = sprite.x;
 				_model.y = sprite.y;
 				_model.xScale = sprite.scaleX;
 				_model.yScale = sprite.scaleY;
+				_model.visible = sprite.visible;
 			}
 			_model.stageMouseX = _stage.mouseX;
 			_model.stageMouseY = _stage.mouseY;
-			sprite.visible = _model.visible;
+			_model.dirty = false;
 		}
 	}
 
