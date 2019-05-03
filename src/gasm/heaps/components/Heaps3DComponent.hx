@@ -22,6 +22,7 @@ class Heaps3DComponent extends Component {
 	public var mouseEnabled(default, set):Bool;
 	public var root(default, default):Bool;
 	public var dirty(default, default):Bool;
+	public var alpha(default, set):Float;
 	public var mousePos(default, null):Point;
 
 	var _model:ThreeDModelComponent;
@@ -184,6 +185,13 @@ class Heaps3DComponent extends Component {
 			addEventListeners();
 		} else {
 			removeEventListeners();
+		}
+		return val;
+	}
+
+	function set_alpha(val:Float):Float {
+		if (val != null && _model != null) {
+			_model.alpha = val;
 		}
 		return val;
 	}
