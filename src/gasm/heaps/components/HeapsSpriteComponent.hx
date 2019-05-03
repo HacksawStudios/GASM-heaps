@@ -62,6 +62,7 @@ class HeapsSpriteComponent extends Component {
 			_interactive.width = w;
 			_interactive.height = h;
 		}
+		_model.dirty = false;
 	}
 
 	override public function update(dt:Float) {
