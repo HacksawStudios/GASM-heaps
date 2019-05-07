@@ -2,13 +2,13 @@ stages:
   - release
 
 package_release:
-  image: hacksawgaming/hacksaw-build:4.0.0-rc.1-4
+  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-1
   stage: release
   before_script:
     - apk add --update zip
     - npm i
   script:
-    - $(npm bin)/gitlab-ci-releaser --npm
+    - npx gitlab-ci-releaser --npm
   only:
     refs:
       - master
@@ -17,7 +17,7 @@ package_release:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/ 
 
 package_rc:
-  image: hacksawgaming/hacksaw-build:4.0.0-rc.1-4
+  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-1
   stage: release
   before_script:
     - apk add --update zip
