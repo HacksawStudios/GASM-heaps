@@ -1,9 +1,14 @@
 devDependencies:
   '@hacksawstudios/gitlab-ci-releaser': registry.npmjs.org/@hacksawstudios/gitlab-ci-releaser/2.0.1
-  '@hacksawstudios/haxe-module-installer': 'link:../haxe-module-installer'
+  '@hacksawstudios/haxe-module-installer': 1.0.8
   fs-extra: registry.npmjs.org/fs-extra/7.0.1
 lockfileVersion: 5
 packages:
+  /@hacksawstudios/haxe-module-installer/1.0.8:
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha1-840UDADzeuSCZ0m71huMWFuhRXc=
   registry.npmjs.org/@hacksawstudios/gitlab-ci-releaser/2.0.1:
     dependencies:
       child-process-promise: registry.npmjs.org/child-process-promise/2.2.1
@@ -1962,5 +1967,5 @@ packages:
     version: 2.1.2
 specifiers:
   '@hacksawstudios/gitlab-ci-releaser': 2.0.1
-  '@hacksawstudios/haxe-module-installer': 'link:../haxe-module-installer'
+  '@hacksawstudios/haxe-module-installer': 1.0.8
   fs-extra: ^7.0.1
