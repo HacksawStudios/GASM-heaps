@@ -21,9 +21,9 @@ package_rc:
   stage: release
   before_script:
     - apk add --update zip
-    - npm i
+    - pnpm i
   script:
-    - $(npm bin)/gitlab-ci-releaser --npm --preid rc
+    - npx gitlab-ci-releaser --npm --preid rc
   only:
     - develop
   except:
