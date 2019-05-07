@@ -6,14 +6,13 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
   "devDependencies": {
     "@hacksawstudios/gitlab-ci-releaser": "2.0.1",
-    "@hacksawstudios/haxe-module-installer": "1.0.7",
+    "@hacksawstudios/haxe-module-installer": "1.0.8-rc.0",
     "fs-extra": "^7.0.1"
   },
   "scripts": {
-    "postinstall": "node_modules/.bin/haxe-module-installer",
+    "postinstall": "npx haxe-module-installer",
     "test": ""
   },
   "repository": {
