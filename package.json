@@ -12,7 +12,7 @@
     "fs-extra": "^7.0.1"
   },
   "scripts": {
-    "postinstall": "npx haxe-module-installer",
+    "postinstall": "npx @hacksawstudios/haxe-module-installer",
     "test": ""
   },
   "repository": {
