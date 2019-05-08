@@ -2,10 +2,10 @@ stages:
   - release
 
 package_release:
-  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-7
+  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-10
   stage: release
   before_script:
-    - yarn
+    - pnpm i
   script:
     - npx @hacksawstudios/gitlab-ci-releaser --npm
   only:
@@ -19,7 +19,7 @@ package_rc:
   image: hacksawgaming/hacksaw-build:4.0.0-rc.2-7
   stage: release
   before_script:
-    - yarn
+    - pnpm i
   script:
     - npx @hacksawstudios/gitlab-ci-releaser --npm --preid rc
   only:
