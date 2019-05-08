@@ -16,7 +16,7 @@ package_release:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/ 
 
 package_rc:
-  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-7
+  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-10
   stage: release
   before_script:
     - pnpm i
