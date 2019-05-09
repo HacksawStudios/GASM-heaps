@@ -11,10 +11,10 @@
     "fs-extra": "^7.0.1"
   },
   "dependencies": {
-    "@hacksawstudios/haxe-module-installer": "1.0.10"
+    "@hacksawstudios/haxe-module-installer": "1.0.11"
   },
   "scripts": {
-    "postinstall": "npx @hacksawstudios/haxe-module-installer",
+    "postinstall": "npx @hacksawstudios/haxe-module-installer && node updateHaxelib.js",
     "test": ""
   },
   "repository": {
