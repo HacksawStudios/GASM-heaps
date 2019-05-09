@@ -1,6 +1,7 @@
+dependencies:
+  '@hacksawstudios/haxe-module-installer': registry.npmjs.org/@hacksawstudios/haxe-module-installer/1.0.11
 devDependencies:
   '@hacksawstudios/gitlab-ci-releaser': registry.npmjs.org/@hacksawstudios/gitlab-ci-releaser/2.0.1
-  '@hacksawstudios/haxe-module-installer': registry.npmjs.org/@hacksawstudios/haxe-module-installer/1.0.10
   fs-extra: registry.npmjs.org/fs-extra/7.0.1
 lockfileVersion: 5
 packages:
@@ -25,15 +26,15 @@ packages:
       registry: 'https://packagecloud.io/hacksawstudios/client/npm/'
       tarball: 'https://registry.npmjs.org/@hacksawstudios/gitlab-ci-releaser/-/gitlab-ci-releaser-2.0.1.tgz'
     version: 2.0.1
-  registry.npmjs.org/@hacksawstudios/haxe-module-installer/1.0.10:
-    dev: true
+  registry.npmjs.org/@hacksawstudios/haxe-module-installer/1.0.11:
+    dev: false
     hasBin: true
     name: '@hacksawstudios/haxe-module-installer'
     resolution:
-      integrity: sha512-dCmB7PtzYTnjYScPHQmU0sHh4ZGjDbkdT6f3qy5OMeNjvyoxRzyTq6eoyhxDZ9xLhbhFME+4e9Mz9dX8oRRZqQ==
+      integrity: sha512-NCfKHsZxnWSyrh+DeKDX9itZq6/AiDI6p5fmfgqE/e4+sxNGJiuZZLX8CLkoSw42y74kdO1IFFupJNMMRuq8Dg==
       registry: 'https://packagecloud.io/hacksawstudios/client/npm/'
-      tarball: 'https://registry.npmjs.org/@hacksawstudios/haxe-module-installer/-/haxe-module-installer-1.0.10.tgz'
-    version: 1.0.10
+      tarball: 'https://registry.npmjs.org/@hacksawstudios/haxe-module-installer/-/haxe-module-installer-1.0.11.tgz'
+    version: 1.0.11
   registry.npmjs.org/JSONStream/1.3.5:
     dependencies:
       jsonparse: registry.npmjs.org/jsonparse/1.3.1
@@ -1971,5 +1972,5 @@ packages:
     version: 2.1.2
 specifiers:
   '@hacksawstudios/gitlab-ci-releaser': 2.0.1
-  '@hacksawstudios/haxe-module-installer': 1.0.10
+  '@hacksawstudios/haxe-module-installer': 1.0.11
   fs-extra: ^7.0.1

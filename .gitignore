@@ -17,3 +17,4 @@ desc.json
 webpack.config.js
 postcss.config.js
 .pnpm-store
+*.log
