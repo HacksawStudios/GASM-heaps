@@ -2,7 +2,7 @@ stages:
   - release
 
 package_release:
-  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-13
+  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-18
   stage: release
   before_script:
     - pnpm i --unsafe-perm
@@ -16,7 +16,7 @@ package_release:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/ 
 
 package_rc:
-  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-13
+  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-18
   stage: release
   before_script:
     - pnpm i --unsafe-perm
