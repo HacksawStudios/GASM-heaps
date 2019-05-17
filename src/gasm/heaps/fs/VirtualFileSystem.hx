@@ -8,7 +8,6 @@ class VirtualFileSystem implements hxd.fs.FileSystem {
 	public function new() {}
 
 	public function add(path, bytes) {
-		trace('adding $path');
 		paths.set(path, new VirtualFileEntry(path, bytes));
 	}
 
