@@ -10,9 +10,12 @@ class Heaps3DPosFollowComponent extends Component {
 	final _config:Heaps3DPosFollowConfig;
 	var _comp:Heaps3DComponent;
 
+	public var offset:h3d.Vector;
+
 	public function new(config:Heaps3DPosFollowConfig) {
 		_config = config;
 		componentType = ComponentType.Actor;
+		offset = _config.offset;
 	}
 
 	override public function init() {
@@ -23,7 +26,6 @@ class Heaps3DPosFollowComponent extends Component {
 	override public function update(dt:Float) {
 		if (!freeze) {
 			final o = _comp.object;
-			final offset = _config.offset;
 			final follow = _config.follow;
 			o.x = follow.x + (offset.x * o.scaleX);
 			o.y = follow.y + (offset.y * o.scaleY);
