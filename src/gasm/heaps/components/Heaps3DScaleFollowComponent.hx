@@ -8,9 +8,12 @@ class Heaps3DScaleFollowComponent extends Component {
 	final _config:Heaps3DScaleFollowConfig;
 	var _comp:Heaps3DComponent;
 
+	public var scale:Float;
+
 	public function new(config:Heaps3DScaleFollowConfig) {
 		_config = config;
 		componentType = ComponentType.Actor;
+		scale = _config.scale;
 	}
 
 	override public function init() {
@@ -19,9 +22,9 @@ class Heaps3DScaleFollowComponent extends Component {
 	}
 
 	override public function update(dt:Float) {
-		_comp.object.scaleX = _config.follow.scaleX * _config.scale;
-		_comp.object.scaleY = _config.follow.scaleY * _config.scale;
-		_comp.object.scaleZ = _config.follow.scaleZ * _config.scale;
+		_comp.object.scaleX = _config.follow.scaleX * scale;
+		_comp.object.scaleY = _config.follow.scaleY * scale;
+		_comp.object.scaleZ = _config.follow.scaleZ * scale;
 	}
 }
 
