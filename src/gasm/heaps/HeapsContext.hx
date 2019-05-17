@@ -46,6 +46,7 @@ class HeapsContext extends App implements Context {
 	var _assetConfig:AssetConfig;
 	var _soundSupport:Bool;
 	var _injector:Injector;
+	final _fileSystem = new gasm.heaps.fs.VirtualFileSystem();
 
 	public function new(?core:ISystem, ?renderer:ISystem, ?sound:ISystem, ?engine:IEngine) {
 		_core = core;
@@ -89,10 +90,10 @@ class HeapsContext extends App implements Context {
 		appModel.pixelRatio = js.Browser.window.devicePixelRatio;
 		#end
 		engine.render(this);
-		var bitmapFonts = new haxe.ds.StringMap<haxe.io.Bytes>();
 		var atlases = new haxe.ds.StringMap<haxe.io.Bytes>();
 		var loader = new Loader('assets/desc.json', _assetConfig);
 		loader.onReady = function() {
+			hxd.res.Loader.currentInstance = new hxd.res.Loader(_fileSystem);
 			for (img in Type.getClassFields(_assetContainers.images)) {
 				loader.queueItem(img, AssetType.Image);
 			}
@@ -104,8 +105,8 @@ class HeapsContext extends App implements Context {
 			for (fnt in Type.getClassFields(hacksaw.core.data.FontList)) {
 				loader.queueItem(fnt, AssetType.Font);
 			}
-			for (bmFnt in Type.getClassFields(_assetContainers.bitmapFonts)) {
-				loader.queueItem(bmFnt, AssetType.BitmapFont);
+			for (fnt in Type.getClassFields(hacksaw.core.data.BitmapFontList)) {
+				loader.queueItem(fnt, AssetType.BitmapFont);
 			}
 			for (atlas in Type.getClassFields(_assetContainers.atlases)) {
 				loader.queueItem(atlas, AssetType.Atlas);
@@ -131,6 +132,7 @@ class HeapsContext extends App implements Context {
 		loader.onError = function(error:String) {
 			throw error;
 		}
+
 		loader.addHandler(AssetType.Image, function(item:HandlerItem) {
 			Reflect.setField(_assetContainers.images, item.id, hxd.res.Any.fromBytes('${item.path}', item.data).toTile());
 		});
@@ -153,22 +155,27 @@ class HeapsContext extends App implements Context {
 		});
 
 		loader.addHandler(AssetType.BitmapFont, function(item:HandlerItem) {
-			if (bitmapFonts.exists(item.id)) {
-				var bmImg = bitmapFonts.get(item.id);
-				var font = parseFont(item.id, item.data, bmImg);
-				Reflect.setField(_assetContainers.fonts, item.id, font);
-			} else {
-				bitmapFonts.set(item.id, item.data);
+			final name = item.id.split('.')[0];
+			final fontPath = 'fonts/$name.fnt';
+			final imagePath = 'fonts/$name.png';
+			final fontData = item.data;
+			_fileSystem.add(fontPath, fontData);
+			if (_fileSystem.exists(imagePath)) {
+				final font = new hxd.res.BitmapFont(_fileSystem.get(fontPath));
+				_assetContainers.bitmapFonts.set(item.id, font);
 			}
 		});
 
 		loader.addHandler(AssetType.BitmapFontImage, function(item:HandlerItem) {
-			if (bitmapFonts.exists(item.id)) {
-				var bmFont = bitmapFonts.get(item.id);
-				var font = parseFont(item.id, bmFont, item.data);
-				Reflect.setField(_assetContainers.fonts, item.id, font);
-			} else {
-				bitmapFonts.set(item.id, item.data);
+			final name = item.id.split('.')[0];
+			final fontPath = 'fonts/$name.fnt';
+			final imagePath = 'fonts/$name.png';
+			final imageData = item.data;
+			_fileSystem.add(imagePath, imageData);
+			if (_fileSystem.exists(fontPath)) {
+				final fontData = _fileSystem.getBytes(fontPath);
+				final font = new hxd.res.BitmapFont(_fileSystem.get(fontPath));
+				_assetContainers.bitmapFonts.set(item.id, font);
 			}
 		});
 
@@ -181,10 +188,6 @@ class HeapsContext extends App implements Context {
 				atlases.set(item.id, item.data);
 			}
 		});
-		loader.addHandler(AssetType.Gradient, function(item:HandlerItem) {
-			var grd = hxd.res.Any.fromBytes('${item.path}', item.data).to(hxd.res.Gradients);
-			Reflect.setField(_assetContainers.gradients, item.id, grd);
-		});
 
 		loader.addHandler(AssetType.AtlasImage, function(item:HandlerItem) {
 			if (atlases.exists(item.id)) {
@@ -196,6 +199,11 @@ class HeapsContext extends App implements Context {
 			}
 		});
 
+		loader.addHandler(AssetType.Gradient, function(item:HandlerItem) {
+			var grd = hxd.res.Any.fromBytes('${item.path}', item.data).to(hxd.res.Gradients);
+			Reflect.setField(_assetContainers.gradients, item.id, grd);
+		});
+
 		loader.addHandler(AssetType.Config, function(item:HandlerItem) {
 			switch (item.id) {
 				case 'gameconfig':
@@ -205,6 +213,7 @@ class HeapsContext extends App implements Context {
 					null;
 			}
 		});
+
 		loader.addHandler(AssetType.Model, function(item:HandlerItem) {
 			var model = hxd.res.Any.fromBytes('${item.path}', item.data).to(hxd.res.Model);
 			Reflect.setField(_assetContainers.models, item.id, model);
@@ -486,7 +495,7 @@ typedef AssetContainers = {
 	?images:Dynamic,
 	?sounds:Dynamic,
 	?fonts:haxe.ds.StringMap<hxd.res.Font>,
-	?bitmapFonts:Dynamic,
+	?bitmapFonts:haxe.ds.StringMap<hxd.res.BitmapFont>,
 	?atlases:Dynamic,
 	?gradients:Dynamic,
 	?configs:Dynamic,
