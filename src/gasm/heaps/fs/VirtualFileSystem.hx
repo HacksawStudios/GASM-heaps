@@ -3,7 +3,7 @@ package gasm.heaps.fs;
 typedef VirtualFileEntry = hxd.fs.BytesFileSystem.BytesFileEntry;
 
 class VirtualFileSystem implements hxd.fs.FileSystem {
-	final paths = new haxe.ds.StringMap<VirtualFileEntry>();
+	var paths = new haxe.ds.StringMap<VirtualFileEntry>();
 
 	public function new() {}
 
@@ -32,7 +32,7 @@ class VirtualFileSystem implements hxd.fs.FileSystem {
 	}
 
 	public function dispose() {
-		// paths.empty();
+		paths = null;
 	}
 
 	public function dir(path:String):Array<hxd.fs.FileEntry> {
