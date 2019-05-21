@@ -77,6 +77,8 @@ class Heaps3DLayoutComponent extends Component {
 				scaleFit(width, height, _comp.object);
 			case CROP:
 				scaleCrop(width, height, _comp.object);
+			default:
+				null;
 		}
 	}
 
