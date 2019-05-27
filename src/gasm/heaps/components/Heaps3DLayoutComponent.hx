@@ -122,7 +122,7 @@ class Heaps3DLayoutComponent extends Component {
 		// Update model to ensure it will not misbehave if it becomes dirty by changing a prop
 		_model.pos = new Vector(object.x, object.y, object.z);
 		_model.scale = new Vector(ratio, ratio, 1.0);
-+		_model.dirty = false;
+		_model.dirty = false;
 	}
 
 	function scaleFit(width:Float, height:Float, object:Object) {
