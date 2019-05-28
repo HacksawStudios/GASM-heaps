@@ -1,12 +1,15 @@
 package gasm.heaps.components;
 
+import h3d.col.Bounds;
 import h3d.scene.Object;
 import gasm.core.Component;
 import gasm.core.api.singnals.TResize;
 import gasm.core.components.AppModelComponent;
+import gasm.core.components.ThreeDModelComponent;
 import gasm.core.enums.ScaleType;
 import gasm.core.enums.ComponentType;
 import gasm.core.math.geom.Point;
+import gasm.core.math.geom.Vector;
 import gasm.core.utils.Assert;
 import gasm.core.utils.SignalConnection;
 import h3d.scene.Scene;
@@ -16,10 +19,10 @@ class Heaps3DLayoutComponent extends Component {
 	final _margins:Margins;
 	var _s3d:Scene;
 	var _comp:Heaps3DComponent;
-	var _resizeConnection:SignalConnection;
 	var _appModel:AppModelComponent;
 	var _stageW = 0.0;
 	var _stageH = 0.0;
+	var _model:ThreeDModelComponent;
 
 	public function new(config:Heaps3DLayoutConfig) {
 		componentType = Actor;
@@ -34,15 +37,14 @@ class Heaps3DLayoutComponent extends Component {
 		_comp = owner.getFromParents(Heaps3DComponent);
 		Assert.that(_comp != null, 'Heaps3DLayoutComponent needs to be in an enitity with a Heaps3DComponent.');
 		_appModel = owner.getFromParents(AppModelComponent);
-		_resizeConnection = _appModel.resizeSignal.connect(onResize);
-		haxe.Timer.delay(layout, 0);
+		_model = owner.get(ThreeDModelComponent);
+		layout();
 		super.init();
 	}
 
 	override public function dispose() {
 		_comp = null;
 		_s3d = null;
-		_appModel.resizeSignal.disconnect(_resizeConnection);
 		super.dispose();
 	}
 
@@ -54,7 +56,7 @@ class Heaps3DLayoutComponent extends Component {
 		layout();
 	}
 
-	function layout() {
+	public function layout() {
 		if (_appModel == null) {
 			return;
 		}
@@ -83,8 +85,7 @@ class Heaps3DLayoutComponent extends Component {
 	}
 
 	function onResize(?size:TResize) {
-		haxe.Timer.delay(layout, 0);
-		haxe.Timer.delay(layout, 10);
+		layout();
 	}
 
 	function scaleProportional(width:Float, height:Float, object:Object) {
@@ -117,6 +118,11 @@ class Heaps3DLayoutComponent extends Component {
 
 		object.x = width * (lMarg - (xoff * 0.5));
 		object.y = height * (bMarg - (yoff * 0.5));
+
+		// Update model to ensure it will not misbehave if it becomes dirty by changing a prop
+		_model.pos = new Vector(object.x, object.y, object.z);
+		_model.scale = new Vector(ratio, ratio, 1.0);
+		_model.dirty = false;
 	}
 
 	function scaleFit(width:Float, height:Float, object:Object) {
@@ -141,6 +147,11 @@ class Heaps3DLayoutComponent extends Component {
 		} else {
 			final bounds = object.getBounds();
 			size = bounds.getSize();
+			// If size is empty we are trying to layout too early
+			if (size.x == -2e20) {
+				haxe.Timer.delay(layout, 10);
+				return;
+			}
 			_config.size = {x: size.x, y: size.y};
 		}
 		var tMarg = 0.0;
