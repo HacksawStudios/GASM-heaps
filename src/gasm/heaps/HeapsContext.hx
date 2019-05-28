@@ -246,6 +246,10 @@ class HeapsContext extends App implements Context {
 		}
 		js.Browser.document.addEventListener(visibilityChange, handleVisibilityChange, false);
 		appModel.frozen = Reflect.field(js.Browser.document, hidden);
+		js.Syntax.code("var canvas = document.getElementById('webgl');
+			canvas.addEventListener('webglcontextlost', (event) => {
+				throw new Error('WebGL context loast, please reload game');
+			});");
 		#end
 		baseEntity.add(sceneModel);
 		baseEntity.add(appModel);
@@ -370,20 +374,13 @@ class HeapsContext extends App implements Context {
 							scale9Tiles = {
 								tl: file.sub(tileX, tileY, lw, th, tileDX, tileDY),
 								tm: file.sub(tileX + lw, tileY, mw, th, tileDX, tileDY),
-								tr: file.sub(tileX
-									+ lw + mw, tileY, rw, th, tileDX, tileDY),
-								ml: file.sub(tileX,
-									tileY + th, lw, mh, tileDX, tileDY),
-								mm: file.sub(tileX
-									+ lw, tileY + th, mw, mh, tileDX, tileDY),
-								mr: file.sub(tileX
-									+ lw + mw, tileY + th, rw, mh, tileDX, tileDY),
-								bl: file.sub(tileX,
-									tileY + th + mh, lw, bh, tileDX, tileDY),
-								bm: file.sub(tileX
-									+ lw, tileY + th + mh, mw, bh, tileDX, tileDY),
-								br: file.sub(tileX
-									+ lw + mw, tileY + th + mh, rw, bh, tileDX, tileDY),
+								tr: file.sub(tileX + lw + mw, tileY, rw, th, tileDX, tileDY),
+								ml: file.sub(tileX, tileY + th, lw, mh, tileDX, tileDY),
+								mm: file.sub(tileX + lw, tileY + th, mw, mh, tileDX, tileDY),
+								mr: file.sub(tileX + lw + mw, tileY + th, rw, mh, tileDX, tileDY),
+								bl: file.sub(tileX, tileY + th + mh, lw, bh, tileDX, tileDY),
+								bm: file.sub(tileX + lw, tileY + th + mh, mw, bh, tileDX, tileDY),
+								br: file.sub(tileX + lw + mw, tileY + th + mh, rw, bh, tileDX, tileDY),
 							};
 						case "pad":
 						// Represents scale9 with padding instead, already done what's needed in split
