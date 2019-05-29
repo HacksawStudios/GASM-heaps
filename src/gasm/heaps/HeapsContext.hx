@@ -282,7 +282,6 @@ class HeapsContext extends App implements Context {
 		if (appModel.customRenderCallback != null) {
 			appModel.customRenderCallback(e);
 		} else {
-			e.clear(0, 1, 0);
 			var scenes = 0;
 			if (sceneModel != null) {
 				for (scene in sceneModel.scenes) {
