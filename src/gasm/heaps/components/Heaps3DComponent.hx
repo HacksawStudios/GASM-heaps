@@ -27,7 +27,6 @@ class Heaps3DComponent extends Component {
 
 	var _model:ThreeDModelComponent;
 	var _interactive:Interactive;
-	var _inited:Bool;
 	var _movePos = new Vector();
 	var _alpha = 1.;
 
