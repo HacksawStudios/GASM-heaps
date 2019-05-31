@@ -56,7 +56,6 @@ class Heaps3DComponent extends Component {
 			_interactive = new Interactive(object.getCollider(), object);
 			addEventListeners();
 		}
-		inited = true;
 	}
 
 	override public function update(dt:Float) {
