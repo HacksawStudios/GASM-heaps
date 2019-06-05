@@ -1,5 +1,6 @@
 package gasm.heaps;
 
+import hacksaw.common.enums.Orientation;
 import hxd.SceneEvents;
 import hex.di.Injector;
 import h2d.Tile;
@@ -14,6 +15,7 @@ import gasm.core.Engine;
 import gasm.core.Entity;
 import gasm.core.IEngine;
 import gasm.core.ISystem;
+import gasm.core.enums.Orientation;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.HeapsSpriteComponent;
 import gasm.heaps.components.HeapsSceneBase;
@@ -253,13 +255,6 @@ class HeapsContext extends App implements Context {
 		#end
 		baseEntity.add(sceneModel);
 		baseEntity.add(appModel);
-		onResize();
-	}
-
-	override function onResize() {
-		var stage = hxd.Window.getInstance();
-		appModel.stageSize.x = stage.width;
-		appModel.stageSize.y = stage.height;
 		appModel.freezeSignal.connect(frozen -> {
 			appModel.frozen = frozen;
 			if (frozen) {
@@ -271,6 +266,14 @@ class HeapsContext extends App implements Context {
 				_engine.resume();
 			}
 		});
+		onResize();
+	}
+
+	override function onResize() {
+		var stage = hxd.Window.getInstance();
+		appModel.stageSize.x = stage.width;
+		appModel.stageSize.y = stage.height;
+		appModel.orientation = stage.height > stage.width ? Orientation.PORTRAIT : Orientation.LANDSCAPE;
 		appModel.resizeSignal.emit({width: appModel.stageSize.x, height: appModel.stageSize.y});
 	}
 
