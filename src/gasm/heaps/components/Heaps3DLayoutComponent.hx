@@ -64,6 +64,7 @@ class Heaps3DLayoutComponent extends Component {
 		_stageH = _appModel.stageSize.y;
 		final zDepth = _s3d.camera.zFar - _s3d.camera.zNear;
 		final zPos = (_s3d.camera.zNear + _comp.object.z) / zDepth;
+		_s3d.syncOnly(0);
 		_s3d.camera.update();
 		final p = _s3d.camera.project(_comp.object.x, _comp.object.y, _comp.object.z, _stageW, _stageH);
 		final a = _s3d.camera.unproject(-1, -1, p.z);
