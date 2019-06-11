@@ -72,14 +72,27 @@ class Heaps3DLayoutComponent extends Component {
 		final width = Math.abs(a.x - b.x);
 		final height = Math.abs(a.y - b.y);
 		final depth = a.z;
+		var size:h3d.col.Point;
+		if (_config.size != null) {
+			size = new h3d.col.Point(_config.size.x, _config.size.y, 0);
+		} else {
+			final bounds = _comp.object.getBounds();
+			size = bounds.getSize();
+			// If size is empty we are trying to layout too early
+			if (size.x == -2e20) {
+				haxe.Timer.delay(layout, 10);
+				return;
+			}
+			_config.size = {x: size.x, y: size.y};
+		}
 
 		switch _config.scale {
 			case PROPORTIONAL:
-				scaleProportional(width, height, _comp.object);
+				scaleProportional(width, height, size, _comp.object);
 			case FIT:
-				scaleFit(width, height, _comp.object);
+				scaleFit(width, height, size, _comp.object);
 			case CROP:
-				scaleCrop(width, height, _comp.object);
+				scaleCrop(width, height, size, _comp.object);
 			default:
 				null;
 		}
@@ -89,15 +102,7 @@ class Heaps3DLayoutComponent extends Component {
 		layout();
 	}
 
-	function scaleProportional(width:Float, height:Float, object:Object) {
-		var size:h3d.col.Point;
-		if (_config.size != null) {
-			size = new h3d.col.Point(_config.size.x, _config.size.y, 0);
-		} else {
-			final bounds = object.getBounds();
-			size = bounds.getSize();
-			_config.size = {x: size.x, y: size.y};
-		}
+	function scaleProportional(width:Float, height:Float, size:h3d.col.Point, object:Object) {
 		var tMarg = 0.0;
 		var bMarg = 0.0;
 		var lMarg = 0.0;
@@ -126,7 +131,7 @@ class Heaps3DLayoutComponent extends Component {
 		_model.dirty = false;
 	}
 
-	function scaleFit(width:Float, height:Float, object:Object) {
+	function scaleFit(width:Float, height:Float, size:h3d.col.Point, object:Object) {
 		Assert.that(_margins == null, 'Margins for FIT scale to be done...');
 		var size:h3d.col.Point;
 		if (_config.size != null) {
@@ -141,7 +146,7 @@ class Heaps3DLayoutComponent extends Component {
 		object.scaleY = yRatio;
 	}
 
-	function scaleCrop(width:Float, height:Float, object:Object) {
+	function scaleCrop(width:Float, height:Float, size:h3d.col.Point, object:Object) {
 		var size:h3d.col.Point;
 		if (_config.size != null) {
 			size = new h3d.col.Point(_config.size.x, _config.size.y, 0);
