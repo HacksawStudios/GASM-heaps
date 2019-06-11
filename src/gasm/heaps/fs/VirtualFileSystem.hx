@@ -1,5 +1,7 @@
 package gasm.heaps.fs;
 
+import hxd.fs.NotFound;
+
 typedef VirtualFileEntry = hxd.fs.BytesFileSystem.BytesFileEntry;
 
 class VirtualFileSystem implements hxd.fs.FileSystem {
@@ -26,8 +28,9 @@ class VirtualFileSystem implements hxd.fs.FileSystem {
 
 	public function get(path:String) {
 		var entry = paths.get(path);
-		if (entry == null)
-			throw "Resource not found '" + path + "'";
+		if (entry == null) {
+			throw new NotFound(path);
+		}
 		return entry;
 	}
 
