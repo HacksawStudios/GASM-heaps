@@ -251,24 +251,15 @@ class HeapsContext extends App implements Context {
 		}
 		js.Browser.document.addEventListener(visibilityChange, handleVisibilityChange, false);
 		appModel.frozen = Reflect.field(js.Browser.document, hidden);
+		// Show error when WebGL context lost
 		js.Syntax.code("var canvas = document.getElementById('webgl');
 			canvas.addEventListener('webglcontextlost', function(event) {
 				throw new Error('WebGL context loast, please reload game');
 			});");
 		#end
+		appModel.frozen = false;
 		baseEntity.add(sceneModel);
 		baseEntity.add(appModel);
-		appModel.freezeSignal.connect(frozen -> {
-			appModel.frozen = frozen;
-			if (frozen) {
-				hxd.System.setLoop(null);
-				_engine.pause();
-			} else {
-				hxd.Timer.reset();
-				hxd.System.setLoop(mainLoop);
-				_engine.resume();
-			}
-		});
 		onResize();
 	}
 
