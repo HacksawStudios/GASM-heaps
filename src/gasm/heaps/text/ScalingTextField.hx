@@ -14,7 +14,7 @@ class ScalingTextField extends h2d.Text {
 	public function new(font:h2d.Font, ?parent) {
 		_origSize = _size = font.size;
 		var f = font.clone();
-		f.tile.innerTex.preventAutoDispose();
+		@:privateAccess f.tile.innerTex.preventAutoDispose();
 		super(f, parent);
 	}
 
