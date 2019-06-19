@@ -67,6 +67,10 @@ class HeapsSceneModelComponent extends SceneModelComponent {
 		var anyScene:Any;
 		if (scene.is3D) {
 			final s:h3d.scene.Scene = anyScene = new h3d.scene.Scene();
+			// For the forward renderer, disable pass sorting
+			if (Std.is(s.renderer, h3d.scene.fwd.Renderer)) {
+				@:privateAccess cast(s.renderer.defaultPass, h3d.pass.Default).sortPasses = false;
+			}
 			entity.add(new HeapsScene3DComponent(s));
 			entity.add(new Heaps3DComponent(s));
 		} else {
