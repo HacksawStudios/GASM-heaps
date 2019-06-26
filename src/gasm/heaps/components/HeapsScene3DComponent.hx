@@ -16,9 +16,9 @@ class HeapsScene3DComponent extends HeapsSceneBase {
 		final engine = h3d.Engine.getCurrent();
 		var t = engine.getCurrentTarget();
 		if (t == null)
-			this.scene3d.camera.screenRatio = engine.width / engine.height;
+			scene3d.camera.screenRatio = engine.width / engine.height;
 		else
-			this.scene3d.camera.screenRatio = t.width / t.height;
-		this.scene3d.camera.update();
+			scene3d.camera.screenRatio = t.width / t.height;
+		scene3d.camera.update();
 	}
 }
