@@ -268,6 +268,14 @@ class HeapsContext extends App implements Context {
 		appModel.stageSize.x = stage.width;
 		appModel.stageSize.y = stage.height;
 		appModel.orientation = stage.height > stage.width ? Orientation.PORTRAIT : Orientation.LANDSCAPE;
+
+		for (scene in sceneModel.scenes) {
+			if (!scene.is3D) {
+				var instance2d:h2d.Scene = cast scene.instance;
+				instance2d.checkResize();
+			}
+		}
+
 		appModel.resizeSignal.emit({width: appModel.stageSize.x, height: appModel.stageSize.y});
 	}
 
