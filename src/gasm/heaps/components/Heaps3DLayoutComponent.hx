@@ -1,6 +1,5 @@
 package gasm.heaps.components;
 
-import h3d.col.Bounds;
 import h3d.scene.Object;
 import gasm.core.Component;
 import gasm.core.api.singnals.TResize;
@@ -11,10 +10,11 @@ import gasm.core.enums.ComponentType;
 import gasm.core.math.geom.Point;
 import gasm.core.math.geom.Vector;
 import gasm.core.utils.Assert;
-import gasm.core.utils.SignalConnection;
 import h3d.scene.Scene;
 
 class Heaps3DLayoutComponent extends Component {
+	public var enabled = true;
+
 	final _config:Heaps3DLayoutConfig;
 	final _margins:Margins;
 	var _s3d:Scene;
@@ -23,7 +23,6 @@ class Heaps3DLayoutComponent extends Component {
 	var _stageW = 0.0;
 	var _stageH = 0.0;
 	var _model:ThreeDModelComponent;
-	var _sceneComponent:HeapsScene3DComponent;
 
 	public function new(config:Heaps3DLayoutConfig) {
 		componentType = Actor;
@@ -32,9 +31,9 @@ class Heaps3DLayoutComponent extends Component {
 	}
 
 	override public function init() {
-		_sceneComponent = owner.getFromParents(HeapsScene3DComponent);
-		Assert.that(_sceneComponent != null, 'Heaps3DLayoutComponent needs to be on a scene with a HeapsScene3DComponent.');
-		_s3d = _sceneComponent.scene3d;
+		var sceneComp = owner.getFromParents(HeapsScene3DComponent);
+		Assert.that(sceneComp != null, 'Heaps3DLayoutComponent needs to be on a scene with a HeapsScene3DComponent.');
+		_s3d = sceneComp.scene3d;
 		_comp = owner.getFromParents(Heaps3DComponent);
 		Assert.that(_comp != null, 'Heaps3DLayoutComponent needs to be in an enitity with a Heaps3DComponent.');
 		_appModel = owner.getFromParents(AppModelComponent);
@@ -58,20 +57,20 @@ class Heaps3DLayoutComponent extends Component {
 	}
 
 	public function layout() {
-		if (_appModel == null) {
+		if (_appModel == null || !enabled) {
 			return;
 		}
 		_stageW = _appModel.stageSize.x;
 		_stageH = _appModel.stageSize.y;
 		final zDepth = _s3d.camera.zFar - _s3d.camera.zNear;
 		final zPos = (_s3d.camera.zNear + _comp.object.z) / zDepth;
-		_sceneComponent.syncCamera();
+		_s3d.syncOnly(0);
+		_s3d.camera.update();
 		final p = _s3d.camera.project(_comp.object.x, _comp.object.y, _comp.object.z, _stageW, _stageH);
 		final a = _s3d.camera.unproject(-1, -1, p.z);
 		final b = _s3d.camera.unproject(1, 1, p.z);
 		final width = Math.abs(a.x - b.x);
 		final height = Math.abs(a.y - b.y);
-		final depth = a.z;
 		var size:h3d.col.Point;
 		if (_config.size != null) {
 			size = new h3d.col.Point(_config.size.x, _config.size.y, 0);
