@@ -1,6 +1,5 @@
 package gasm.heaps.components;
 
-import h3d.col.Bounds;
 import h3d.scene.Object;
 import gasm.core.Component;
 import gasm.core.api.singnals.TResize;
@@ -11,19 +10,20 @@ import gasm.core.enums.ComponentType;
 import gasm.core.math.geom.Point;
 import gasm.core.math.geom.Vector;
 import gasm.core.utils.Assert;
-import gasm.core.utils.SignalConnection;
 import h3d.scene.Scene;
 
 class Heaps3DLayoutComponent extends Component {
+	public var enabled = true;
+
 	final _config:Heaps3DLayoutConfig;
 	final _margins:Margins;
 	var _s3d:Scene;
+	var _sceneComponent:HeapsScene3DComponent;
 	var _comp:Heaps3DComponent;
 	var _appModel:AppModelComponent;
 	var _stageW = 0.0;
 	var _stageH = 0.0;
 	var _model:ThreeDModelComponent;
-	var _sceneComponent:HeapsScene3DComponent;
 
 	public function new(config:Heaps3DLayoutConfig) {
 		componentType = Actor;
@@ -58,7 +58,7 @@ class Heaps3DLayoutComponent extends Component {
 	}
 
 	public function layout() {
-		if (_appModel == null) {
+		if (_appModel == null || !enabled) {
 			return;
 		}
 		_stageW = _appModel.stageSize.x;
@@ -71,7 +71,6 @@ class Heaps3DLayoutComponent extends Component {
 		final b = _s3d.camera.unproject(1, 1, p.z);
 		final width = Math.abs(a.x - b.x);
 		final height = Math.abs(a.y - b.y);
-		final depth = a.z;
 		var size:h3d.col.Point;
 		if (_config.size != null) {
 			size = new h3d.col.Point(_config.size.x, _config.size.y, 0);
