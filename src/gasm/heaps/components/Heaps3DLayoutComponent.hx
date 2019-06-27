@@ -18,6 +18,7 @@ class Heaps3DLayoutComponent extends Component {
 	final _config:Heaps3DLayoutConfig;
 	final _margins:Margins;
 	var _s3d:Scene;
+	var _sceneComponent:HeapsScene3DComponent;
 	var _comp:Heaps3DComponent;
 	var _appModel:AppModelComponent;
 	var _stageW = 0.0;
@@ -31,9 +32,9 @@ class Heaps3DLayoutComponent extends Component {
 	}
 
 	override public function init() {
-		var sceneComp = owner.getFromParents(HeapsScene3DComponent);
-		Assert.that(sceneComp != null, 'Heaps3DLayoutComponent needs to be on a scene with a HeapsScene3DComponent.');
-		_s3d = sceneComp.scene3d;
+		_sceneComponent = owner.getFromParents(HeapsScene3DComponent);
+		Assert.that(_sceneComponent != null, 'Heaps3DLayoutComponent needs to be on a scene with a HeapsScene3DComponent.');
+		_s3d = _sceneComponent.scene3d;
 		_comp = owner.getFromParents(Heaps3DComponent);
 		Assert.that(_comp != null, 'Heaps3DLayoutComponent needs to be in an enitity with a Heaps3DComponent.');
 		_appModel = owner.getFromParents(AppModelComponent);
@@ -64,8 +65,7 @@ class Heaps3DLayoutComponent extends Component {
 		_stageH = _appModel.stageSize.y;
 		final zDepth = _s3d.camera.zFar - _s3d.camera.zNear;
 		final zPos = (_s3d.camera.zNear + _comp.object.z) / zDepth;
-		_s3d.syncOnly(0);
-		_s3d.camera.update();
+		_sceneComponent.syncCamera();
 		final p = _s3d.camera.project(_comp.object.x, _comp.object.y, _comp.object.z, _stageW, _stageH);
 		final a = _s3d.camera.unproject(-1, -1, p.z);
 		final b = _s3d.camera.unproject(1, 1, p.z);
