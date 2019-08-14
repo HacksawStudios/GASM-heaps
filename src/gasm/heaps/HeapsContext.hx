@@ -294,8 +294,8 @@ class HeapsContext extends App implements Context {
 						var instance2d:h2d.Scene = cast scene.instance;
 						instance2d.render(e);
 					} else {
-						var instance3d:h3d.scene.Scene = cast scene.instance;
-						instance3d.render(e);
+						final sceneComp = scene.entity.getFromParents(HeapsScene3DComponent);
+						sceneComp.render(e);
 					}
 					scenes++;
 				}
