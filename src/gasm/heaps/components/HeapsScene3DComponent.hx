@@ -18,22 +18,23 @@ class HeapsScene3DComponent extends HeapsSceneBase {
 		componentType = ComponentType.Model;
 		scene3d = scene;
 		_engine = h3d.Engine.getCurrent();
-		_size = {x: _engine.width, y: _engine.height};
 		super(scene);
 	}
 
 	public function render(e:h3d.Engine) {
-		if (_engine.width != _size.x || _engine.height != _size.y) {
-			_postProcessingTexture = new h3d.mat.Texture(_engine.width, _engine.height);
-			_size.x = _engine.width;
-			_size.y = _engine.height;
-		}
 		if (_postProcess) {
-			_postProcessingTexture.clear(0, 0);
+			if (_size == null || (_engine.width != _size.x || _engine.height != _size.y)) {
+				_postProcessingTexture = new h3d.mat.Texture(_engine.width, _engine.height);
+				_size = {x: _engine.width, y: _engine.height};
+			} else {
+				_postProcessingTexture.clear(0, 0);
+			}
 			_engine.pushTarget(_postProcessingTexture);
 			scene3d.render(_engine);
 			_engine.popTarget();
 			for (pass in _passes) {
+				final shader = pass.getShader(hacksaw.core.filters.h2d.TextureShader);
+				shader.texture = _postProcessingTexture;
 				pass.render();
 			}
 		} else {
