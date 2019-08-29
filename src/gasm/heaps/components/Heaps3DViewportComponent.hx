@@ -29,8 +29,10 @@ class Heaps3DViewportComponent extends Component {
 		_s3d = owner.getFromParents(HeapsScene3DComponent).scene3d;
 		var cam = _s3d.camera;
 		cam.pos = _config.cameraPos;
-		cam.rightHanded = true;
-		cam.up = new h3d.Vector(0, 1, 0);
+		if (_config.rightHanded) {
+			cam.rightHanded = true;
+			cam.up = new h3d.Vector(0, 1, 0);
+		}
 		cam.target = _config.cameraTarget;
 		cam.zNear = _config.zNear;
 		cam.zFar = _config.zFar;
@@ -82,4 +84,5 @@ class Heaps3DViewportConfig {
 	public var zNear = 1.0;
 	public var zFar = 100.0;
 	public var fov:Null<Float> = null;
+	public var rightHanded = true;
 }
