@@ -1,29 +1,27 @@
 {
   "name": "@hacksawstudios/gasm-heaps",
-  "version": "4.6.0",
+  "version": "5.1.0-rc.0",
   "description": "HEAPS adapter for GASM",
   "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
-  "dependencies": {},
-  "devDependencies": {
-    "@hacksawstudios/gitlab-ci-releaser": "2.0.1",
-    "@hacksawstudios/haxe-module-installer": "1.0.7",
-    "fs-extra": "^7.0.1"
-  },
   "scripts": {
-    "postinstall": "node_modules/.bin/haxe-module-installer",
+    "postinstall": "npx @hacksawstudios/haxe-module-installer && node updateHaxelib.js",
     "test": ""
   },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@gitlab.hacksawstudios.com:gameclient/client-common/GASM-heaps.git"
   },
-  "author": "",
+  "author": "hacksawstudios",
   "license": "MIT",
   "bugs": {
     "url": "https://gitlab.hacksawstudios.com/gameclient/client-common/GASM-heaps/issues"
   },
-  "homepage": "https://gitlab.hacksawstudios.com/gameclient/client-common/GASM-heaps"
+  "homepage": "https://gitlab.hacksawstudios.com/gameclient/client-common/GASM-heaps",
+  "devDependencies": {
+    "@hacksawstudios/gitlab-ci-releaser": "2.0.1",
+    "fs-extra": "^7.0.1"
+  },
+  "dependencies": {
+    "@hacksawstudios/haxe-module-installer": "1.0.11"
+  }
 }

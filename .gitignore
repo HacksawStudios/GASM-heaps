@@ -16,3 +16,5 @@ desc.json
 /fontbuild
 webpack.config.js
 postcss.config.js
+.pnpm-store
+*.log

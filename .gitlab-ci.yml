@@ -2,13 +2,12 @@ stages:
   - release
 
 package_release:
-  image: hacksawgaming/hacksaw-build:4.0.0-rc.1-4
+  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-18
   stage: release
   before_script:
-    - apk add --update zip
-    - npm i
+    - pnpm i --unsafe-perm
   script:
-    - $(npm bin)/gitlab-ci-releaser --npm
+    - npx @hacksawstudios/gitlab-ci-releaser --npm
   only:
     refs:
       - master
@@ -17,13 +16,12 @@ package_release:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/ 
 
 package_rc:
-  image: hacksawgaming/hacksaw-build:4.0.0-rc.1-4
+  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-18
   stage: release
   before_script:
-    - apk add --update zip
-    - npm i
+    - pnpm i --unsafe-perm
   script:
-    - $(npm bin)/gitlab-ci-releaser --npm --preid rc
+    - npx @hacksawstudios/gitlab-ci-releaser --npm --preid rc
   only:
     - develop
   except:

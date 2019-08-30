@@ -1,21 +1,32 @@
 package gasm.heaps;
 
+import hacksaw.common.enums.Orientation;
+import hxd.SceneEvents;
+import hex.di.Injector;
 import h2d.Tile;
 import tweenx909.TweenX;
 import hxd.Charset;
 import gasm.assets.Loader.AssetType;
 import gasm.assets.Loader;
 import gasm.core.components.AppModelComponent;
+import gasm.core.components.SceneModelComponent;
 import gasm.core.Context;
 import gasm.core.Engine;
 import gasm.core.Entity;
 import gasm.core.IEngine;
 import gasm.core.ISystem;
+import gasm.core.enums.Orientation;
+import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.HeapsSpriteComponent;
+import gasm.heaps.components.HeapsSceneBase;
+import gasm.heaps.components.HeapsScene2DComponent;
+import gasm.heaps.components.HeapsScene3DComponent;
+import gasm.heaps.components.HeapsSceneModelComponent;
 import gasm.heaps.systems.HeapsCoreSystem;
 import gasm.heaps.systems.HeapsRenderingSystem;
 import gasm.heaps.systems.HeapsSoundSystem;
 import gasm.heaps.data.Atlas;
+import haxe.ds.StringMap;
 import hxd.App;
 
 /**
@@ -26,6 +37,7 @@ class HeapsContext extends App implements Context {
 	public var baseEntity(get, null):Entity;
 	public var systems(default, null):Array<ISystem>;
 	public var appModel(default, null):AppModelComponent;
+	public var sceneModel(default, null):SceneModelComponent;
 
 	var _engine:IEngine;
 	var _core:ISystem;
@@ -35,6 +47,8 @@ class HeapsContext extends App implements Context {
 	var _assetContainers:AssetContainers;
 	var _assetConfig:AssetConfig;
 	var _soundSupport:Bool;
+	var _injector:Injector;
+	final _fileSystem = new gasm.heaps.fs.VirtualFileSystem();
 
 	public function new(?core:ISystem, ?renderer:ISystem, ?sound:ISystem, ?engine:IEngine) {
 		_core = core;
@@ -49,7 +63,8 @@ class HeapsContext extends App implements Context {
 
 	public function preload(progress:Int->Void, done:Void->Void) {
 		#if js
-		_soundSupport = (Reflect.field(js.Browser.window, "AudioContext") != null || Reflect.field(js.Browser.window, "webkitAudioContext") != null);
+		_soundSupport = (Reflect.field(js.Browser.window, "AudioContext") != null
+			|| Reflect.field(js.Browser.window, "webkitAudioContext") != null);
 		if (_soundSupport) {
 			var myAudio:js.html.AudioElement = cast js.Browser.document.createElement('audio');
 			if (myAudio.canPlayType != null) {
@@ -74,12 +89,13 @@ class HeapsContext extends App implements Context {
 				}
 			}
 		}
+		appModel.pixelRatio = js.Browser.window.devicePixelRatio;
 		#end
 		engine.render(this);
-		var bitmapFonts = new haxe.ds.StringMap<haxe.io.Bytes>();
 		var atlases = new haxe.ds.StringMap<haxe.io.Bytes>();
 		var loader = new Loader('assets/desc.json', _assetConfig);
 		loader.onReady = function() {
+			hxd.res.Loader.currentInstance = new hxd.res.Loader(_fileSystem);
 			for (img in Type.getClassFields(_assetContainers.images)) {
 				loader.queueItem(img, AssetType.Image);
 			}
@@ -91,8 +107,8 @@ class HeapsContext extends App implements Context {
 			for (fnt in Type.getClassFields(hacksaw.core.data.FontList)) {
 				loader.queueItem(fnt, AssetType.Font);
 			}
-			for (bmFnt in Type.getClassFields(_assetContainers.bitmapFonts)) {
-				loader.queueItem(bmFnt, AssetType.BitmapFont);
+			for (fnt in Type.getClassFields(hacksaw.core.data.BitmapFontList)) {
+				loader.queueItem(fnt, AssetType.BitmapFont);
 			}
 			for (atlas in Type.getClassFields(_assetContainers.atlases)) {
 				loader.queueItem(atlas, AssetType.Atlas);
@@ -102,6 +118,9 @@ class HeapsContext extends App implements Context {
 			}
 			for (config in Reflect.fields(_assetContainers.brandingConfigs)) {
 				loader.queueItem(config, AssetType.Config);
+			}
+			for (config in Reflect.fields(_assetContainers.models)) {
+				loader.queueItem(config, AssetType.Model);
 			}
 			loader.load();
 		}
@@ -115,6 +134,7 @@ class HeapsContext extends App implements Context {
 		loader.onError = function(error:String) {
 			throw error;
 		}
+
 		loader.addHandler(AssetType.Image, function(item:HandlerItem) {
 			Reflect.setField(_assetContainers.images, item.id, hxd.res.Any.fromBytes('${item.path}', item.data).toTile());
 		});
@@ -137,22 +157,27 @@ class HeapsContext extends App implements Context {
 		});
 
 		loader.addHandler(AssetType.BitmapFont, function(item:HandlerItem) {
-			if (bitmapFonts.exists(item.id)) {
-				var bmImg = bitmapFonts.get(item.id);
-				var font = parseFont(item.id, item.data, bmImg);
-				Reflect.setField(_assetContainers.fonts, item.id, font);
-			} else {
-				bitmapFonts.set(item.id, item.data);
+			final name = item.id.split('.')[0];
+			final fontPath = 'fonts/$name.fnt';
+			final imagePath = 'fonts/$name.png';
+			final fontData = item.data;
+			_fileSystem.add(fontPath, fontData);
+			if (_fileSystem.exists(imagePath)) {
+				final font = new hxd.res.BitmapFont(_fileSystem.get(fontPath));
+				_assetContainers.bitmapFonts.set(item.id, font);
 			}
 		});
 
 		loader.addHandler(AssetType.BitmapFontImage, function(item:HandlerItem) {
-			if (bitmapFonts.exists(item.id)) {
-				var bmFont = bitmapFonts.get(item.id);
-				var font = parseFont(item.id, bmFont, item.data);
-				Reflect.setField(_assetContainers.fonts, item.id, font);
-			} else {
-				bitmapFonts.set(item.id, item.data);
+			final name = item.id.split('.')[0];
+			final fontPath = 'fonts/$name.fnt';
+			final imagePath = 'fonts/$name.png';
+			final imageData = item.data;
+			_fileSystem.add(imagePath, imageData);
+			if (_fileSystem.exists(fontPath)) {
+				final fontData = _fileSystem.getBytes(fontPath);
+				final font = new hxd.res.BitmapFont(_fileSystem.get(fontPath));
+				_assetContainers.bitmapFonts.set(item.id, font);
 			}
 		});
 
@@ -165,10 +190,6 @@ class HeapsContext extends App implements Context {
 				atlases.set(item.id, item.data);
 			}
 		});
-		loader.addHandler(AssetType.Gradient, function(item:HandlerItem) {
-			var grd = hxd.res.Any.fromBytes('${item.path}', item.data).to(hxd.res.Gradients);
-			Reflect.setField(_assetContainers.gradients, item.id, grd);
-		});
 
 		loader.addHandler(AssetType.AtlasImage, function(item:HandlerItem) {
 			if (atlases.exists(item.id)) {
@@ -180,6 +201,11 @@ class HeapsContext extends App implements Context {
 			}
 		});
 
+		loader.addHandler(AssetType.Gradient, function(item:HandlerItem) {
+			var grd = hxd.res.Any.fromBytes('${item.path}', item.data).to(hxd.res.Gradients);
+			Reflect.setField(_assetContainers.gradients, item.id, grd);
+		});
+
 		loader.addHandler(AssetType.Config, function(item:HandlerItem) {
 			switch (item.id) {
 				case 'gameconfig':
@@ -189,6 +215,11 @@ class HeapsContext extends App implements Context {
 					null;
 			}
 		});
+
+		loader.addHandler(AssetType.Model, function(item:HandlerItem) {
+			var model = hxd.res.Any.fromBytes('${item.path}', item.data).to(hxd.res.Model);
+			Reflect.setField(_assetContainers.models, item.id, model);
+		});
 	}
 
 	override function init() {
@@ -197,7 +228,7 @@ class HeapsContext extends App implements Context {
 		_sound = _sound != null ? _sound : new HeapsSoundSystem();
 		systems = [_core, _renderer, _sound];
 		_engine = _engine != null ? _engine : new Engine(systems);
-
+		mapInjections();
 		#if js
 		var hidden:String = null;
 		var visibilityChange:String = null;
@@ -211,16 +242,23 @@ class HeapsContext extends App implements Context {
 			hidden = "webkitHidden";
 			visibilityChange = "webkitvisibilitychange";
 		}
-		var handleVisibilityChange = function() {
-			appModel.frozen = Reflect.field(js.Browser.document, hidden);
-			appModel.freezeSignal.emit(appModel.frozen);
+		final handleVisibilityChange = () -> {
+			final frozen = Reflect.field(js.Browser.document, hidden);
+			if (frozen != appModel.frozen) {
+				appModel.frozen = frozen;
+				appModel.freezeSignal.emit(appModel.frozen);
+			}
 		}
 		js.Browser.document.addEventListener(visibilityChange, handleVisibilityChange, false);
 		appModel.frozen = Reflect.field(js.Browser.document, hidden);
+		// Show error when WebGL context lost
+		js.Syntax.code("var canvas = document.getElementById('webgl');
+			canvas.addEventListener('webglcontextlost', function(event) {
+				throw new Error('WebGL context loast, please reload game');
+			});");
 		#end
-
-		var comp = new HeapsSpriteComponent(cast s2d);
-		baseEntity.add(comp);
+		appModel.frozen = false;
+		baseEntity.add(sceneModel);
 		baseEntity.add(appModel);
 		onResize();
 	}
@@ -229,17 +267,15 @@ class HeapsContext extends App implements Context {
 		var stage = hxd.Window.getInstance();
 		appModel.stageSize.x = stage.width;
 		appModel.stageSize.y = stage.height;
-		appModel.freezeSignal.connect(frozen -> {
-			appModel.frozen = frozen;
-			if (frozen) {
-				hxd.System.setLoop(null);
-				_engine.pause();
-			} else {
-				hxd.Timer.reset();
-				hxd.System.setLoop(mainLoop);
-				_engine.resume();
+		appModel.orientation = stage.height > stage.width ? Orientation.PORTRAIT : Orientation.LANDSCAPE;
+
+		for (scene in sceneModel.scenes) {
+			if (!scene.is3D) {
+				var instance2d:h2d.Scene = cast scene.instance;
+				instance2d.checkResize();
 			}
-		});
+		}
+
 		appModel.resizeSignal.emit({width: appModel.stageSize.x, height: appModel.stageSize.y});
 	}
 
@@ -247,13 +283,44 @@ class HeapsContext extends App implements Context {
 		_engine.tick();
 	}
 
+	override public function render(e:h3d.Engine) {
+		if (appModel.customRenderCallback != null) {
+			appModel.customRenderCallback(e);
+		} else {
+			var scenes = 0;
+			if (sceneModel != null) {
+				for (scene in sceneModel.scenes) {
+					if (!scene.is3D) {
+						var instance2d:h2d.Scene = cast scene.instance;
+						instance2d.render(e);
+					} else {
+						final sceneComp = scene.entity.getFromParents(HeapsScene3DComponent);
+						sceneComp.render(e);
+					}
+					scenes++;
+				}
+			}
+			// If no scenes added, just render default s3d and s2d
+			if (scenes == 0) {
+				super.render(e);
+			}
+		}
+	}
+
+	function mapInjections() {
+		_injector = new Injector();
+		sceneModel = new HeapsSceneModelComponent(_injector);
+		_injector.map(SceneEvents).toValue(sevents);
+		_injector.map(SceneModelComponent).toValue(sceneModel);
+		_injector.map(Entity).toValue(baseEntity);
+		_injector.map(AppModelComponent).toValue(appModel);
+		_injector.map(SceneModelComponent).toValue(sceneModel);
+	}
+
 	function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Atlas {
 		var file = hxd.res.Any.fromBytes('font/$id', image).toTile();
-		var atlas:Atlas = {
-			tile: file,
-			contents: new Map(),
-			tiles: [],
-		}
+		var contents = new Map();
+
 		var lines = definition.toString().split("\n");
 		while (lines.length > 0) {
 			var line = StringTools.trim(lines.shift());
@@ -330,10 +397,10 @@ class HeapsContext extends App implements Context {
 				tileDY = origH - (tileH + tileDY);
 
 				var t = file.sub(tileX, tileY, tileW, tileH, tileDX, tileDY);
-				var tl = atlas.contents.get(key);
+				var tl = contents.get(key);
 				if (tl == null) {
 					tl = [];
-					atlas.contents.set(key, tl);
+					contents.set(key, tl);
 				}
 				tl[index] = {
 					t: t,
@@ -344,18 +411,32 @@ class HeapsContext extends App implements Context {
 			}
 		}
 
-		var tiles:Array<h2d.Tile> = [];
-		for (tile in Reflect.fields(atlas.contents)) {
-			var tileData:h2d.Tile = Reflect.field(atlas.contents, tile);
-			var fields:Array<String> = Reflect.fields(tileData);
-			for (a in fields) {
-				var d:Array<Dynamic> = Reflect.field(tileData, a);
-				for (t in d) {
-					tiles.push(Reflect.field(t, 't'));
+		var maxW = 0;
+		var maxH = 0;
+		var frames:Array<h2d.Tile> = [];
+
+		for (key in contents.keys()) {
+			var c:Array<AtlasContents> = contents.get(key);
+			for (frame in c) {
+				if (frame != null) {
+					maxW = Std.int(Math.max(maxW, frame.width));
+					maxH = Std.int(Math.max(maxW, frame.height));
+					frames.push(frame.t);
+				} else {
+					frames.push(null);
 				}
 			}
 		}
-		atlas.tiles = tiles;
+		var animation:AtlasAnimation = {
+			width: maxW,
+			height: maxH,
+			frames: frames,
+		};
+		var atlas:Atlas = {
+			tile: file,
+			contents: contents,
+			animation: animation,
+		}
 		return atlas;
 	}
 
@@ -416,11 +497,12 @@ typedef AssetContainers = {
 	?images:Dynamic,
 	?sounds:Dynamic,
 	?fonts:haxe.ds.StringMap<hxd.res.Font>,
-	?bitmapFonts:Dynamic,
+	?bitmapFonts:haxe.ds.StringMap<hxd.res.BitmapFont>,
 	?atlases:Dynamic,
 	?gradients:Dynamic,
 	?configs:Dynamic,
 	?brandingConfigs:BrandingConfigs,
+	?models:Dynamic,
 }
 
 typedef BrandingConfigs = {

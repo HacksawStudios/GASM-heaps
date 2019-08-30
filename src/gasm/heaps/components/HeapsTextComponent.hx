@@ -94,10 +94,11 @@ class HeapsTextComponent extends HeapsSpriteComponent {
 		}
 		textField.x = xOff;
 		var tex = new Texture(Std.int(_holder.getBounds().width), Std.int(_holder.getSize().height), [TextureFlags.Target]);
-		cast(_appModel.stage, h2d.Scene).addChild(_holder);
+		var s2d = owner.getFromParents(HeapsScene2DComponent).scene2d;
+		s2d.addChild(_holder);
 		_holder.drawTo(tex);
 		_holder.visible = false;
-		cast(_appModel.stage, h2d.Scene).removeChild(_holder);
+		s2d.removeChild(_holder);
 		var tile = Tile.fromTexture(tex);
 		_bitmap = new Bitmap(tile);
 		sprite.addChild(_bitmap);
