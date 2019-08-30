@@ -6,6 +6,9 @@ import gasm.core.utils.Assert;
 
 class Heaps3DScaleFollowComponent extends Component {
 	final _config:Heaps3DScaleFollowConfig;
+
+	public var freeze = false;
+
 	var _comp:Heaps3DComponent;
 
 	public var scale:Float;
@@ -22,9 +25,11 @@ class Heaps3DScaleFollowComponent extends Component {
 	}
 
 	override public function update(dt:Float) {
-		_comp.object.scaleX = _config.follow.scaleX * scale;
-		_comp.object.scaleY = _config.follow.scaleY * scale;
-		_comp.object.scaleZ = _config.follow.scaleZ * scale;
+		if (!freeze) {
+			_comp.object.scaleX = _config.follow.scaleX * scale;
+			_comp.object.scaleY = _config.follow.scaleY * scale;
+			_comp.object.scaleZ = _config.follow.scaleZ * scale;
+		}
 	}
 }
 
