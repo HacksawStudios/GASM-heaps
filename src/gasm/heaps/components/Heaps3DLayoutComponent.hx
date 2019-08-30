@@ -35,7 +35,7 @@ class Heaps3DLayoutComponent extends Component {
 		_sceneComponent = owner.getFromParents(HeapsScene3DComponent);
 		Assert.that(_sceneComponent != null, 'Heaps3DLayoutComponent needs to be on a scene with a HeapsScene3DComponent.');
 		_s3d = _sceneComponent.scene3d;
-		_comp = owner.getFromParents(Heaps3DComponent);
+		_comp = owner.get(Heaps3DComponent);
 		Assert.that(_comp != null, 'Heaps3DLayoutComponent needs to be in an enitity with a Heaps3DComponent.');
 		_appModel = owner.getFromParents(AppModelComponent);
 		_model = owner.get(ThreeDModelComponent);
