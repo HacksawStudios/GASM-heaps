@@ -245,6 +245,11 @@ class HeapsContext extends App implements Context {
 		final handleVisibilityChange = () -> {
 			final frozen = Reflect.field(js.Browser.document, hidden);
 			if (frozen != appModel.frozen) {
+				if (frozen) {
+					_engine.pause();
+				} else {
+					_engine.resume();
+				}
 				appModel.frozen = frozen;
 				appModel.freezeSignal.emit(appModel.frozen);
 			}
