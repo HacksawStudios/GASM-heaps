@@ -7,6 +7,7 @@ import h3d.mat.Texture;
 
 class ScalingTextField extends h2d.Text {
 	public var currSize(default, null):{w:Float, h:Float};
+	public var yMarg(default, default) = 0;
 
 	var _origSize:Int;
 	var _size:Int;
@@ -36,4 +37,14 @@ class ScalingTextField extends h2d.Text {
 		var bm = new Bitmap(tile);
 		return bm;
 	}
+
+	override function initGlyphs(text:hxd.UString, rebuild = true, handleAlign = true, lines:Array<Int> = null):Void {
+		super.initGlyphs(text, rebuild, handleAlign, lines);
+		calcHeight += yMarg;
+	}
+}
+
+@:structInit
+class ScalingTextFieldOptions {
+	public var yMarg = 0;
 }
