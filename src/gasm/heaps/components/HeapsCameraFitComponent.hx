@@ -1,16 +1,15 @@
 package gasm.heaps.components;
 
-import haxe.macro.Expr.Var;
+import gasm.core.Component;
+import gasm.core.Entity;
+import gasm.core.enums.ComponentType;
+import gasm.core.math.geom.Point;
+import gasm.core.utils.Assert;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.Heaps3DViewportComponent;
-import gasm.core.enums.ComponentType;
-import gasm.core.Entity;
-import gasm.core.Component;
-import gasm.core.math.geom.Point;
 import gasm.heaps.components.HeapsScene3DComponent;
 import tweenx909.TweenX;
 import tweenxcore.Tools.Easing;
-import gasm.core.utils.Assert;
 
 using tweenxcore.Tools;
 
@@ -19,7 +18,7 @@ using tweenxcore.Tools;
  *
  * Note that you can only use one camera fit component per stage graph, otherwise they will fight eachother.
  */
-class CameraFitComponent extends Component {
+class HeapsCameraFitComponent extends Component {
 	public var enabled = true;
 
 	final _config:CameraFitConfig;
