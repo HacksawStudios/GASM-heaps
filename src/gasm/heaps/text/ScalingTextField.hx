@@ -7,7 +7,9 @@ import h3d.mat.Texture;
 
 class ScalingTextField extends h2d.Text {
 	public var currSize(default, null):{w:Float, h:Float};
-	public var yMarg(default, default) = 0;
+	// Fonts extending below descender limit will be cut off in heaps text field for some reason
+	// This margin fixes issues with bottom part of fonts being cutt of in most cases, but you can incrase it if you still experience issues
+	public var yMarg(default, default) = 10;
 
 	var _origSize:Int;
 	var _size:Int;
@@ -42,9 +44,4 @@ class ScalingTextField extends h2d.Text {
 		super.initGlyphs(text, rebuild, handleAlign, lines);
 		calcHeight += yMarg;
 	}
-}
-
-@:structInit
-class ScalingTextFieldOptions {
-	public var yMarg = 0;
 }
