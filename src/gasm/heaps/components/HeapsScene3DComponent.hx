@@ -1,13 +1,13 @@
 package gasm.heaps.components;
 
-import gasm.core.Component;
 import gasm.core.enums.ComponentType;
 import gasm.core.math.geom.Point;
+import hacksaw.core.filters.h2d.TextureShader;
 
 class HeapsScene3DComponent extends HeapsSceneBase {
 	public var scene3d:h3d.scene.Scene;
 
-	final _passes:Array<h3d.pass.ScreenFx<hacksaw.core.filters.h2d.TextureShader>> = [];
+	final _passes = new Map<TextureShader, h3d.pass.ScreenFx<TextureShader>>();
 	final _engine:h3d.Engine;
 
 	var _size:Point;
@@ -52,7 +52,14 @@ class HeapsScene3DComponent extends HeapsSceneBase {
 		shader.texture = _postProcessingTexture;
 		final pass = new h3d.pass.ScreenFx<hacksaw.core.filters.h2d.TextureShader>(shader);
 		pass.pass.setBlendMode(blendMode);
-		_passes.push(pass);
+		_passes.set(shader, pass);
+	}
+
+	public function removePostProcessingShader(shader:hacksaw.core.filters.h2d.TextureShader) {
+		_postProcessingTexture = null;
+		_postProcess = false;
+		shader.texture = null;
+		_passes.remove(shader);
 	}
 
 	public function syncCamera() {
