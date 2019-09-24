@@ -29,6 +29,8 @@ import gasm.heaps.data.Atlas;
 import haxe.ds.StringMap;
 import hxd.App;
 
+using StringTools;
+
 /**
  * ...
  * @author Leo Bergman
@@ -175,29 +177,34 @@ class HeapsContext extends App implements Context {
 			final imageData = item.data;
 			_fileSystem.add(imagePath, imageData);
 			if (_fileSystem.exists(fontPath)) {
-				final fontData = _fileSystem.getBytes(fontPath);
 				final font = new hxd.res.BitmapFont(_fileSystem.get(fontPath));
 				_assetContainers.bitmapFonts.set(item.id, font);
 			}
 		});
 
 		loader.addHandler(AssetType.Atlas, function(item:HandlerItem) {
-			if (atlases.exists(item.id)) {
-				var atlasImg = atlases.get(item.id);
-				var atlas = parseAtlas(item.id, item.data, atlasImg);
+			final name = item.id;
+			final ext = item.path.contains('.png') ? 'png' : 'jpg';
+			final atlasPath = 'atlas/$name.atlas';
+			final imagePath = 'atlas/$name.$ext';
+			final atlasData = item.data;
+			_fileSystem.add(atlasPath, atlasData);
+			if (_fileSystem.exists(imagePath)) {
+				final atlas = parseAtlas('$name.$ext', item.data, _fileSystem.get(imagePath).getBytes());
 				Reflect.setField(_assetContainers.atlases, item.id, atlas);
-			} else {
-				atlases.set(item.id, item.data);
 			}
 		});
 
 		loader.addHandler(AssetType.AtlasImage, function(item:HandlerItem) {
-			if (atlases.exists(item.id)) {
-				var atlasDef = atlases.get(item.id);
-				var atlas = parseAtlas(item.id, atlasDef, item.data);
+			final name = item.id;
+			final ext = item.path.contains('.png') ? 'png' : 'jpg';
+			final atlasPath = 'atlas/$name.atlas';
+			final imagePath = 'atlas/$name.$ext';
+			final imageData = item.data;
+			_fileSystem.add(imagePath, imageData);
+			if (_fileSystem.exists(atlasPath)) {
+				final atlas = parseAtlas('$name.$ext', _fileSystem.get(atlasPath).getBytes(), item.data);
 				Reflect.setField(_assetContainers.atlases, item.id, atlas);
-			} else {
-				atlases.set(item.id, item.data);
 			}
 		});
 
@@ -323,7 +330,7 @@ class HeapsContext extends App implements Context {
 	}
 
 	function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Atlas {
-		var file = hxd.res.Any.fromBytes('font/$id', image).toTile();
+		var file = hxd.res.Any.fromBytes('atlas/$id', image).toTile();
 		var contents = new Map();
 
 		var lines = definition.toString().split("\n");
