@@ -1,5 +1,6 @@
 package gasm.heaps;
 
+import haxe.io.Path;
 import hacksaw.common.enums.Orientation;
 import hxd.SceneEvents;
 import hex.di.Injector;
@@ -184,20 +185,24 @@ class HeapsContext extends App implements Context {
 
 		loader.addHandler(AssetType.Atlas, function(item:HandlerItem) {
 			final name = item.id;
-			final ext = item.path.contains('.png') ? 'png' : 'jpg';
-			final atlasPath = 'atlas/$name.atlas';
-			final imagePath = 'atlas/$name.$ext';
-			final atlasData = item.data;
-			_fileSystem.add(atlasPath, atlasData);
-			if (_fileSystem.exists(imagePath)) {
-				final atlas = parseAtlas('$name.$ext', item.data, _fileSystem.get(imagePath).getBytes());
-				Reflect.setField(_assetContainers.atlases, item.id, atlas);
+
+			_fileSystem.add('atlas/$name.atlas', item.data);
+
+			// find image file.
+			final validExtensions = ["jpeg", "jpg", "png"];
+			for (ext in validExtensions) {
+				final imagePath = 'atlas/$name.$ext';
+				if (_fileSystem.exists(imagePath)) {
+					final atlas = parseAtlas('$name.$ext', item.data, _fileSystem.get(imagePath).getBytes());
+					Reflect.setField(_assetContainers.atlases, item.id, atlas);
+					return;
+				}
 			}
 		});
 
 		loader.addHandler(AssetType.AtlasImage, function(item:HandlerItem) {
 			final name = item.id;
-			final ext = item.path.contains('.png') ? 'png' : 'jpg';
+			final ext = Path.extension(item.path);
 			final atlasPath = 'atlas/$name.atlas';
 			final imagePath = 'atlas/$name.$ext';
 			final imageData = item.data;
