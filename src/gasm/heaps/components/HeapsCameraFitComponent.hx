@@ -78,24 +78,22 @@ class HeapsCameraFitComponent extends Component {
 
 		final bounds = obj.getBounds();
 		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
-		final boundMax = Math.max(bounds.xMax, bounds.yMax);
 		final cameraSides = _s3d.camera.unproject(1.0, 1.0, objectZ);
 
 		var distance = 0.0;
 
-		if (sx < sy) {
-			final diffY = cameraSides.y - (boundMax + _config.margins.y);
-			final angleY = Math.atan(cameraSides.y / Math.abs(_s3d.camera.pos.z));
+		if (sx > sy) {
+			final diffY = cameraSides.y - (bounds.yMax + _config.margins.y);
+			final angleY = Math.atan(Math.abs(cameraSides.y) / Math.abs(_s3d.camera.pos.z));
 			distance = diffY / Math.tan(angleY);
 		} else {
-			final diffX = cameraSides.x - (boundMax + _config.margins.x);
-			final angleX = Math.atan(cameraSides.x / Math.abs(_s3d.camera.pos.z));
+			final diffX = cameraSides.x - (bounds.xMax + _config.margins.x);
+			final angleX = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
 			distance = diffX / Math.tan(angleX);
 		}
 		if (distance > 10000 || Math.isNaN(distance) || !Math.isFinite(distance)) {
 			distance = 0.0;
 		}
-
 		return new h3d.Vector(_s3d.camera.pos.x, _s3d.camera.pos.y, _s3d.camera.pos.z - distance);
 	}
 }
