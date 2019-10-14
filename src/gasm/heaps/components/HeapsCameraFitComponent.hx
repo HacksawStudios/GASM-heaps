@@ -46,11 +46,9 @@ class HeapsCameraFitComponent extends Component {
 		if (enabled) {
 			_time += dt;
 			var c = _time / _config.fitSpeed;
+			c = Math.min(1.0, _time);
 			final target = calculateObjectFit();
-			if (target != _currentPos) {
-				fit(target, c);
-				_time = 0.0;
-			}
+			fit(target, c);
 			_currentPos = target;
 			_s3d.camera.update();
 		}
@@ -80,20 +78,22 @@ class HeapsCameraFitComponent extends Component {
 		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
 		final cameraSides = _s3d.camera.unproject(1.0, 1.0, objectZ);
 
-		var distance = 0.0;
+		// fit vertical
+		final diffY = cameraSides.x - (bounds.xMax + _config.margins.y);
+		final angleY = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
+		final distanceY = diffY / Math.tan(angleY);
 
-		if (sx > sy) {
-			final diffY = cameraSides.y - (bounds.yMax + _config.margins.y);
-			final angleY = Math.atan(Math.abs(cameraSides.y) / Math.abs(_s3d.camera.pos.z));
-			distance = diffY / Math.tan(angleY);
-		} else {
-			final diffX = cameraSides.x - (bounds.xMax + _config.margins.x);
-			final angleX = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
-			distance = diffX / Math.tan(angleX);
-		}
+		// fit horizontal
+		final diffX = cameraSides.y - (bounds.yMax + _config.margins.x);
+		final angleX = Math.atan(Math.abs(cameraSides.y) / Math.abs(_s3d.camera.pos.z));
+		final distanceX = diffX / Math.tan(angleX);
+
+		var distance = Math.min(distanceX, distanceY);
+
 		if (distance > 10000 || Math.isNaN(distance) || !Math.isFinite(distance)) {
 			distance = 0.0;
 		}
+
 		return new h3d.Vector(_s3d.camera.pos.x, _s3d.camera.pos.y, _s3d.camera.pos.z - distance);
 	}
 }
