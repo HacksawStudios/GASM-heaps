@@ -25,7 +25,6 @@ class HeapsCameraFitComponent extends Component {
 	var _s3d:h3d.scene.Scene;
 	var _targetComponent:Heaps3DComponent;
 	var _time = 0.0;
-	var _currentPos:h3d.Vector;
 	var _startPos:h3d.Vector;
 
 	public function new(config:CameraFitConfig) {
@@ -45,11 +44,7 @@ class HeapsCameraFitComponent extends Component {
 		super.update(dt);
 		if (enabled) {
 			_time += dt;
-			var c = _time / _config.fitSpeed;
-			c = Math.min(1.0, _time);
-			final target = calculateObjectFit();
-			fit(target, c);
-			_currentPos = target;
+			fit(calculateObjectFit(), Math.min(1.0, _time / _config.fitSpeed));
 			_s3d.camera.update();
 		}
 	}
