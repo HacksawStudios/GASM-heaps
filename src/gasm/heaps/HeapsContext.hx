@@ -157,7 +157,7 @@ class HeapsContext extends App implements Context {
 			asyncItems++;
 			getImageTexture(imagePath, ext, name).then((texture) -> {
 				asyncItems--;
-				93 Reflect.setField(_assetContainers.images, item.id, Tile.fromTexture(texture));
+				Reflect.setField(_assetContainers.images, item.id, Tile.fromTexture(texture));
 			});
 		});
 
