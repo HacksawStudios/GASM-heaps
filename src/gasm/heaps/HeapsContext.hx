@@ -156,9 +156,8 @@ class HeapsContext extends App implements Context {
 		loader.addHandler(AssetType.Image, function(item:HandlerItem) {
 			final name = item.id;
 			final ext = Path.extension(item.path);
-			final imagePath = '$name.$ext';
 			asyncItems++;
-			getImageTexture(imagePath, ext, name).then((texture) -> {
+			getImageTexture(item.path, ext, name).then((texture) -> {
 				asyncItems--;
 				Reflect.setField(_assetContainers.images, item.id, Tile.fromTexture(texture));
 			});
