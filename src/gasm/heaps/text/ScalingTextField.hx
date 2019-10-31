@@ -40,7 +40,7 @@ class ScalingTextField extends h2d.Text {
 		return bm;
 	}
 
-	override function initGlyphs(text:hxd.UString, rebuild = true, handleAlign = true, lines:Array<Int> = null):Void {
+	override function initGlyphs(text:String, rebuild = true, handleAlign = true, lines:Array<Int> = null):Void {
 		super.initGlyphs(text, rebuild, handleAlign, lines);
 		calcHeight += yMarg;
 	}
