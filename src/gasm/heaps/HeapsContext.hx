@@ -156,6 +156,7 @@ class HeapsContext extends App implements Context {
 		loader.addHandler(AssetType.Image, function(item:HandlerItem) {
 			final name = item.id;
 			final ext = Path.extension(item.path);
+			_fileSystem.add(item.path, item.data);
 			asyncItems++;
 			getImageTexture(item.path, ext, name).then((texture) -> {
 				asyncItems--;
@@ -366,7 +367,7 @@ class HeapsContext extends App implements Context {
 				hxd.res.BasisTextureLoader.getTexture(bytes);
 			default:
 				final bytes = _fileSystem.get(path).getBytes();
-				js.lib.Promise.resolve(hxd.res.Any.fromBytes(name, bytes).toTexture());
+				js.lib.Promise.resolve(hxd.res.Any.fromBytes(path, bytes).toTexture());
 		}
 	}
 
