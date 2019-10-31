@@ -18,7 +18,6 @@ class HeapsSpriteComponent extends Component {
 	public var sprite(default, default):Object;
 	public var mouseEnabled(default, set):Bool;
 	public var root(default, default):Bool;
-	public var roundPixels(default, default):Bool;
 	public var dirty(default, default):Bool;
 	public var mousePos(default, null):Point;
 
@@ -28,7 +27,7 @@ class HeapsSpriteComponent extends Component {
 	var _appModel:AppModelComponent;
 	var _inited:Bool;
 
-	public function new(sprite:Null<Object> = null, mouseEnabled:Bool = false, roundPixels:Bool = false) {
+	public function new(sprite:Null<Object> = null, mouseEnabled:Bool = false) {
 		if (sprite == null) {
 			sprite = mouseEnabled ? cast new h2d.Interactive(0, 0) : new h2d.Object();
 		}
@@ -37,7 +36,6 @@ class HeapsSpriteComponent extends Component {
 			_interactive.propagateEvents = true;
 		}
 		this.sprite = sprite;
-		this.roundPixels = roundPixels;
 		componentType = ComponentType.Graphics;
 	}
 
@@ -54,26 +52,22 @@ class HeapsSpriteComponent extends Component {
 			_model.width = w;
 			_model.height = h;
 		}
-		_model.xScale = sprite.scaleX;
-		_model.yScale = sprite.scaleY;
 		_stage = hxd.Window.getInstance();
 		if (_interactive != null) {
 			addEventListeners();
 			_interactive.width = w;
 			_interactive.height = h;
 		}
-		_model.dirty = false;
+		_model.x = sprite.x;
+		_model.y = sprite.y;
+		_model.xScale = sprite.scaleX;
+		_model.yScale = sprite.scaleY;
+		_model.visible = sprite.visible;
 	}
 
 	override public function update(dt:Float) {
 		if (_model != null) {
 			if (_model.dirty) {
-				if (roundPixels) {
-					_model.x = Math.round(_model.x);
-					_model.y = Math.round(_model.y);
-					_model.width = Math.round(_model.width);
-					_model.height = Math.round(_model.height);
-				}
 				sprite.x = _model.x + _model.offsetX;
 				sprite.y = _model.y + _model.offsetY;
 				sprite.alpha = _model.alpha;
@@ -85,8 +79,8 @@ class HeapsSpriteComponent extends Component {
 					_interactive.height = _model.height;
 				}
 			} else {
-				_model.x = sprite.x;
-				_model.y = sprite.y;
+				_model.x = sprite.x - _model.offsetX;
+				_model.y = sprite.y - _model.offsetY;
 				_model.xScale = sprite.scaleX;
 				_model.yScale = sprite.scaleY;
 				_model.visible = sprite.visible;
