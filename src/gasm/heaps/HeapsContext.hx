@@ -1,34 +1,41 @@
 package gasm.heaps;
 
-import haxe.io.Path;
-import hacksaw.common.enums.Orientation;
-import hxd.SceneEvents;
-import hex.di.Injector;
-import h2d.Tile;
-import tweenx909.TweenX;
-import hxd.Charset;
-import gasm.assets.Loader.AssetType;
 import gasm.assets.Loader;
+import gasm.assets.Loader.AssetType;
 import gasm.core.components.AppModelComponent;
 import gasm.core.components.SceneModelComponent;
 import gasm.core.Context;
 import gasm.core.Engine;
 import gasm.core.Entity;
+import gasm.core.enums.Orientation;
 import gasm.core.IEngine;
 import gasm.core.ISystem;
-import gasm.core.enums.Orientation;
 import gasm.heaps.components.Heaps3DComponent;
-import gasm.heaps.components.HeapsSpriteComponent;
-import gasm.heaps.components.HeapsSceneBase;
 import gasm.heaps.components.HeapsScene2DComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
+import gasm.heaps.components.HeapsSceneBase;
 import gasm.heaps.components.HeapsSceneModelComponent;
+import gasm.heaps.components.HeapsSpriteComponent;
+import gasm.heaps.data.Atlas;
 import gasm.heaps.systems.HeapsCoreSystem;
 import gasm.heaps.systems.HeapsRenderingSystem;
 import gasm.heaps.systems.HeapsSoundSystem;
-import gasm.heaps.data.Atlas;
+import h2d.Tile;
+import h3d.impl.GlDriver;
+import h3d.mat.Data.TextureFlags;
+import h3d.mat.Texture;
+import hacksaw.common.enums.Orientation;
+import hacksaw.core.utils.GuardAction;
 import haxe.ds.StringMap;
+import haxe.io.BytesData;
+import haxe.io.Path;
+import hex.di.Injector;
 import hxd.App;
+import hxd.Charset;
+import hxd.impl.TypedArray.ArrayBuffer;
+import hxd.SceneEvents;
+import js.lib.DataView;
+import tweenx909.TweenX;
 
 using StringTools;
 
@@ -50,6 +57,7 @@ class HeapsContext extends App implements Context {
 	var _assetContainers:AssetContainers;
 	var _assetConfig:AssetConfig;
 	var _soundSupport:Bool;
+	var _basisSupport:Bool;
 	var _injector:Injector;
 	final _fileSystem = new gasm.heaps.fs.VirtualFileSystem();
 
@@ -68,6 +76,7 @@ class HeapsContext extends App implements Context {
 		#if js
 		_soundSupport = (Reflect.field(js.Browser.window, "AudioContext") != null
 			|| Reflect.field(js.Browser.window, "webkitAudioContext") != null);
+		_assetConfig.formats = [];
 		if (_soundSupport) {
 			var myAudio:js.html.AudioElement = cast js.Browser.document.createElement('audio');
 			if (myAudio.canPlayType != null) {
@@ -88,13 +97,19 @@ class HeapsContext extends App implements Context {
 					trace('Neither webm or m4a supported, no audio will play');
 				} else {
 					_soundSupport = true;
-					_assetConfig.formats = [{type: AssetType.Sound, extension: ext}];
+					_assetConfig.formats.push({type: AssetType.Sound, extension: ext});
 				}
 			}
+		}
+		final glDriver:GlDriver = cast h3d.Engine.getCurrent().driver;
+		_basisSupport = switch (glDriver.textureSupport) {
+			case hxd.PixelFormat.ETC(_), null: false;
+			default: true;
 		}
 		appModel.pixelRatio = js.Browser.window.devicePixelRatio;
 		#end
 		engine.render(this);
+		var asyncItems = 0;
 		var atlases = new haxe.ds.StringMap<haxe.io.Bytes>();
 		var loader = new Loader('assets/desc.json', _assetConfig);
 		loader.onReady = function() {
@@ -128,7 +143,7 @@ class HeapsContext extends App implements Context {
 			loader.load();
 		}
 		loader.onComplete = function() {
-			haxe.Timer.delay(done, 0);
+			new GuardAction(() -> asyncItems == 0, done);
 		}
 		loader.onProgress = function(percent:Int) {
 			progress(percent);
@@ -139,7 +154,11 @@ class HeapsContext extends App implements Context {
 		}
 
 		loader.addHandler(AssetType.Image, function(item:HandlerItem) {
-			Reflect.setField(_assetContainers.images, item.id, hxd.res.Any.fromBytes('${item.path}', item.data).toTile());
+			asyncItems++;
+			getImageTexture(imagePath, ext, name).then((texture) -> {
+				asyncItems--;
+				93 Reflect.setField(_assetContainers.images, item.id, Tile.fromTexture(texture));
+			});
 		});
 
 		loader.addHandler(AssetType.Sound, function(item:HandlerItem) {
@@ -189,12 +208,22 @@ class HeapsContext extends App implements Context {
 			_fileSystem.add('atlas/$name.atlas', item.data);
 
 			// find image file.
-			final validExtensions = ["jpeg", "jpg", "png"];
+			var validExtensions = ['png', 'jpeg', 'jpg'];
+			// Only use basis in release builds
+			#if !debug
+			if (_basisSupport) {
+				validExtensions = ['basis'].concat(validExtensions);
+			}
+			#end
 			for (ext in validExtensions) {
 				final imagePath = 'atlas/$name.$ext';
 				if (_fileSystem.exists(imagePath)) {
-					final atlas = parseAtlas('$name.$ext', item.data, _fileSystem.get(imagePath).getBytes());
-					Reflect.setField(_assetContainers.atlases, item.id, atlas);
+					asyncItems++;
+					getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
+						asyncItems--;
+						final atlas = parseAtlas('$name.$ext', item.data, Tile.fromTexture(texture));
+						Reflect.setField(_assetContainers.atlases, item.id, atlas);
+					});
 					return;
 				}
 			}
@@ -208,8 +237,12 @@ class HeapsContext extends App implements Context {
 			final imageData = item.data;
 			_fileSystem.add(imagePath, imageData);
 			if (_fileSystem.exists(atlasPath)) {
-				final atlas = parseAtlas('$name.$ext', _fileSystem.get(atlasPath).getBytes(), item.data);
-				Reflect.setField(_assetContainers.atlases, item.id, atlas);
+				asyncItems++;
+				getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
+					asyncItems--;
+					final atlas = parseAtlas('$name.$ext', _fileSystem.get(atlasPath).getBytes(), Tile.fromTexture(texture));
+					Reflect.setField(_assetContainers.atlases, item.id, atlas);
+				});
 			}
 		});
 
@@ -245,14 +278,14 @@ class HeapsContext extends App implements Context {
 		var hidden:String = null;
 		var visibilityChange:String = null;
 		if (js.Browser.document.hidden != null) { // Opera 12.10 and Firefox 18 and later support
-			hidden = "hidden";
-			visibilityChange = "visibilitychange";
+			hidden = 'hidden';
+			visibilityChange = 'visibilitychange';
 		} else if (Reflect.field(js.Browser.document, 'msHidden') != null) {
-			hidden = "msHidden";
-			visibilityChange = "msvisibilitychange";
+			hidden = 'msHidden';
+			visibilityChange = 'msvisibilitychange';
 		} else if (Reflect.field(js.Browser.document, 'webkitHidden') != null) {
-			hidden = "webkitHidden";
-			visibilityChange = "webkitvisibilitychange";
+			hidden = 'webkitHidden';
+			visibilityChange = 'webkitvisibilitychange';
 		}
 		final handleVisibilityChange = () -> {
 			final frozen = Reflect.field(js.Browser.document, hidden);
@@ -324,6 +357,17 @@ class HeapsContext extends App implements Context {
 		}
 	}
 
+	function getImageTexture(path:String, ext:String, name:String):js.lib.Promise<h3d.mat.Texture> {
+		return switch ext {
+			case 'basis':
+				final bytes = _fileSystem.get(path).getBytes().getData();
+				hxd.res.BasisTextureLoader.getTexture(bytes);
+			default:
+				final bytes = _fileSystem.get(path).getBytes();
+				js.lib.Promise.resolve(hxd.res.Any.fromBytes(name, bytes).toTexture());
+		}
+	}
+
 	function mapInjections() {
 		_injector = new Injector();
 		sceneModel = new HeapsSceneModelComponent(_injector);
@@ -334,10 +378,8 @@ class HeapsContext extends App implements Context {
 		_injector.map(SceneModelComponent).toValue(sceneModel);
 	}
 
-	function parseAtlas(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):Atlas {
-		var file = hxd.res.Any.fromBytes('atlas/$id', image).toTile();
+	function parseAtlas(id:String, definition:haxe.io.Bytes, tile:Tile):Atlas {
 		var contents = new Map();
-
 		var lines = definition.toString().split("\n");
 		while (lines.length > 0) {
 			var line = StringTools.trim(lines.shift());
@@ -394,15 +436,15 @@ class HeapsContext extends App implements Context {
 							var bh = vals[3];
 							var mh = tileH - (th + bh);
 							scale9Tiles = {
-								tl: file.sub(tileX, tileY, lw, th, tileDX, tileDY),
-								tm: file.sub(tileX + lw, tileY, mw, th, tileDX, tileDY),
-								tr: file.sub(tileX + lw + mw, tileY, rw, th, tileDX, tileDY),
-								ml: file.sub(tileX, tileY + th, lw, mh, tileDX, tileDY),
-								mm: file.sub(tileX + lw, tileY + th, mw, mh, tileDX, tileDY),
-								mr: file.sub(tileX + lw + mw, tileY + th, rw, mh, tileDX, tileDY),
-								bl: file.sub(tileX, tileY + th + mh, lw, bh, tileDX, tileDY),
-								bm: file.sub(tileX + lw, tileY + th + mh, mw, bh, tileDX, tileDY),
-								br: file.sub(tileX + lw + mw, tileY + th + mh, rw, bh, tileDX, tileDY),
+								tl: tile.sub(tileX, tileY, lw, th, tileDX, tileDY),
+								tm: tile.sub(tileX + lw, tileY, mw, th, tileDX, tileDY),
+								tr: tile.sub(tileX + lw + mw, tileY, rw, th, tileDX, tileDY),
+								ml: tile.sub(tileX, tileY + th, lw, mh, tileDX, tileDY),
+								mm: tile.sub(tileX + lw, tileY + th, mw, mh, tileDX, tileDY),
+								mr: tile.sub(tileX + lw + mw, tileY + th, rw, mh, tileDX, tileDY),
+								bl: tile.sub(tileX, tileY + th + mh, lw, bh, tileDX, tileDY),
+								bm: tile.sub(tileX + lw, tileY + th + mh, mw, bh, tileDX, tileDY),
+								br: tile.sub(tileX + lw + mw, tileY + th + mh, rw, bh, tileDX, tileDY),
 							};
 						case "pad":
 						// Represents scale9 with padding instead, already done what's needed in split
@@ -413,7 +455,7 @@ class HeapsContext extends App implements Context {
 				// offset is bottom-relative
 				tileDY = origH - (tileH + tileDY);
 
-				var t = file.sub(tileX, tileY, tileW, tileH, tileDX, tileDY);
+				var t = tile.sub(tileX, tileY, tileW, tileH, tileDX, tileDY);
 				var tl = contents.get(key);
 				if (tl == null) {
 					tl = [];
@@ -450,7 +492,7 @@ class HeapsContext extends App implements Context {
 			frames: frames,
 		};
 		var atlas:Atlas = {
-			tile: file,
+			tile: tile,
 			contents: contents,
 			animation: animation,
 		}
