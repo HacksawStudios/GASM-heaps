@@ -62,7 +62,6 @@ class HeapsSpriteComponent extends Component {
 		_model.y = sprite.y;
 		_model.xScale = sprite.scaleX;
 		_model.yScale = sprite.scaleY;
-		_model.visible = sprite.visible;
 	}
 
 	override public function update(dt:Float) {
