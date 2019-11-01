@@ -12,11 +12,11 @@
 		"leo.bergman"
 	],
 	"releasenote": "",
-	"version": "6.0.0",
+	"version": "6.2.0-rc.2",
 	"url": "https://github.com/HacksawStudios/gasm-heaps",
 	 "dependencies": {
 	    "heaps": "",
 	    "gasm": "",
-	    "msignal": ""
+		"msignal": ""
 	  }
 }
