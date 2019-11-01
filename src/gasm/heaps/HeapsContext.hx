@@ -107,10 +107,14 @@ class HeapsContext extends App implements Context {
 			case hxd.PixelFormat.ETC(_), null: false;
 			default: true;
 		}
-		#if !debug
+		#if debug
+		_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.png'});
+		#else
 		if (_basisSupport) {
 			_assetConfig.formats.push({type: AssetType.Image, extension: '.basis'});
 			_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.basis'});
+		} else {
+			_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.png'});
 		}
 		#end
 		appModel.pixelRatio = js.Browser.window.devicePixelRatio;
@@ -216,15 +220,19 @@ class HeapsContext extends App implements Context {
 			final name = item.id;
 
 			_fileSystem.add('atlas/$name.atlas', item.data);
-			final ext = _assetConfig.formats.find(val -> val.type == AssetType.AtlasImage).extension;
-			final imagePath = 'atlas/$name$ext';
-			if (_fileSystem.exists(imagePath)) {
+			final imageFormat = _assetConfig.formats.find(val -> val.type == AssetType.AtlasImage);
+			final preferredExt = imageFormat != null ? imageFormat.extension : null;
+			final getAtlas = (path, ext) -> {
 				asyncItems++;
-				getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
+				getImageTexture(path, ext, 'atlas/$name').then((texture) -> {
 					asyncItems--;
 					final atlas = parseAtlas('$name$ext', item.data, Tile.fromTexture(texture));
 					Reflect.setField(_assetContainers.atlases, item.id, atlas);
 				});
+			}
+			var imagePath = 'atlas/$name$preferredExt';
+			if (_fileSystem.exists(imagePath)) {
+				getAtlas(imagePath, preferredExt);
 			}
 		});
 
