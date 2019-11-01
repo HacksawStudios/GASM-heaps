@@ -38,6 +38,7 @@ import js.lib.DataView;
 import tweenx909.TweenX;
 
 using StringTools;
+using Lambda;
 
 /**
  * ...
@@ -106,6 +107,12 @@ class HeapsContext extends App implements Context {
 			case hxd.PixelFormat.ETC(_), null: false;
 			default: true;
 		}
+		#if !debug
+		if (_basisSupport) {
+			_assetConfig.formats.push({type: AssetType.Image, extension: '.basis'});
+			_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.basis'});
+		}
+		#end
 		appModel.pixelRatio = js.Browser.window.devicePixelRatio;
 		#end
 		engine.render(this);
@@ -154,7 +161,7 @@ class HeapsContext extends App implements Context {
 		}
 
 		loader.addHandler(AssetType.Image, function(item:HandlerItem) {
-			final name = item.id;
+			final name = 'image/${item.id}';
 			final ext = Path.extension(item.path);
 			_fileSystem.add(item.path, item.data);
 			asyncItems++;
@@ -209,26 +216,15 @@ class HeapsContext extends App implements Context {
 			final name = item.id;
 
 			_fileSystem.add('atlas/$name.atlas', item.data);
-
-			// find image file.
-			var validExtensions = ['png', 'jpeg', 'jpg'];
-			// Only use basis in release builds
-			#if !debug
-			if (_basisSupport) {
-				validExtensions = ['basis'].concat(validExtensions);
-			}
-			#end
-			for (ext in validExtensions) {
-				final imagePath = 'atlas/$name.$ext';
-				if (_fileSystem.exists(imagePath)) {
-					asyncItems++;
-					getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
-						asyncItems--;
-						final atlas = parseAtlas('$name.$ext', item.data, Tile.fromTexture(texture));
-						Reflect.setField(_assetContainers.atlases, item.id, atlas);
-					});
-					return;
-				}
+			final ext = _assetConfig.formats.find(val -> val.type == AssetType.AtlasImage).extension;
+			final imagePath = 'atlas/$name$ext';
+			if (_fileSystem.exists(imagePath)) {
+				asyncItems++;
+				getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
+					asyncItems--;
+					final atlas = parseAtlas('$name$ext', item.data, Tile.fromTexture(texture));
+					Reflect.setField(_assetContainers.atlases, item.id, atlas);
+				});
 			}
 		});
 
@@ -361,6 +357,7 @@ class HeapsContext extends App implements Context {
 	}
 
 	function getImageTexture(path:String, ext:String, name:String):js.lib.Promise<h3d.mat.Texture> {
+		trace(path, ext);
 		return switch ext {
 			case 'basis':
 				final bytes = _fileSystem.get(path).getBytes().getData();
