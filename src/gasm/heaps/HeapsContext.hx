@@ -60,7 +60,6 @@ class HeapsContext extends App implements Context {
 	var _soundSupport:Bool;
 	var _basisSupport:Bool;
 	var _injector:Injector;
-	final _validImageExtensions = ['.basis', '.png', '.jpg', '.jpeg'];
 	final _fileSystem = new gasm.heaps.fs.VirtualFileSystem();
 
 	public function new(?core:ISystem, ?renderer:ISystem, ?sound:ISystem, ?engine:IEngine) {
