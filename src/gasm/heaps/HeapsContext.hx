@@ -280,6 +280,7 @@ class HeapsContext extends App implements Context {
 		_sound = _sound != null ? _sound : new HeapsSoundSystem();
 		systems = [_core, _renderer, _sound];
 		_engine = _engine != null ? _engine : new Engine(systems);
+		_engine.getDelta = () -> hxd.Timer.dt;
 		mapInjections();
 		#if js
 		var hidden:String = null;
