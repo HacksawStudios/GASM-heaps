@@ -57,10 +57,20 @@ class Heaps3DLayoutComponent extends Component {
 		layout();
 	}
 
+	override public function update(dt:Float) {
+		if (_s3d == null) {
+			_s3d = _sceneComponent.scene3d;
+			if (_s3d != null) {
+				layout();
+			}
+		}
+	}
+
 	public function layout() {
-		if (_appModel == null || !enabled) {
+		if (_appModel == null || !enabled || _s3d == null) {
 			return;
 		}
+
 		_stageW = _appModel.stageSize.x;
 		_stageH = _appModel.stageSize.y;
 		final zDepth = _s3d.camera.zFar - _s3d.camera.zNear;
