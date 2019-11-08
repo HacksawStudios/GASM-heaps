@@ -123,9 +123,11 @@ class HeapsContext extends App implements Context {
 		var asyncItems = 0;
 		var atlases = new haxe.ds.StringMap<haxe.io.Bytes>();
 		var loader = new Loader('assets/desc.json', _assetConfig);
+
 		loader.onReady = function() {
 			hxd.res.Loader.currentInstance = new hxd.res.Loader(_fileSystem);
 			for (img in Type.getClassFields(_assetContainers.images)) {
+				asyncItems++;
 				loader.queueItem(img, AssetType.Image);
 			}
 			if (_soundSupport) {
@@ -140,6 +142,7 @@ class HeapsContext extends App implements Context {
 				loader.queueItem(fnt, AssetType.BitmapFont);
 			}
 			for (atlas in Type.getClassFields(_assetContainers.atlases)) {
+				asyncItems++;
 				loader.queueItem(atlas, AssetType.Atlas);
 			}
 			for (gradient in Type.getClassFields(_assetContainers.gradients)) {
@@ -168,7 +171,6 @@ class HeapsContext extends App implements Context {
 			final name = 'image/${item.id}';
 			final ext = Path.extension(item.path);
 			_fileSystem.add(item.path, item.data);
-			asyncItems++;
 			getImageTexture(item.path, ext, name).then((texture) -> {
 				asyncItems--;
 				Reflect.setField(_assetContainers.images, item.id, Tile.fromTexture(texture));
@@ -218,20 +220,19 @@ class HeapsContext extends App implements Context {
 
 		loader.addHandler(AssetType.Atlas, function(item:HandlerItem) {
 			final name = item.id;
-
 			_fileSystem.add('atlas/$name.atlas', item.data);
 			final imageFormat = _assetConfig.formats.find(val -> val.type == AssetType.AtlasImage);
 			final preferredExt = imageFormat != null ? imageFormat.extension : null;
 			final getAtlas = (path, ext) -> {
-				asyncItems++;
 				getImageTexture(path, ext, 'atlas/$name').then((texture) -> {
-					asyncItems--;
 					final atlas = parseAtlas('$name$ext', item.data, Tile.fromTexture(texture));
+					asyncItems--;
 					Reflect.setField(_assetContainers.atlases, item.id, atlas);
 				});
 			}
-			var imagePath = 'atlas/$name$preferredExt';
-			if (_fileSystem.exists(imagePath)) {
+			final validExt = ['.basis', '.png', '.jpg', '.jpeg'].find(ext -> _fileSystem.exists('atlas/$name$ext'));
+			if (validExt != null) {
+				final imagePath = 'atlas/$name$validExt';
 				getAtlas(imagePath, preferredExt);
 			}
 		});
@@ -244,7 +245,6 @@ class HeapsContext extends App implements Context {
 			final imageData = item.data;
 			_fileSystem.add(imagePath, imageData);
 			if (_fileSystem.exists(atlasPath)) {
-				asyncItems++;
 				getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
 					asyncItems--;
 					final atlas = parseAtlas('$name.$ext', _fileSystem.get(atlasPath).getBytes(), Tile.fromTexture(texture));
@@ -366,7 +366,6 @@ class HeapsContext extends App implements Context {
 	}
 
 	function getImageTexture(path:String, ext:String, name:String):js.lib.Promise<h3d.mat.Texture> {
-		trace(path, ext);
 		return switch ext {
 			case 'basis':
 				final bytes = _fileSystem.get(path).getBytes().getData();
