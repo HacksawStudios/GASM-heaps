@@ -37,7 +37,9 @@ class Heaps3DViewportComponent extends Component {
 		cam.zNear = _config.zNear;
 		cam.zFar = _config.zFar;
 		if (_config.fov != null) {
-			cam.setFovX(_config.fov, cam.screenRatio);
+			final high = Math.max(_appModel.stageSize.x, _appModel.stageSize.y);
+			final low = Math.min(_appModel.stageSize.x, _appModel.stageSize.y);
+			cam.setFovX(_config.fov, high / low);
 		}
 
 		if (_config.boundsObject != null) {
