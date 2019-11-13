@@ -4,12 +4,6 @@ import gasm.core.Component;
 import gasm.core.enums.ComponentType;
 import gasm.core.utils.Assert;
 
-enum OffsetScaleFollow {
-	None;
-	This;
-	Target;
-}
-
 class Heaps3DPosFollowComponent extends Component {
 	public var freeze = false;
 
@@ -53,6 +47,12 @@ class Heaps3DPosFollowComponent extends Component {
 			o.z = follow.z + (offset.z * offsetScaleZ);
 		}
 	}
+}
+
+enum OffsetScaleFollow {
+	None;
+	This;
+	Target;
 }
 
 @:structInit
