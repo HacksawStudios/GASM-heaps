@@ -27,15 +27,37 @@ class Heaps3DPosFollowComponent extends Component {
 		if (!freeze) {
 			final o = _comp.object;
 			final follow = _config.follow;
-			o.x = follow.x + (offset.x * o.scaleX);
-			o.y = follow.y + (offset.y * o.scaleY);
-			o.z = follow.z + (offset.z * o.scaleZ);
+			final offsetScaleX = switch (_config.offsetScaleFollow) {
+				case OffsetScaleFollow.None: 1.0;
+				case OffsetScaleFollow.This: o.scaleX;
+				case OffsetScaleFollow.Target: follow.scaleX;
+			}
+			final offsetScaleY = switch (_config.offsetScaleFollow) {
+				case OffsetScaleFollow.None: 1.0;
+				case OffsetScaleFollow.This: o.scaleY;
+				case OffsetScaleFollow.Target: follow.scaleY;
+			}
+			final offsetScaleZ = switch (_config.offsetScaleFollow) {
+				case OffsetScaleFollow.None: 1.0;
+				case OffsetScaleFollow.This: o.scaleZ;
+				case OffsetScaleFollow.Target: follow.scaleZ;
+			}
+			o.x = follow.x + (offset.x * offsetScaleX);
+			o.y = follow.y + (offset.y * offsetScaleY);
+			o.z = follow.z + (offset.z * offsetScaleZ);
 		}
 	}
+}
+
+enum OffsetScaleFollow {
+	None;
+	This;
+	Target;
 }
 
 @:structInit
 class Heaps3DPosFollowConfig {
 	public var follow:h3d.scene.Object;
 	public var offset = new h3d.Vector(0, 0, 0);
+	public var offsetScaleFollow = OffsetScaleFollow.None;
 }

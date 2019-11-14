@@ -1,16 +1,15 @@
 package gasm.heaps.components;
 
-import haxe.macro.Expr.Var;
+import gasm.core.Component;
+import gasm.core.Entity;
+import gasm.core.enums.ComponentType;
+import gasm.core.math.geom.Point;
+import gasm.core.utils.Assert;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.Heaps3DViewportComponent;
-import gasm.core.enums.ComponentType;
-import gasm.core.Entity;
-import gasm.core.Component;
-import gasm.core.math.geom.Point;
 import gasm.heaps.components.HeapsScene3DComponent;
 import tweenx909.TweenX;
 import tweenxcore.Tools.Easing;
-import gasm.core.utils.Assert;
 
 using tweenxcore.Tools;
 
@@ -19,14 +18,13 @@ using tweenxcore.Tools;
  *
  * Note that you can only use one camera fit component per stage graph, otherwise they will fight eachother.
  */
-class CameraFitComponent extends Component {
+class HeapsCameraFitComponent extends Component {
 	public var enabled = true;
 
 	final _config:CameraFitConfig;
 	var _s3d:h3d.scene.Scene;
 	var _targetComponent:Heaps3DComponent;
 	var _time = 0.0;
-	var _currentPos:h3d.Vector;
 	var _startPos:h3d.Vector;
 
 	public function new(config:CameraFitConfig) {
@@ -46,13 +44,7 @@ class CameraFitComponent extends Component {
 		super.update(dt);
 		if (enabled) {
 			_time += dt;
-			var c = _time / _config.fitSpeed;
-			final target = calculateObjectFit();
-			if (target != _currentPos) {
-				fit(target, c);
-				_time = 0.0;
-			}
-			_currentPos = target;
+			fit(calculateObjectFit(), Math.min(1.0, _time / _config.fitSpeed));
 			_s3d.camera.update();
 		}
 	}
@@ -79,20 +71,20 @@ class CameraFitComponent extends Component {
 
 		final bounds = obj.getBounds();
 		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
-		final boundMax = Math.max(bounds.xMax, bounds.yMax);
 		final cameraSides = _s3d.camera.unproject(1.0, 1.0, objectZ);
 
-		var distance = 0.0;
+		// fit vertical
+		final diffY = cameraSides.x - (bounds.xMax + _config.margins.y);
+		final angleY = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
+		final distanceY = diffY / Math.tan(angleY);
 
-		if (sx < sy) {
-			final diffY = cameraSides.y - (boundMax + _config.margins.y);
-			final angleY = Math.atan(cameraSides.y / Math.abs(_s3d.camera.pos.z));
-			distance = diffY / Math.tan(angleY);
-		} else {
-			final diffX = cameraSides.x - (boundMax + _config.margins.x);
-			final angleX = Math.atan(cameraSides.x / Math.abs(_s3d.camera.pos.z));
-			distance = diffX / Math.tan(angleX);
-		}
+		// fit horizontal
+		final diffX = cameraSides.y - (bounds.yMax + _config.margins.x);
+		final angleX = Math.atan(Math.abs(cameraSides.y) / Math.abs(_s3d.camera.pos.z));
+		final distanceX = diffX / Math.tan(angleX);
+
+		var distance = Math.min(distanceX, distanceY);
+
 		if (distance > 10000 || Math.isNaN(distance) || !Math.isFinite(distance)) {
 			distance = 0.0;
 		}
