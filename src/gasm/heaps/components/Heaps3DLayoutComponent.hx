@@ -108,14 +108,15 @@ class Heaps3DLayoutComponent extends Component {
 		}
 
 		if (_config.anchor != null) {
+			final sz = _comp.object.getBounds().getSize();
 			_comp.object.x = switch (_config.anchor) {
-				case AnchorPoint.RIGHT: (topRight.x - size.x);
-				case AnchorPoint.LEFT: (bottomLeft.x + size.x);
+				case AnchorPoint.RIGHT: (topRight.x - sz.x * 0.5);
+				case AnchorPoint.LEFT: (bottomLeft.x + sz.x * 0.5);
 				default: _comp.object.x;
 			}
 			_comp.object.y += switch (_config.anchor) {
-				case AnchorPoint.TOP: (topRight.y - size.y);
-				case AnchorPoint.BOTTOM: (bottomLeft.y + size.y);
+				case AnchorPoint.TOP: (topRight.y - sz.y * 0.5);
+				case AnchorPoint.BOTTOM: (bottomLeft.y + sz.y * 0.5);
 				default: _comp.object.y;
 			}
 		}
