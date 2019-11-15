@@ -6,7 +6,7 @@ import gasm.core.api.singnals.TResize;
 import gasm.core.components.AppModelComponent;
 import gasm.core.components.ThreeDModelComponent;
 import gasm.core.enums.ScaleType;
-import gasm.core.enums.AnchorPoint;
+import gasm.core.enums.Anchor;
 import gasm.core.enums.ComponentType;
 import gasm.core.math.geom.Point;
 import gasm.core.math.geom.Vector;
@@ -110,13 +110,13 @@ class Heaps3DLayoutComponent extends Component {
 		if (_config.anchor != null) {
 			final sz = _comp.object.getBounds().getSize();
 			_comp.object.x = switch (_config.anchor) {
-				case AnchorPoint.RIGHT: (topRight.x - sz.x * 0.5);
-				case AnchorPoint.LEFT: (bottomLeft.x + sz.x * 0.5);
+				case Anchor.RIGHT: (topRight.x - sz.x * 0.5);
+				case Anchor.LEFT: (bottomLeft.x + sz.x * 0.5);
 				default: _comp.object.x;
 			}
 			_comp.object.y += switch (_config.anchor) {
-				case AnchorPoint.TOP: (topRight.y - sz.y * 0.5);
-				case AnchorPoint.BOTTOM: (bottomLeft.y + sz.y * 0.5);
+				case Anchor.TOP: (topRight.y - sz.y * 0.5);
+				case Anchor.BOTTOM: (bottomLeft.y + sz.y * 0.5);
 				default: _comp.object.y;
 			}
 		}
@@ -212,7 +212,7 @@ class Heaps3DLayoutConfig {
 	public var scale = ScaleType.PROPORTIONAL;
 	public var margins:Null<Margins> = null;
 	public var size:Null<Point> = null;
-	public var anchor:Null<AnchorPoint> = null;
+	public var anchor:Null<Anchor> = null;
 }
 
 @:structInit
