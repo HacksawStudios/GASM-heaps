@@ -6,6 +6,7 @@ import gasm.core.api.singnals.TResize;
 import gasm.core.components.AppModelComponent;
 import gasm.core.components.ThreeDModelComponent;
 import gasm.core.enums.ScaleType;
+import gasm.core.enums.AnchorPoint;
 import gasm.core.enums.ComponentType;
 import gasm.core.math.geom.Point;
 import gasm.core.math.geom.Vector;
@@ -77,10 +78,10 @@ class Heaps3DLayoutComponent extends Component {
 		final zPos = (_s3d.camera.zNear + _comp.object.z) / zDepth;
 		_sceneComponent.syncCamera();
 		final p = _s3d.camera.project(_comp.object.x, _comp.object.y, _comp.object.z, _stageW, _stageH);
-		final a = _s3d.camera.unproject(-1, -1, p.z);
-		final b = _s3d.camera.unproject(1, 1, p.z);
-		final width = Math.abs(a.x - b.x);
-		final height = Math.abs(a.y - b.y);
+		final bottomLeft = _s3d.camera.unproject(-1, -1, p.z);
+		final topRight = _s3d.camera.unproject(1, 1, p.z);
+		final width = Math.abs(bottomLeft.x - topRight.x);
+		final height = Math.abs(bottomLeft.y - topRight.y);
 		var size:h3d.col.Point;
 		if (_config.size != null) {
 			size = new h3d.col.Point(_config.size.x, _config.size.y, 0);
@@ -105,6 +106,24 @@ class Heaps3DLayoutComponent extends Component {
 			default:
 				null;
 		}
+
+		if (_config.anchor != null) {
+			_comp.object.x = switch (_config.anchor) {
+				case AnchorPoint.RIGHT: (topRight.x - size.x);
+				case AnchorPoint.LEFT: (bottomLeft.x + size.x);
+				default: _comp.object.x;
+			}
+			_comp.object.y += switch (_config.anchor) {
+				case AnchorPoint.TOP: (topRight.y - size.y);
+				case AnchorPoint.BOTTOM: (bottomLeft.y + size.y);
+				default: _comp.object.y;
+			}
+		}
+
+		// Update model to ensure it will not misbehave if it becomes dirty by changing a prop
+		_model.pos = new Vector(_comp.object.x, _comp.object.y, _comp.object.z);
+		_model.scale = new Vector(_comp.object.scaleX, _comp.object.scaleY, _comp.object.scaleZ);
+		_model.dirty = false;
 	}
 
 	function onResize(?size:TResize) {
@@ -133,11 +152,6 @@ class Heaps3DLayoutComponent extends Component {
 
 		object.x = width * (lMarg - (xoff * 0.5));
 		object.y = height * (bMarg - (yoff * 0.5));
-
-		// Update model to ensure it will not misbehave if it becomes dirty by changing a prop
-		_model.pos = new Vector(object.x, object.y, object.z);
-		_model.scale = new Vector(ratio, ratio, 1.0);
-		_model.dirty = false;
 	}
 
 	function scaleFit(width:Float, height:Float, size:h3d.col.Point, object:Object) {
@@ -197,6 +211,7 @@ class Heaps3DLayoutConfig {
 	public var scale = ScaleType.PROPORTIONAL;
 	public var margins:Null<Margins> = null;
 	public var size:Null<Point> = null;
+	public var anchor:Null<AnchorPoint> = null;
 }
 
 @:structInit
