@@ -109,11 +109,13 @@ class HeapsContext extends App implements Context {
 		}
 		#if debug
 		_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.png'});
+		_assetConfig.formats.push({type: AssetType.Image, extension: '.png'});
 		#else
 		if (_basisSupport) {
 			_assetConfig.formats.push({type: AssetType.Image, extension: '.basis'});
 			_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.basis'});
 		} else {
+			_assetConfig.formats.push({type: AssetType.Image, extension: '.png'});
 			_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.png'});
 		}
 		#end
@@ -233,7 +235,7 @@ class HeapsContext extends App implements Context {
 			final validExt = ['.basis', '.png', '.jpg', '.jpeg'].find(ext -> _fileSystem.exists('atlas/$name$ext'));
 			if (validExt != null) {
 				final imagePath = 'atlas/$name$validExt';
-				getAtlas(imagePath, preferredExt);
+				getAtlas(imagePath, validExt.substr(1));
 			}
 		});
 
