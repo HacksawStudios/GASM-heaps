@@ -129,7 +129,6 @@ class HeapsContext extends App implements Context {
 		loader.onReady = function() {
 			hxd.res.Loader.currentInstance = new hxd.res.Loader(_fileSystem);
 			for (img in Type.getClassFields(_assetContainers.images)) {
-				trace('add img $img');
 				asyncItems++;
 				loader.queueItem(img, AssetType.Image);
 			}
@@ -145,7 +144,6 @@ class HeapsContext extends App implements Context {
 				loader.queueItem(fnt, AssetType.BitmapFont);
 			}
 			for (atlas in Type.getClassFields(_assetContainers.atlases)) {
-				trace('add atlas $atlas');
 				asyncItems++;
 				loader.queueItem(atlas, AssetType.Atlas);
 			}
@@ -177,8 +175,6 @@ class HeapsContext extends App implements Context {
 			_fileSystem.add(item.path, item.data);
 			getImageTexture(item.path, ext, name).then((texture) -> {
 				asyncItems--;
-				trace('set img $name$ext');
-
 				Reflect.setField(_assetContainers.images, item.id, Tile.fromTexture(texture));
 			});
 		});
@@ -231,7 +227,6 @@ class HeapsContext extends App implements Context {
 			final preferredExt = imageFormat != null ? imageFormat.extension : null;
 			final getAtlas = (path, ext) -> {
 				getImageTexture(path, ext, 'atlas/$name').then((texture) -> {
-					trace('set atlas $name$ext');
 					final atlas = parseAtlas('$name$ext', item.data, Tile.fromTexture(texture));
 					asyncItems--;
 					Reflect.setField(_assetContainers.atlases, item.id, atlas);
@@ -253,8 +248,6 @@ class HeapsContext extends App implements Context {
 			_fileSystem.add(imagePath, imageData);
 			if (_fileSystem.exists(atlasPath)) {
 				getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
-					trace('set atlas $name$ext');
-
 					asyncItems--;
 					final atlas = parseAtlas('$name.$ext', _fileSystem.get(atlasPath).getBytes(), Tile.fromTexture(texture));
 					Reflect.setField(_assetContainers.atlases, item.id, atlas);
@@ -375,7 +368,6 @@ class HeapsContext extends App implements Context {
 	}
 
 	function getImageTexture(path:String, ext:String, name:String):js.lib.Promise<h3d.mat.Texture> {
-		trace('getImageTexture ext: $ext');
 		return switch ext {
 			case 'basis':
 				final bytes = _fileSystem.get(path).getBytes().getData();
