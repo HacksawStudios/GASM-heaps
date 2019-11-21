@@ -42,10 +42,10 @@ class Heaps3DComponent extends Component {
 
 	override public function init() {
 		_model = owner.get(ThreeDModelComponent);
-		var bounds = object.getBounds();
-		var w = bounds.xSize;
-		var h = bounds.ySize;
-		var d = bounds.zSize;
+		final bounds = object.getBounds();
+		final w = bounds.xSize;
+		final h = bounds.ySize;
+		final d = bounds.zSize;
 		if (w > 0) {
 			_model.dimensions = new Vector(w, h, d);
 		}
@@ -65,9 +65,9 @@ class Heaps3DComponent extends Component {
 				object.y = _model.pos.y + _model.offset.y;
 				object.z = _model.pos.z + _model.offset.z;
 				if (_model.alpha != _alpha) {
-					var mats = object.getMaterials();
+					final mats = object.getMaterials();
 					for (mat in mats) {
-						var shader = mat.mainPass.getShader(Alpha);
+						final shader = mat.mainPass.getShader(Alpha);
 						if (shader != null) {
 							shader.alpha = _model.alpha;
 						} else {
@@ -156,9 +156,9 @@ class Heaps3DComponent extends Component {
 			_interactive.onOver = onOver;
 			_interactive.onOut = onOut;
 			_interactive.onMove = onMove;
-			var rootModel = owner.getFromRoot(ThreeDModelComponent);
+			final rootModel = owner.getFromRoot(ThreeDModelComponent);
 			rootModel.addHandler(EventType.UP, onStageUp);
-			var model = owner.get(ThreeDModelComponent);
+			final model = owner.get(ThreeDModelComponent);
 			model.addHandler(EventType.UP, onStageUp);
 		}
 	}
@@ -171,7 +171,7 @@ class Heaps3DComponent extends Component {
 			_interactive.onOver = null;
 			_interactive.onOut = null;
 			_interactive.onMove = null;
-			var rootModel = owner.getFromRoot(ThreeDModelComponent);
+			final rootModel = owner.getFromRoot(ThreeDModelComponent);
 			rootModel.removeHandler(EventType.UP, onStageUp);
 			if (_model != null) {
 				_model.removeHandler(EventType.MOVE, onDrag);
