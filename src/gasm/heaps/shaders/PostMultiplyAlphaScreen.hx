@@ -7,10 +7,7 @@ class PostMultiplyAlphaScreen extends h3d.shader.ScreenShader {
 			var color:Vec4 = texture.get(input.uv);
 
 			if (color.a > 0.0) {
-				color.rgb /= color.a;
-				// So nice we apply it twice!
-				// Not sure why, should only need to be applied once
-				color.rgb /= color.a;
+				color.rgb /= pow(color.a, 2.2);
 			}
 			output.color = color;
 		}
