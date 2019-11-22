@@ -39,6 +39,7 @@ import tweenx909.TweenX;
 
 using StringTools;
 using Lambda;
+using hacksaw.core.utils.TileUtils;
 
 /**
  * ...
@@ -49,6 +50,7 @@ class HeapsContext extends App implements Context {
 	public var systems(default, null):Array<ISystem>;
 	public var appModel(default, null):AppModelComponent;
 	public var sceneModel(default, null):SceneModelComponent;
+	public var premultipliedAlphaAtlases = false;
 
 	var _engine:IEngine;
 	var _core:ISystem;
@@ -391,6 +393,10 @@ class HeapsContext extends App implements Context {
 	function parseAtlas(id:String, definition:haxe.io.Bytes, tile:Tile):Atlas {
 		var contents = new Map();
 		var lines = definition.toString().split("\n");
+		if (premultipliedAlphaAtlases) {
+			// TODO: Would be nice to keep texture compressed and only use realtime shader
+			tile = tile.applyShader(new gasm.heaps.shaders.PostMultiplyAlphaScreen());
+		}
 		while (lines.length > 0) {
 			var line = StringTools.trim(lines.shift());
 			if (line == "")
