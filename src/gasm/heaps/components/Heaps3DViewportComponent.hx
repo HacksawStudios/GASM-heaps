@@ -7,7 +7,6 @@ import gasm.heaps.components.HeapsScene3DComponent;
 import h3d.Vector;
 
 class Heaps3DViewportComponent extends Component {
-	@:isVar
 	public var fov(default, set):Float;
 
 	var _config:Heaps3DViewportConfig;
@@ -53,8 +52,6 @@ class Heaps3DViewportComponent extends Component {
 			final high = Math.max(_appModel.stageSize.x, _appModel.stageSize.y);
 			final low = Math.min(_appModel.stageSize.x, _appModel.stageSize.y);
 			fov = val;
-			trace('fov', fov);
-
 			_s3d.camera.setFovX(fov, high / low);
 		}
 		return val;
