@@ -7,6 +7,8 @@ import gasm.heaps.components.HeapsScene3DComponent;
 import h3d.Vector;
 
 class Heaps3DViewportComponent extends Component {
+	public var fov(default, set):Float;
+
 	var _config:Heaps3DViewportConfig;
 	var _scale:Float;
 	var _s3d:h3d.scene.Scene;
@@ -27,7 +29,7 @@ class Heaps3DViewportComponent extends Component {
 	override public function init() {
 		_appModel = owner.getFromParents(AppModelComponent);
 		_s3d = owner.getFromParents(HeapsScene3DComponent).scene3d;
-		var cam = _s3d.camera;
+		final cam = _s3d.camera;
 		cam.pos = _config.cameraPos;
 		if (_config.rightHanded) {
 			cam.rightHanded = true;
@@ -37,14 +39,22 @@ class Heaps3DViewportComponent extends Component {
 		cam.zNear = _config.zNear;
 		cam.zFar = _config.zFar;
 		if (_config.fov != null) {
-			final high = Math.max(_appModel.stageSize.x, _appModel.stageSize.y);
-			final low = Math.min(_appModel.stageSize.x, _appModel.stageSize.y);
-			cam.setFovX(_config.fov, high / low);
+			fov = _config.fov;
 		}
 
 		if (_config.boundsObject != null) {
 			_s3d.visible = false;
 		}
+	}
+
+	function set_fov(val:Float) {
+		if (_appModel != null) {
+			final high = Math.max(_appModel.stageSize.x, _appModel.stageSize.y);
+			final low = Math.min(_appModel.stageSize.x, _appModel.stageSize.y);
+			fov = val;
+			_s3d.camera.setFovX(fov, high / low);
+		}
+		return val;
 	}
 
 	override public function update(dt:Float) {
@@ -66,8 +76,8 @@ class Heaps3DViewportComponent extends Component {
 					_s3d.setScale(ratio);
 					_s3d.camera.update();
 					_scale = ratio;
-					if (_config.fov != null) {
-						_s3d.camera.setFovX(_config.fov, ratio);
+					if (fov != null) {
+						_s3d.camera.setFovX(fov, ratio);
 					}
 				}
 				_hasBounds = true;
