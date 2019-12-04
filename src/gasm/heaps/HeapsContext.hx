@@ -107,7 +107,7 @@ class HeapsContext extends App implements Context {
 		final glDriver:GlDriver = cast h3d.Engine.getCurrent().driver;
 		_basisSupport = switch (glDriver.textureSupport) {
 			// ETC1 requires separate alpha and is only used on old android devices, so fall back to png
-			// PVRTC is messing up wehen not using premutliplied alpha, so use png instead for now
+			// PVRTC is messing up when not using premultiplied alpha, so use png instead for now
 			case hxd.PixelFormat.ETC(_), hxd.PixelFormat.PVRTC(_), null: false;
 			default: true;
 		}
