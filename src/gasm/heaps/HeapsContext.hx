@@ -378,7 +378,11 @@ class HeapsContext extends App implements Context {
 				hxd.res.BasisTextureLoader.getTexture(bytes);
 			default:
 				final bytes = _fileSystem.get(path).getBytes();
-				js.lib.Promise.resolve(hxd.res.Any.fromBytes(path, bytes).toTexture());
+				try {
+					js.lib.Promise.resolve(hxd.res.Any.fromBytes(path, bytes).toTexture());
+				} catch (e:Dynamic) {
+					throw 'Unable to decode image $path. $e';
+				}
 		}
 	}
 
