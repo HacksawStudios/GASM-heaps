@@ -31,6 +31,12 @@ class Heaps3DInteractiveComponent extends Component {
 		ensureColliderSetup();
 	}
 
+	override public function dispose() {
+		if (_interactive != null) {
+			_interactive.remove();
+		}
+	}
+
 	// Makes sure the collider is setup. returns true on success.
 	function ensureColliderSetup():Bool {
 		if (_collider != null) {
