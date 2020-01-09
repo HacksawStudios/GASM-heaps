@@ -49,6 +49,7 @@ class Heaps3DInteractiveComponent extends Component {
 
 		_interactive = new h3d.scene.Interactive(_comp.object.getCollider(), _comp.object);
 		_interactive.onClick = (e:hxd.Event) -> {
+			// Todo, create event and pass needed data
 			triggerInteractCallbacks(EventType.PRESS, null);
 		}
 
