@@ -1,20 +1,20 @@
 package gasm.heaps.components;
 
-import gasm.core.events.InteractionEvent;
-import tink.CoreApi.Future;
-import tink.core.Future.FutureTrigger;
-import h3d.scene.Interactive;
-import h3d.col.ObjectCollider;
-import gasm.core.math.geom.Point;
-import gasm.core.math.geom.Vector;
 import gasm.core.Component;
 import gasm.core.components.ThreeDModelComponent;
 import gasm.core.enums.ComponentType;
 import gasm.core.enums.EventType;
+import gasm.core.events.InteractionEvent;
 import gasm.core.events.api.IEvent;
+import gasm.core.math.geom.Point;
+import gasm.core.math.geom.Vector;
 import gasm.heaps.shaders.Alpha;
+import h3d.col.ObjectCollider;
+import h3d.scene.Interactive;
 import h3d.scene.Object;
 import hxd.Event;
+import tink.CoreApi.Future;
+import tink.core.Future.FutureTrigger;
 
 /**
  * ...

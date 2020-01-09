@@ -1,6 +1,5 @@
 package gasm.heaps.components;
 
-import tink.CoreApi.Future;
 import gasm.core.Component;
 import gasm.core.Entity;
 import gasm.core.enums.ComponentType;
@@ -9,6 +8,7 @@ import gasm.core.utils.Assert;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.Heaps3DViewportComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
+import tink.CoreApi.Future;
 import tweenx909.TweenX;
 import tweenxcore.Tools.Easing;
 

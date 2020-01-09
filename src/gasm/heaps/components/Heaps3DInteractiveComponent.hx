@@ -1,15 +1,15 @@
 package gasm.heaps.components;
 
-import h3d.col.Collider;
-import tink.CoreApi.Callback;
-import haxe.ds.EnumValueMap;
-import tink.CoreApi.Future;
-import h3d.scene.Interactive;
 import gasm.core.Component;
 import gasm.core.enums.ComponentType;
-import gasm.core.utils.Assert;
 import gasm.core.enums.EventType;
 import gasm.core.events.InteractionEvent;
+import gasm.core.utils.Assert;
+import h3d.col.Collider;
+import h3d.scene.Interactive;
+import haxe.ds.EnumValueMap;
+import tink.CoreApi.Callback;
+import tink.CoreApi.Future;
 
 class Heaps3DInteractiveComponent extends Component {
 	var _interactCallbackMap = new EnumValueMap<EventType, Array<Callback<InteractionEvent>>>();
