@@ -103,13 +103,13 @@ class HeapsCameraFitComponent extends Component {
 		final cameraSides = _s3d.camera.unproject(1.0, 1.0, objectZ);
 
 		// fit vertical
-		final diffY = cameraSides.x - (bounds.xMax + _config.margins.y);
-		final angleY = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
+		final diffY = cameraSides.y - (bounds.yMax + _config.margins.y);
+		final angleY = Math.atan(Math.abs(cameraSides.y) / Math.abs(_s3d.camera.pos.z));
 		final distanceY = diffY / Math.tan(angleY);
 
 		// fit horizontal
-		final diffX = cameraSides.y - (bounds.yMax + _config.margins.x);
-		final angleX = Math.atan(Math.abs(cameraSides.y) / Math.abs(_s3d.camera.pos.z));
+		final diffX = cameraSides.x - (bounds.xMax + _config.margins.x);
+		final angleX = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
 		final distanceX = diffX / Math.tan(angleX);
 
 		var distance = Math.min(distanceX, distanceY);
