@@ -29,11 +29,10 @@ class HeapsCameraFitComponent extends Component {
 	var _startPos:h3d.Vector;
 	var _fitSpeed = 0.0;
 
-	var _onFitCallbacks:Array<() -> Void>;
+	var _onFitCallbacks = new Array<() -> Void>();
 
 	public function new(config:CameraFitConfig) {
 		_config = config;
-		_onFitCallbacks = new Array<() -> Void>();
 		componentType = ComponentType.Actor;
 	}
 
@@ -49,7 +48,8 @@ class HeapsCameraFitComponent extends Component {
 	override public function update(dt:Float) {
 		super.update(dt);
 		if (enabled) {
-			fit(calculateObjectFit(), dt * _fitSpeed);
+			_time += dt;
+			fit(calculateObjectFit(), Math.min(1.0, _time / _fitSpeed));
 			_s3d.camera.update();
 		}
 	}
@@ -73,12 +73,10 @@ class HeapsCameraFitComponent extends Component {
 		_fitSpeed = fs;
 	}
 
-	inline function fit(target:h3d.Vector, x:Float) {
-		final p = Math.min(1.0, x);
-
-		_s3d.camera.pos.x = p.lerp(_startPos.x, target.x);
-		_s3d.camera.pos.y = p.lerp(_startPos.y, target.y);
-		_s3d.camera.pos.z = p.lerp(_startPos.z, target.z);
+	inline function fit(target:h3d.Vector, pos:Float) {
+		_s3d.camera.pos.x = pos.lerp(_startPos.x, target.x);
+		_s3d.camera.pos.y = pos.lerp(_startPos.y, target.y);
+		_s3d.camera.pos.z = pos.lerp(_startPos.z, target.z);
 		final remaining = target.sub(_s3d.camera.pos);
 
 		// Close enough for fit
@@ -125,6 +123,6 @@ class HeapsCameraFitComponent extends Component {
 @:structInit
 class CameraFitConfig {
 	public var margins:Point = {x: 0.0, y: 0.0};
-	public var fitSpeed = 10.0;
+	public var fitSpeed = 1.0;
 	public var fitCurve = (val:Float) -> val.linear();
 }
