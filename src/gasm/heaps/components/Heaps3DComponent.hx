@@ -11,7 +11,9 @@ import gasm.core.math.geom.Vector;
 import gasm.heaps.shaders.Alpha;
 import h3d.col.ObjectCollider;
 import h3d.scene.Interactive;
+import h3d.scene.Mesh;
 import h3d.scene.Object;
+import haxe.ds.ObjectMap;
 import hxd.Event;
 import tink.CoreApi.Future;
 import tink.core.Future.FutureTrigger;
@@ -32,13 +34,44 @@ class Heaps3DComponent extends Component {
 	var _alpha = 1.;
 	var _stageUpFuture:Future<InteractionEvent> = null;
 
+	final _meshShaders:ObjectMap<hxsl.Shader, Array<Mesh>>;
+
 	public function new(object:Null<Object> = null) {
 		this.object = object != null ? object : new Object();
 		componentType = ComponentType.Graphics3D;
+		_meshShaders = new ObjectMap<hxsl.Shader, Array<Mesh>>();
 	}
 
 	override public function setup() {
 		object.name = owner.id;
+	}
+
+	// Assign shader to all meshes sub to this object
+	public function assignShaderToMeshes(shader:hxsl.Shader):Bool {
+		if (_meshShaders.exists(shader)) {
+			return true;
+		}
+		final meshes = object.getMeshes();
+		if (meshes.length == 0) {
+			return false;
+		}
+		var array = new Array<Mesh>();
+		for (mesh in meshes) {
+			mesh.material.mainPass.addShader(shader);
+			array.push(mesh);
+		}
+		_meshShaders.set(shader, array);
+		return true;
+	}
+
+	public function removeShaderFromMeshes(shader:hxsl.Shader) {
+		if (!_meshShaders.exists(shader)) {
+			return;
+		}
+		for (mesh in _meshShaders.get(shader)) {
+			mesh.material.mainPass.removeShader(shader);
+		}
+		_meshShaders.remove(shader);
 	}
 
 	override public function init() {

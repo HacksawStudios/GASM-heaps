@@ -51,11 +51,14 @@ class HeapsCameraFitComponent extends Component {
 			_time += dt;
 			fit(calculateObjectFit(), Math.min(1.0, _time / _fitSpeed));
 			_s3d.camera.update();
+		} else {
+			_time = 0.0;
 		}
 	}
 
 	public function animateFit(speed:Float) {
 		return Future.async(cb -> {
+			_time = 0.0;
 			final oldFs = _fitSpeed;
 			setFitSpeed(speed);
 			addOnFitCallback(() -> {
