@@ -32,13 +32,44 @@ class Heaps3DComponent extends Component {
 	var _alpha = 1.;
 	var _stageUpFuture:Future<InteractionEvent> = null;
 
+	final _meshShaders:HashMap<hxsl.Shader, Array<Mesh>>();
+
 	public function new(object:Null<Object> = null) {
 		this.object = object != null ? object : new Object();
 		componentType = ComponentType.Graphics3D;
+		_meshShaders = new HashMap<hxsl.Shader, Array<Mesh>>();
 	}
 
 	override public function setup() {
 		object.name = owner.id;
+	}
+
+	// Assign shader to all meshes sub to this object
+	public function assignShaderToMeshes(shader:hxsl.Shader):Bool {
+		if (_meshShaders.exists(shader)) {
+			return true;
+		}
+		final meshes = object.getMeshes();
+		if (meshes.length == 0) {
+			return false;
+		}
+		var m = new Array<Mesh>();
+		for (mesh in meshes) {
+			m.material.mainPass.addShader(shader);
+			m.push(mesh);
+		}
+		_meshShaders.set(shader, array);
+		return true;
+	}
+
+	public function removeShaderFromMeshes(shader:hxsl.Shader):Bool {
+		if (!_meshShaders.exists(shader)) {
+			return false;
+		}
+		for (key in _meshShaders.keys()) {
+			_meshShaders.get(key).material.mainPass.shader.removeShader(shader);
+		}
+		_meshShader.remove(shader);
 	}
 
 	override public function init() {
