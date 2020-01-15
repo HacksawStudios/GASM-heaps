@@ -11,7 +11,9 @@ import gasm.core.math.geom.Vector;
 import gasm.heaps.shaders.Alpha;
 import h3d.col.ObjectCollider;
 import h3d.scene.Interactive;
+import h3d.scene.Mesh;
 import h3d.scene.Object;
+import haxe.ds.ObjectMap;
 import hxd.Event;
 import tink.CoreApi.Future;
 import tink.core.Future.FutureTrigger;
@@ -32,12 +34,12 @@ class Heaps3DComponent extends Component {
 	var _alpha = 1.;
 	var _stageUpFuture:Future<InteractionEvent> = null;
 
-	final _meshShaders:HashMap<hxsl.Shader, Array<Mesh>>();
+	final _meshShaders:ObjectMap<hxsl.Shader, Array<Mesh>>;
 
 	public function new(object:Null<Object> = null) {
 		this.object = object != null ? object : new Object();
 		componentType = ComponentType.Graphics3D;
-		_meshShaders = new HashMap<hxsl.Shader, Array<Mesh>>();
+		_meshShaders = new ObjectMap<hxsl.Shader, Array<Mesh>>();
 	}
 
 	override public function setup() {
@@ -53,23 +55,23 @@ class Heaps3DComponent extends Component {
 		if (meshes.length == 0) {
 			return false;
 		}
-		var m = new Array<Mesh>();
+		var array = new Array<Mesh>();
 		for (mesh in meshes) {
-			m.material.mainPass.addShader(shader);
-			m.push(mesh);
+			mesh.material.mainPass.addShader(shader);
+			array.push(mesh);
 		}
 		_meshShaders.set(shader, array);
 		return true;
 	}
 
-	public function removeShaderFromMeshes(shader:hxsl.Shader):Bool {
+	public function removeShaderFromMeshes(shader:hxsl.Shader) {
 		if (!_meshShaders.exists(shader)) {
-			return false;
+			return;
 		}
-		for (key in _meshShaders.keys()) {
-			_meshShaders.get(key).material.mainPass.shader.removeShader(shader);
+		for (mesh in _meshShaders.get(shader)) {
+			mesh.material.mainPass.removeShader(shader);
 		}
-		_meshShader.remove(shader);
+		_meshShaders.remove(shader);
 	}
 
 	override public function init() {
