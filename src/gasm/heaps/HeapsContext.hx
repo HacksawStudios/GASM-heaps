@@ -1,15 +1,15 @@
 package gasm.heaps;
 
-import gasm.assets.Loader;
 import gasm.assets.Loader.AssetType;
-import gasm.core.components.AppModelComponent;
-import gasm.core.components.SceneModelComponent;
+import gasm.assets.Loader;
 import gasm.core.Context;
 import gasm.core.Engine;
 import gasm.core.Entity;
-import gasm.core.enums.Orientation;
 import gasm.core.IEngine;
 import gasm.core.ISystem;
+import gasm.core.components.AppModelComponent;
+import gasm.core.components.SceneModelComponent;
+import gasm.core.enums.Orientation;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.HeapsScene2DComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
@@ -32,13 +32,14 @@ import haxe.io.Path;
 import hex.di.Injector;
 import hxd.App;
 import hxd.Charset;
-import hxd.impl.TypedArray.ArrayBuffer;
 import hxd.SceneEvents;
+import hxd.impl.TypedArray.ArrayBuffer;
+import js.Syntax;
 import js.lib.DataView;
 import tweenx909.TweenX;
 
-using StringTools;
 using Lambda;
+using StringTools;
 using hacksaw.core.utils.TileUtils;
 
 /**
@@ -105,12 +106,12 @@ class HeapsContext extends App implements Context {
 			}
 		}
 		final glDriver:GlDriver = cast h3d.Engine.getCurrent().driver;
-		_basisSupport = switch (glDriver.textureSupport) {
+		_basisSupport = webAssemblySupport() && switch (glDriver.textureSupport) {
 			// ETC1 requires separate alpha and is only used on old android devices, so fall back to png
 			// PVRTC is messing up when not using premultiplied alpha, so use png instead for now
 			case hxd.PixelFormat.ETC(_), hxd.PixelFormat.PVRTC(_), null: false;
 			default: true;
-		}
+		};
 		#if debug
 		_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.png'});
 		_assetConfig.formats.push({type: AssetType.Image, extension: '.png'});
@@ -571,6 +572,22 @@ class HeapsContext extends App implements Context {
 
 	public function get_baseEntity():Entity {
 		return _engine.baseEntity;
+	}
+
+	function webAssemblySupport() {
+		#if js
+		return Syntax.code('(function() {
+			try { 
+				if (typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function") {
+					var module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
+					if (module instanceof WebAssembly.Module) return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
+				}
+			} catch (e) {}
+			return false;
+		}())');
+		#else
+		return false;
+		#end
 	}
 }
 
