@@ -8,6 +8,7 @@ import gasm.core.utils.Assert;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.Heaps3DViewportComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
+import tink.CoreApi.Future;
 import tweenx909.TweenX;
 import tweenxcore.Tools.Easing;
 
@@ -26,6 +27,9 @@ class HeapsCameraFitComponent extends Component {
 	var _targetComponent:Heaps3DComponent;
 	var _time = 0.0;
 	var _startPos:h3d.Vector;
+	var _fitSpeed = 0.0;
+
+	var _onFitCallbacks = new Array<() -> Void>();
 
 	public function new(config:CameraFitConfig) {
 		_config = config;
@@ -37,6 +41,7 @@ class HeapsCameraFitComponent extends Component {
 		Assert.that(_targetComponent != null, "CameraFitObjectComponent requires Heaps3DComponent in owner");
 		_s3d = owner.getFromParents(HeapsScene3DComponent).scene3d;
 		_startPos = _s3d.camera.pos;
+		setFitSpeed(_config.fitSpeed);
 		super.init();
 	}
 
@@ -44,23 +49,48 @@ class HeapsCameraFitComponent extends Component {
 		super.update(dt);
 		if (enabled) {
 			_time += dt;
-			fit(calculateObjectFit(), Math.min(1.0, _time / _config.fitSpeed));
+			fit(calculateObjectFit(), Math.min(1.0, _time / _fitSpeed));
 			_s3d.camera.update();
+		} else {
+			_time = 0.0;
 		}
+	}
+
+	public function animateFit(speed:Float) {
+		return Future.async(cb -> {
+			_time = 0.0;
+			final oldFs = _fitSpeed;
+			setFitSpeed(speed);
+			addOnFitCallback(() -> {
+				setFitSpeed(oldFs);
+				cb(null);
+			});
+		});
+	}
+
+	public function addOnFitCallback(cb:() -> Void) {
+		_onFitCallbacks.push(cb);
 	}
 
 	public function setFitSpeed(fs:Float) {
-		_config.fitSpeed = fs;
+		_fitSpeed = fs;
 	}
 
 	inline function fit(target:h3d.Vector, pos:Float) {
-		if (pos < 1.0) {
-			_s3d.camera.pos.x = pos.lerp(_startPos.x, target.x);
-			_s3d.camera.pos.y = pos.lerp(_startPos.y, target.y);
-			_s3d.camera.pos.z = pos.lerp(_startPos.z, target.z);
-		} else {
-			_startPos = _s3d.camera.pos = target;
+		_s3d.camera.pos.x = pos.lerp(_startPos.x, target.x);
+		_s3d.camera.pos.y = pos.lerp(_startPos.y, target.y);
+		_s3d.camera.pos.z = pos.lerp(_startPos.z, target.z);
+		final remaining = target.sub(_s3d.camera.pos);
+
+		// Close enough for fit
+		if (remaining.lengthSq() < 0.001) {
+			while (_onFitCallbacks.length > 0) {
+				final cb = _onFitCallbacks.shift();
+				cb();
+			}
 		}
+
+		_startPos = _s3d.camera.pos;
 	}
 
 	function calculateObjectFit():h3d.Vector {
@@ -74,13 +104,13 @@ class HeapsCameraFitComponent extends Component {
 		final cameraSides = _s3d.camera.unproject(1.0, 1.0, objectZ);
 
 		// fit vertical
-		final diffY = cameraSides.x - (bounds.xMax + _config.margins.y);
-		final angleY = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
+		final diffY = cameraSides.y - (bounds.yMax + _config.margins.y);
+		final angleY = Math.atan(Math.abs(cameraSides.y) / Math.abs(_s3d.camera.pos.z));
 		final distanceY = diffY / Math.tan(angleY);
 
 		// fit horizontal
-		final diffX = cameraSides.y - (bounds.yMax + _config.margins.x);
-		final angleX = Math.atan(Math.abs(cameraSides.y) / Math.abs(_s3d.camera.pos.z));
+		final diffX = cameraSides.x - (bounds.xMax + _config.margins.x);
+		final angleX = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
 		final distanceX = diffX / Math.tan(angleX);
 
 		var distance = Math.min(distanceX, distanceY);

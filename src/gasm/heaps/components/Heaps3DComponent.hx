@@ -1,17 +1,22 @@
 package gasm.heaps.components;
 
-import h3d.scene.Interactive;
-import h3d.col.ObjectCollider;
-import gasm.core.math.geom.Point;
-import gasm.core.math.geom.Vector;
 import gasm.core.Component;
 import gasm.core.components.ThreeDModelComponent;
 import gasm.core.enums.ComponentType;
 import gasm.core.enums.EventType;
+import gasm.core.events.InteractionEvent;
 import gasm.core.events.api.IEvent;
+import gasm.core.math.geom.Point;
+import gasm.core.math.geom.Vector;
 import gasm.heaps.shaders.Alpha;
+import h3d.col.ObjectCollider;
+import h3d.scene.Interactive;
+import h3d.scene.Mesh;
 import h3d.scene.Object;
+import haxe.ds.ObjectMap;
 import hxd.Event;
+import tink.CoreApi.Future;
+import tink.core.Future.FutureTrigger;
 
 /**
  * ...
@@ -19,25 +24,54 @@ import hxd.Event;
  */
 class Heaps3DComponent extends Component {
 	public var object(default, default):Object;
-	public var mouseEnabled(default, set):Bool;
 	public var root(default, default):Bool;
 	public var dirty(default, default):Bool;
 	public var alpha(default, set):Float;
-	public var mousePos(default, null):Point;
 
 	var _model:ThreeDModelComponent;
 	var _interactive:Interactive;
 	var _movePos = new Vector();
 	var _alpha = 1.;
+	var _stageUpFuture:Future<InteractionEvent> = null;
 
-	public function new(object:Null<Object> = null, mouseEnabled:Bool = false) {
+	final _meshShaders:ObjectMap<hxsl.Shader, Array<Mesh>>;
+
+	public function new(object:Null<Object> = null) {
 		this.object = object != null ? object : new Object();
-		this.mouseEnabled = mouseEnabled;
 		componentType = ComponentType.Graphics3D;
+		_meshShaders = new ObjectMap<hxsl.Shader, Array<Mesh>>();
 	}
 
 	override public function setup() {
 		object.name = owner.id;
+	}
+
+	// Assign shader to all meshes sub to this object
+	public function assignShaderToMeshes(shader:hxsl.Shader):Bool {
+		if (_meshShaders.exists(shader)) {
+			return true;
+		}
+		final meshes = object.getMeshes();
+		if (meshes.length == 0) {
+			return false;
+		}
+		var array = new Array<Mesh>();
+		for (mesh in meshes) {
+			mesh.material.mainPass.addShader(shader);
+			array.push(mesh);
+		}
+		_meshShaders.set(shader, array);
+		return true;
+	}
+
+	public function removeShaderFromMeshes(shader:hxsl.Shader) {
+		if (!_meshShaders.exists(shader)) {
+			return;
+		}
+		for (mesh in _meshShaders.get(shader)) {
+			mesh.material.mainPass.removeShader(shader);
+		}
+		_meshShaders.remove(shader);
 	}
 
 	override public function init() {
@@ -52,10 +86,7 @@ class Heaps3DComponent extends Component {
 		_model.scale = new Vector(object.scaleX, object.scaleY, object.scaleZ);
 		_model.pos = new Vector(0, 0, 0);
 		_model.dirty = false;
-		if (mouseEnabled) {
-			_interactive = new Interactive(object.getCollider(), object);
-			addEventListeners();
-		}
+		super.init();
 	}
 
 	override public function update(dt:Float) {
@@ -93,99 +124,11 @@ class Heaps3DComponent extends Component {
 	}
 
 	override public function dispose() {
-		removeEventListeners();
 		if (_model != null) {
 			owner.remove(_model);
 			_model = null;
 		}
-		stopDrag();
 		object.remove();
-	}
-
-	function onClick(e:Event) {
-		_model.triggerEvent(EventType.PRESS, {x: e.relX, y: e.relY, z: e.relZ}, owner);
-	}
-
-	function onDown(e:Event) {
-		_model.triggerEvent(EventType.DOWN, {x: e.relX, y: e.relY, z: e.relZ}, owner);
-		startDrag();
-	}
-
-	function onUp(e:Event) {
-		_model.triggerEvent(EventType.UP, {x: e.relX, y: e.relY, z: e.relZ}, owner);
-		stopDrag();
-	}
-
-	function onStageUp(event:IEvent) {
-		stopDrag();
-	}
-
-	function onOver(e:Event) {
-		_model.triggerEvent(EventType.OVER, {x: e.relX, y: e.relY, z: e.relZ}, owner);
-	}
-
-	function onOut(e:Event) {
-		_model.triggerEvent(EventType.OUT, {x: e.relX, y: e.relY, z: e.relZ}, owner);
-	}
-
-	function onMove(e:Event) {
-		_movePos.set(e.relX, e.relY, e.relZ);
-		_model.triggerEvent(EventType.MOVE, {x: _movePos.x, y: _movePos.y, z: _movePos.z}, owner);
-	}
-
-	function onDrag(event:IEvent) {
-		var stage = hxd.Window.getInstance();
-		_model.triggerEvent(EventType.DRAG, {x: _movePos.x, y: _movePos.y, z: _movePos.z}, owner);
-	}
-
-	function stopDrag() {
-		if (_model != null) {
-			_model.removeHandler(EventType.MOVE, onDrag);
-		}
-	}
-
-	function startDrag() {
-		_model.addHandler(EventType.MOVE, onDrag);
-	}
-
-	inline function addEventListeners() {
-		if (_interactive != null) {
-			_interactive.onClick = onClick;
-			_interactive.onPush = onDown;
-			_interactive.onRelease = onUp;
-			_interactive.onOver = onOver;
-			_interactive.onOut = onOut;
-			_interactive.onMove = onMove;
-			final rootModel = owner.getFromRoot(ThreeDModelComponent);
-			rootModel.addHandler(EventType.UP, onStageUp);
-			final model = owner.get(ThreeDModelComponent);
-			model.addHandler(EventType.UP, onStageUp);
-		}
-	}
-
-	inline function removeEventListeners() {
-		if (_interactive != null) {
-			_interactive.onClick = null;
-			_interactive.onPush = null;
-			_interactive.onRelease = null;
-			_interactive.onOver = null;
-			_interactive.onOut = null;
-			_interactive.onMove = null;
-			final rootModel = owner.getFromRoot(ThreeDModelComponent);
-			rootModel.removeHandler(EventType.UP, onStageUp);
-			if (_model != null) {
-				_model.removeHandler(EventType.MOVE, onDrag);
-			}
-		}
-	}
-
-	function set_mouseEnabled(val:Bool):Bool {
-		if (val) {
-			addEventListeners();
-		} else {
-			removeEventListeners();
-		}
-		return val;
 	}
 
 	function set_alpha(val:Float):Float {

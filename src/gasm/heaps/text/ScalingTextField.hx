@@ -1,9 +1,11 @@
 package gasm.heaps.text;
 
-import h2d.Tile;
 import h2d.Bitmap;
+import h2d.Tile;
 import h3d.mat.Data.TextureFlags;
 import h3d.mat.Texture;
+
+using StringTools;
 
 class ScalingTextField extends h2d.Text {
 	public var currSize(default, null):{w:Float, h:Float};
@@ -43,5 +45,11 @@ class ScalingTextField extends h2d.Text {
 	override function initGlyphs(text:String, rebuild = true, handleAlign = true, lines:Array<Int> = null):Void {
 		super.initGlyphs(text, rebuild, handleAlign, lines);
 		calcHeight += yMarg;
+	}
+
+	override function set_text(t:String) {
+		// Replace non breaking space we get inte translations (char code 160) with regular space (char code 32), else multiline will break.
+		t = t != null ? t.replace(' ', ' ') : t;
+		return super.text = t;
 	}
 }
