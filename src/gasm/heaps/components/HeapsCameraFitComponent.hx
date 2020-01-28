@@ -98,9 +98,7 @@ class HeapsCameraFitComponent extends Component {
 		final sx = hxd.Window.getInstance().width;
 		final sy = hxd.Window.getInstance().height;
 		_s3d.camera.update();
-		final objBounds = obj.getBounds();
-		final objSize = objBounds.getSize();
-		final bounds = _config.bounds != null ? _config.bounds : objBounds;
+		final bounds = _config.bounds != null ? _config.bounds : obj.getBounds();
 		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
 		final cameraSides = _s3d.camera.unproject(1.0, 1.0, objectZ);
 
