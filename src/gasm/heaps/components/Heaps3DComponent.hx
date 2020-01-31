@@ -23,6 +23,7 @@ import tink.core.Future.FutureTrigger;
  * @author Leo Bergman
  */
 class Heaps3DComponent extends Component {
+	public var instanceGroupId:String;
 	public var object(default, default):Object;
 	public var root(default, default):Bool;
 	public var dirty(default, default):Bool;
@@ -36,10 +37,43 @@ class Heaps3DComponent extends Component {
 
 	final _meshShaders:ObjectMap<hxsl.Shader, Array<Mesh>>;
 
+	/**
+		build the instance group id used to determine what instancing group this object is part of
+	**/
+	public function buildInstanceGroupId() {
+		final mesh = getFirstMesh();
+		final material = mesh.material;
+		final pass = mesh.material.mainPass;
+
+		// Class name
+		instanceGroupId = name;
+
+		// Texture  ID
+		instanceGroupId += "t" + material.texture.id;
+
+		for (s in pass.getShaders()) {
+			instanceGroupId += "s" + @:privateAccess s.shader.getInstance(0).id + ",";
+		}
+	}
+
 	public function new(object:Null<Object> = null) {
 		this.object = object != null ? object : new Object();
 		componentType = ComponentType.Graphics3D;
 		_meshShaders = new ObjectMap<hxsl.Shader, Array<Mesh>>();
+	}
+
+	/**
+		Returns the first mesh child of the object
+		Not travesting trough tree
+	**/
+	public function getFirstMesh():Mesh {
+		for (i in 0...object.numChildren) {
+			final child = object.getChildAt(i);
+			if (child.isMesh()) {
+				return child.toMesh();
+			}
+		}
+		return null;
 	}
 
 	override public function setup() {
