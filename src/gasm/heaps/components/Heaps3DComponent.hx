@@ -67,8 +67,7 @@ class Heaps3DComponent extends Component {
 		Not travesting trough tree
 	**/
 	public function getFirstMesh():Mesh {
-		for (i in 0...object.numChildren) {
-			final child = object.getChildAt(i);
+		for (child in object) {
 			if (child.isMesh()) {
 				return child.toMesh();
 			}
