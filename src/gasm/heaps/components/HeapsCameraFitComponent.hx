@@ -29,7 +29,7 @@ class HeapsCameraFitComponent extends Component {
 	var _startPos:h3d.Vector;
 	var _fitSpeed = 0.0;
 
-	var _onFitCallbacks = new Array<() -> Void>();
+	var _onFitCallback:Null<Void->Void> = null;
 
 	public function new(config:CameraFitConfig) {
 		this.config = config;
@@ -50,7 +50,6 @@ class HeapsCameraFitComponent extends Component {
 		if (enabled) {
 			_time += dt;
 			fit(calculateObjectFit(), Math.min(1.0, _time / _fitSpeed));
-			_s3d.camera.update();
 		} else {
 			_time = 0.0;
 		}
@@ -61,15 +60,12 @@ class HeapsCameraFitComponent extends Component {
 			_time = 0.0;
 			final oldFs = _fitSpeed;
 			setFitSpeed(speed);
-			addOnFitCallback(() -> {
+			_startPos = _s3d.camera.pos;
+			_onFitCallback = () -> {
 				setFitSpeed(oldFs);
 				cb(null);
-			});
+			};
 		});
-	}
-
-	public function addOnFitCallback(cb:() -> Void) {
-		_onFitCallbacks.push(cb);
 	}
 
 	public function setFitSpeed(fs:Float) {
@@ -83,15 +79,16 @@ class HeapsCameraFitComponent extends Component {
 		final remaining = target.sub(_s3d.camera.pos);
 
 		// Close enough for fit
-		if (remaining.lengthSq() < 0.00001) {
-			while (_onFitCallbacks.length > 0) {
-				trace("fit callback!");
-				final cb = _onFitCallbacks.shift();
-				cb();
+		if (pos >= 1.0) {
+			if (_onFitCallback != null) {
+				final old = _onFitCallback;
+				_onFitCallback();
+				if (_onFitCallback == old) {
+					_onFitCallback = null;
+				}
 			}
+			_startPos = _s3d.camera.pos;
 		}
-
-		_startPos = _s3d.camera.pos;
 	}
 
 	function calculateObjectFit():h3d.Vector {
@@ -99,7 +96,7 @@ class HeapsCameraFitComponent extends Component {
 		final sx = hxd.Window.getInstance().width;
 		final sy = hxd.Window.getInstance().height;
 		_s3d.camera.update();
-		final bounds = _config.bounds != null ? _config.bounds : obj.getBounds();
+		final bounds = config.bounds != null ? config.bounds : obj.getBounds();
 		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
 		final cameraSides = _s3d.camera.unproject(1.0, 1.0, objectZ);
 
