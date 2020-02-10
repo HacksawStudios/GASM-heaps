@@ -1,5 +1,6 @@
 package gasm.heaps.components;
 
+import gasm.core.utils.Assert;
 import gasm.core.Component;
 import gasm.core.components.ThreeDModelComponent;
 import gasm.core.enums.ComponentType;
@@ -35,7 +36,37 @@ class Heaps3DComponent extends Component {
 	var _alpha = 1.;
 	var _stageUpFuture:Future<InteractionEvent> = null;
 
-	final _meshShaders:ObjectMap<hxsl.Shader, Array<Mesh>>;
+	public function addShader(s:hxsl.Shader, passName:String = null):Bool {
+		final mesh = getFirstMesh();
+		if (mesh == null) {
+			return false;
+		}
+
+		// Find the correct pass, default to passName if not given
+		final pass = passName == null ? mesh.material.mainPass : mesh.material.getPass(passName);
+		Assert.that(pass != null, 'Pass $passName not found');
+
+		// Shader already added? Don't do anything
+
+		if (@:privateAccess pass.getShaderIndex(s) != -1) {
+			return true;
+		}
+
+		pass.addShader(s);
+
+		return true;
+	}
+
+	public function removeShader(s:hxsl.Shader, passName:String = null) {
+		final mesh = getFirstMesh();
+		if (mesh == null) {
+			return;
+		}
+
+		// Find the correct pass, default to passName if not given
+		final pass = passName == null ? mesh.material.mainPass : mesh.material.getPass(passName);
+		pass.removeShader(s);
+	}
 
 	/**
 		build the instance group id used to determine what instancing group this object is part of
@@ -59,7 +90,6 @@ class Heaps3DComponent extends Component {
 	public function new(object:Null<Object> = null) {
 		this.object = object != null ? object : new Object();
 		componentType = ComponentType.Graphics3D;
-		_meshShaders = new ObjectMap<hxsl.Shader, Array<Mesh>>();
 	}
 
 	/**
@@ -67,8 +97,7 @@ class Heaps3DComponent extends Component {
 		Not travesting trough tree
 	**/
 	public function getFirstMesh():Mesh {
-		for (i in 0...object.numChildren) {
-			final child = object.getChildAt(i);
+		for (child in object) {
 			if (child.isMesh()) {
 				return child.toMesh();
 			}
@@ -78,34 +107,6 @@ class Heaps3DComponent extends Component {
 
 	override public function setup() {
 		object.name = owner.id;
-	}
-
-	// Assign shader to all meshes sub to this object
-	public function assignShaderToMeshes(shader:hxsl.Shader):Bool {
-		if (_meshShaders.exists(shader)) {
-			return true;
-		}
-		final meshes = object.getMeshes();
-		if (meshes.length == 0) {
-			return false;
-		}
-		var array = new Array<Mesh>();
-		for (mesh in meshes) {
-			mesh.material.mainPass.addShader(shader);
-			array.push(mesh);
-		}
-		_meshShaders.set(shader, array);
-		return true;
-	}
-
-	public function removeShaderFromMeshes(shader:hxsl.Shader) {
-		if (!_meshShaders.exists(shader)) {
-			return;
-		}
-		for (mesh in _meshShaders.get(shader)) {
-			mesh.material.mainPass.removeShader(shader);
-		}
-		_meshShaders.remove(shader);
 	}
 
 	override public function init() {
