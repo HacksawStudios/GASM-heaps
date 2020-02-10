@@ -99,8 +99,7 @@ class HeapsCameraFitComponent extends Component {
 		final sx = hxd.Window.getInstance().width;
 		final sy = hxd.Window.getInstance().height;
 		_s3d.camera.update();
-
-		final bounds = obj.getBounds();
+		final bounds = _config.bounds != null ? _config.bounds : obj.getBounds();
 		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
 		final cameraSides = _s3d.camera.unproject(1.0, 1.0, objectZ);
 
@@ -129,4 +128,5 @@ class CameraFitConfig {
 	public var margins:Point = {x: 0.0, y: 0.0};
 	public var fitSpeed = 1.0;
 	public var fitCurve = (val:Float) -> val.linear();
+	public var bounds:Null<h3d.col.Bounds> = null;
 }
