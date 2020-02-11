@@ -30,10 +30,14 @@ class HeapsCameraFitComponent extends Component {
 	var _startPos:h3d.Vector;
 	var _fitSpeed = 0.0;
 
-	public var margins(get, null):Point;
+	public var margins(get, set):Point;
 
 	function get_margins() {
 		return _config.margins;
+	}
+
+	function set_margins(point:Point) {
+		return _config.margins = point;
 	}
 
 	var _onFitCallback:Null<Void->Void> = null;
