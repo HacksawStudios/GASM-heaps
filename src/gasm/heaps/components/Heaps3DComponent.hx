@@ -36,7 +36,13 @@ class Heaps3DComponent extends Component {
 	var _alpha = 1.;
 	var _stageUpFuture:Future<InteractionEvent> = null;
 
-	public function addShader(s:hxsl.Shader, passName:String = null):Bool {
+	/**
+		Add shader to first mesh of components pass
+		@param shader input shader
+		@param passName if specified, shader will be added to named pass. else added to mainPass
+		@return true on success, false when mesh doesn't exist
+	**/
+	public function addShader(shader:hxsl.Shader, passName:String = null):Bool {
 		final mesh = getFirstMesh();
 		if (mesh == null) {
 			return false;
@@ -48,16 +54,21 @@ class Heaps3DComponent extends Component {
 
 		// Shader already added? Don't do anything
 
-		if (@:privateAccess pass.getShaderIndex(s) != -1) {
+		if (@:privateAccess pass.getShaderIndex(shader) != -1) {
 			return true;
 		}
 
-		pass.addShader(s);
+		pass.addShader(shader);
 
 		return true;
 	}
 
-	public function removeShader(s:hxsl.Shader, passName:String = null) {
+	/**
+		Remove shader from first mesh of components pass
+		@param shader input shader
+		@param passName if specified, shader will be added to named pass. else added to mainPass
+	**/
+	public function removeShader(shader:hxsl.Shader, passName:String = null) {
 		final mesh = getFirstMesh();
 		if (mesh == null) {
 			return;
@@ -65,7 +76,7 @@ class Heaps3DComponent extends Component {
 
 		// Find the correct pass, default to passName if not given
 		final pass = passName == null ? mesh.material.mainPass : mesh.material.getPass(passName);
-		pass.removeShader(s);
+		pass.removeShader(shader);
 	}
 
 	/**

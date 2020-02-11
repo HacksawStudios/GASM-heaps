@@ -20,7 +20,8 @@ using tweenxcore.Tools;
  * Note that you can only use one camera fit component per stage graph, otherwise they will fight eachother.
  */
 class HeapsCameraFitComponent extends Component {
-	public final config:CameraFitConfig;
+	final _config:CameraFitConfig;
+
 	public var enabled = true;
 
 	var _s3d:h3d.scene.Scene;
@@ -29,10 +30,16 @@ class HeapsCameraFitComponent extends Component {
 	var _startPos:h3d.Vector;
 	var _fitSpeed = 0.0;
 
+	public var margins(get, null):Point;
+
+	function get_margins() {
+		return _config.margins;
+	}
+
 	var _onFitCallback:Null<Void->Void> = null;
 
 	public function new(config:CameraFitConfig) {
-		this.config = config;
+		_config = config;
 		componentType = ComponentType.Actor;
 	}
 
@@ -41,7 +48,7 @@ class HeapsCameraFitComponent extends Component {
 		Assert.that(_targetComponent != null, "CameraFitObjectComponent requires Heaps3DComponent in owner");
 		_s3d = owner.getFromParents(HeapsScene3DComponent).scene3d;
 		_startPos = _s3d.camera.pos;
-		setFitSpeed(config.fitSpeed);
+		setFitSpeed(_config.fitSpeed);
 		super.init();
 	}
 
@@ -96,17 +103,17 @@ class HeapsCameraFitComponent extends Component {
 		final sx = hxd.Window.getInstance().width;
 		final sy = hxd.Window.getInstance().height;
 		_s3d.camera.update();
-		final bounds = config.bounds != null ? config.bounds : obj.getBounds();
+		final bounds = _config.bounds != null ? _config.bounds : obj.getBounds();
 		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
 		final cameraSides = _s3d.camera.unproject(1.0, 1.0, objectZ);
 
 		// fit vertical
-		final diffY = cameraSides.y - (bounds.yMax + config.margins.y);
+		final diffY = cameraSides.y - (bounds.yMax + _config.margins.y);
 		final angleY = Math.atan(Math.abs(cameraSides.y) / Math.abs(_s3d.camera.pos.z));
 		final distanceY = diffY / Math.tan(angleY);
 
 		// fit horizontal
-		final diffX = cameraSides.x - (bounds.xMax + config.margins.x);
+		final diffX = cameraSides.x - (bounds.xMax + _config.margins.x);
 		final angleX = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
 		final distanceX = diffX / Math.tan(angleX);
 
