@@ -38,9 +38,9 @@ class Heaps3DComponent extends Component {
 
 	/**
 		Add shader to first mesh of components pass
-		@param shader input shader
-		@param passName if specified, shader will be added to named pass. else added to mainPass
-		@return true on success, false when mesh doesn't exist
+		@param shader Input shader
+		@param passName If specified, shader will be added to named pass. Else added to mainPass
+		@return True on success, false when mesh doesn't exist
 	**/
 	public function addShader(shader:hxsl.Shader, passName:String = null):Bool {
 		final mesh = getFirstMesh();
@@ -53,7 +53,6 @@ class Heaps3DComponent extends Component {
 		Assert.that(pass != null, 'Pass $passName not found');
 
 		// Shader already added? Don't do anything
-
 		if (@:privateAccess pass.getShaderIndex(shader) != -1) {
 			return true;
 		}
@@ -65,8 +64,8 @@ class Heaps3DComponent extends Component {
 
 	/**
 		Remove shader from first mesh of components pass
-		@param shader input shader
-		@param passName if specified, shader will be added to named pass. else added to mainPass
+		@param shader Input shader
+		@param passName If specified, shader will be added to named pass. else added to mainPass
 	**/
 	public function removeShader(shader:hxsl.Shader, passName:String = null) {
 		final mesh = getFirstMesh();
@@ -80,7 +79,7 @@ class Heaps3DComponent extends Component {
 	}
 
 	/**
-		build the instance group id used to determine what instancing group this object is part of
+		Build the instance group id used to determine what instancing group this object is part of
 	**/
 	public function buildInstanceGroupId() {
 		final mesh = getFirstMesh();
