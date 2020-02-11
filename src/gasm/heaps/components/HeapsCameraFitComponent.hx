@@ -20,16 +20,27 @@ using tweenxcore.Tools;
  * Note that you can only use one camera fit component per stage graph, otherwise they will fight eachother.
  */
 class HeapsCameraFitComponent extends Component {
+	final _config:CameraFitConfig;
+
 	public var enabled = true;
 
-	final _config:CameraFitConfig;
 	var _s3d:h3d.scene.Scene;
 	var _targetComponent:Heaps3DComponent;
 	var _time = 0.0;
 	var _startPos:h3d.Vector;
 	var _fitSpeed = 0.0;
 
-	var _onFitCallbacks = new Array<() -> Void>();
+	public var margins(get, set):Point;
+
+	function get_margins() {
+		return _config.margins;
+	}
+
+	function set_margins(point:Point) {
+		return _config.margins = point;
+	}
+
+	var _onFitCallback:Null<Void->Void> = null;
 
 	public function new(config:CameraFitConfig) {
 		_config = config;
@@ -50,7 +61,6 @@ class HeapsCameraFitComponent extends Component {
 		if (enabled) {
 			_time += dt;
 			fit(calculateObjectFit(), Math.min(1.0, _time / _fitSpeed));
-			_s3d.camera.update();
 		} else {
 			_time = 0.0;
 		}
@@ -61,15 +71,12 @@ class HeapsCameraFitComponent extends Component {
 			_time = 0.0;
 			final oldFs = _fitSpeed;
 			setFitSpeed(speed);
-			addOnFitCallback(() -> {
+			_startPos = _s3d.camera.pos;
+			_onFitCallback = () -> {
 				setFitSpeed(oldFs);
 				cb(null);
-			});
+			};
 		});
-	}
-
-	public function addOnFitCallback(cb:() -> Void) {
-		_onFitCallbacks.push(cb);
 	}
 
 	public function setFitSpeed(fs:Float) {
@@ -83,14 +90,16 @@ class HeapsCameraFitComponent extends Component {
 		final remaining = target.sub(_s3d.camera.pos);
 
 		// Close enough for fit
-		if (remaining.lengthSq() < 0.001) {
-			while (_onFitCallbacks.length > 0) {
-				final cb = _onFitCallbacks.shift();
-				cb();
+		if (pos >= 1.0) {
+			if (_onFitCallback != null) {
+				final old = _onFitCallback;
+				_onFitCallback();
+				if (_onFitCallback == old) {
+					_onFitCallback = null;
+				}
 			}
+			_startPos = _s3d.camera.pos;
 		}
-
-		_startPos = _s3d.camera.pos;
 	}
 
 	function calculateObjectFit():h3d.Vector {
