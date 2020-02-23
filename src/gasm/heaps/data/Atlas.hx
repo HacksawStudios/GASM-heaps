@@ -6,14 +6,14 @@ typedef Atlas = {
 	tile:Tile,
 	contents:Map<String, Array<AtlasContents>>,
 	animation:AtlasAnimation,
-};
+}
 
 typedef AtlasContents = {
 	width:Int,
 	height:Int,
 	t:Tile,
-	?scale9:Scale9
-};
+	?scale9:Scale9,
+}
 
 typedef AtlasAnimation = {
 	frames:Array<Tile>,

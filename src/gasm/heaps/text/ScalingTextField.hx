@@ -11,6 +11,7 @@ class ScalingTextField extends h2d.Text {
 	public var currSize(default, null):{w:Float, h:Float};
 	// Fonts extending below descender limit will be cut off in heaps text field for some reason
 	// This margin fixes issues with bottom part of fonts being cutt of in most cases, but you can incrase it if you still experience issues
+	public var xMarg(default, default) = 0;
 	public var yMarg(default, default) = 10;
 
 	var _origSize:Int;
@@ -45,6 +46,7 @@ class ScalingTextField extends h2d.Text {
 	override function initGlyphs(text:String, rebuild = true, handleAlign = true, lines:Array<Int> = null):Void {
 		super.initGlyphs(text, rebuild, handleAlign, lines);
 		calcHeight += yMarg;
+		calcWidth += xMarg;
 	}
 
 	override function set_text(t:String) {

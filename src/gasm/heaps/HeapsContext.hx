@@ -26,6 +26,7 @@ import h3d.mat.Data.TextureFlags;
 import h3d.mat.Texture;
 import hacksaw.common.enums.Orientation;
 import hacksaw.core.utils.GuardAction;
+import haxe.Timer;
 import haxe.ds.StringMap;
 import haxe.io.BytesData;
 import haxe.io.Path;
@@ -127,14 +128,13 @@ class HeapsContext extends App implements Context {
 		appModel.pixelRatio = js.Browser.window.devicePixelRatio;
 		#end
 		engine.render(this);
-		var asyncItems = 0;
 		var atlases = new haxe.ds.StringMap<haxe.io.Bytes>();
 		var loader = new Loader('assets/desc.json', _assetConfig);
-
+		final queued:Array<String> = [];
 		loader.onReady = function() {
 			hxd.res.Loader.currentInstance = new hxd.res.Loader(_fileSystem);
 			for (img in Type.getClassFields(_assetContainers.images)) {
-				asyncItems++;
+				queued.push('image:$img');
 				loader.queueItem(img, AssetType.Image);
 			}
 			if (_soundSupport) {
@@ -149,7 +149,7 @@ class HeapsContext extends App implements Context {
 				loader.queueItem(fnt, AssetType.BitmapFont);
 			}
 			for (atlas in Type.getClassFields(_assetContainers.atlases)) {
-				asyncItems++;
+				queued.push('atlas:$atlas');
 				loader.queueItem(atlas, AssetType.Atlas);
 			}
 			for (gradient in Type.getClassFields(_assetContainers.gradients)) {
@@ -161,10 +161,21 @@ class HeapsContext extends App implements Context {
 			for (config in Reflect.fields(_assetContainers.models)) {
 				loader.queueItem(config, AssetType.Model);
 			}
+			for (config in Reflect.fields(_assetContainers.configs)) {
+				loader.queueItem(config, AssetType.Config);
+			}
 			loader.load();
 		}
 		loader.onComplete = function() {
-			new GuardAction(() -> asyncItems == 0, done);
+			final timer = Timer.delay(() -> {
+				throw 'Unable to load assets: $queued';
+			}, 25000);
+			new GuardAction(() -> {
+				return queued.length == 0;
+			}, () -> {
+					timer.stop();
+					done();
+				});
 		}
 		loader.onProgress = function(percent:Int) {
 			progress(percent);
@@ -177,9 +188,10 @@ class HeapsContext extends App implements Context {
 		loader.addHandler(AssetType.Image, function(item:HandlerItem) {
 			final name = 'image/${item.id}';
 			final ext = Path.extension(item.path);
-			_fileSystem.add(item.path, item.data);
-			getImageTexture(item.path, ext, name).then((texture) -> {
-				asyncItems--;
+			final imagePath = '$name.$ext';
+			_fileSystem.add(imagePath, item.data);
+			getImageTexture(imagePath, ext, name).then((texture) -> {
+				queued.remove('image:${item.id}');
 				Reflect.setField(_assetContainers.images, item.id, Tile.fromTexture(texture));
 			});
 		});
@@ -233,7 +245,7 @@ class HeapsContext extends App implements Context {
 			final getAtlas = (path, ext) -> {
 				getImageTexture(path, ext, 'atlas/$name').then((texture) -> {
 					final atlas = parseAtlas('$name$ext', item.data, Tile.fromTexture(texture));
-					asyncItems--;
+					queued.remove('atlas:${item.id}');
 					Reflect.setField(_assetContainers.atlases, item.id, atlas);
 				});
 			}
@@ -253,7 +265,7 @@ class HeapsContext extends App implements Context {
 			_fileSystem.add(imagePath, imageData);
 			if (_fileSystem.exists(atlasPath)) {
 				getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
-					asyncItems--;
+					queued.remove('atlas:${item.id}');
 					final atlas = parseAtlas('$name.$ext', _fileSystem.get(atlasPath).getBytes(), Tile.fromTexture(texture));
 					Reflect.setField(_assetContainers.atlases, item.id, atlas);
 				});
@@ -266,12 +278,12 @@ class HeapsContext extends App implements Context {
 		});
 
 		loader.addHandler(AssetType.Config, function(item:HandlerItem) {
+			var data = haxe.Json.parse(item.data.toString());
 			switch (item.id) {
 				case 'gameconfig':
-					var data = haxe.Json.parse(item.data.toString());
 					Reflect.setField(_assetContainers.brandingConfigs, item.id, data);
 				default:
-					null;
+					Reflect.setField(_assetContainers.configs, item.id, data);
 			}
 		});
 

@@ -1,5 +1,6 @@
 package gasm.heaps.components;
 
+import gasm.core.utils.Assert;
 import gasm.core.Component;
 import gasm.core.components.ThreeDModelComponent;
 import gasm.core.enums.ComponentType;
@@ -23,6 +24,7 @@ import tink.core.Future.FutureTrigger;
  * @author Leo Bergman
  */
 class Heaps3DComponent extends Component {
+	public var instanceGroupId:String;
 	public var object(default, default):Object;
 	public var root(default, default):Bool;
 	public var dirty(default, default):Bool;
@@ -34,44 +36,87 @@ class Heaps3DComponent extends Component {
 	var _alpha = 1.;
 	var _stageUpFuture:Future<InteractionEvent> = null;
 
-	final _meshShaders:ObjectMap<hxsl.Shader, Array<Mesh>>;
+	/**
+		Add shader to first mesh of components pass
+		@param shader Input shader
+		@param passName If specified, shader will be added to named pass. Else added to mainPass
+		@return True on success, false when mesh doesn't exist
+	**/
+	public function addShader(shader:hxsl.Shader, passName:String = null):Bool {
+		final mesh = getFirstMesh();
+		if (mesh == null) {
+			return false;
+		}
+
+		// Find the correct pass, default to passName if not given
+		final pass = passName == null ? mesh.material.mainPass : mesh.material.getPass(passName);
+		Assert.that(pass != null, 'Pass $passName not found');
+
+		// Shader already added? Don't do anything
+		if (@:privateAccess pass.getShaderIndex(shader) != -1) {
+			return true;
+		}
+
+		pass.addShader(shader);
+
+		return true;
+	}
+
+	/**
+		Remove shader from first mesh of components pass
+		@param shader Input shader
+		@param passName If specified, shader will be added to named pass. else added to mainPass
+	**/
+	public function removeShader(shader:hxsl.Shader, passName:String = null) {
+		final mesh = getFirstMesh();
+		if (mesh == null) {
+			return;
+		}
+
+		// Find the correct pass, default to passName if not given
+		final pass = passName == null ? mesh.material.mainPass : mesh.material.getPass(passName);
+		pass.removeShader(shader);
+	}
+
+	/**
+		Build the instance group id used to determine what instancing group this object is part of
+	**/
+	public function buildInstanceGroupId() {
+		final mesh = getFirstMesh();
+		final material = mesh.material;
+		final pass = mesh.material.mainPass;
+
+		// Class name
+		instanceGroupId = name;
+
+		// Texture  ID
+		instanceGroupId += "t" + material.texture.id;
+
+		for (s in pass.getShaders()) {
+			instanceGroupId += "s" + @:privateAccess s.shader.getInstance(0).id + ",";
+		}
+	}
 
 	public function new(object:Null<Object> = null) {
 		this.object = object != null ? object : new Object();
 		componentType = ComponentType.Graphics3D;
-		_meshShaders = new ObjectMap<hxsl.Shader, Array<Mesh>>();
+	}
+
+	/**
+		Returns the first mesh child of the object
+		Not travesting trough tree
+	**/
+	public function getFirstMesh():Mesh {
+		for (child in object) {
+			if (child.isMesh()) {
+				return child.toMesh();
+			}
+		}
+		return null;
 	}
 
 	override public function setup() {
 		object.name = owner.id;
-	}
-
-	// Assign shader to all meshes sub to this object
-	public function assignShaderToMeshes(shader:hxsl.Shader):Bool {
-		if (_meshShaders.exists(shader)) {
-			return true;
-		}
-		final meshes = object.getMeshes();
-		if (meshes.length == 0) {
-			return false;
-		}
-		var array = new Array<Mesh>();
-		for (mesh in meshes) {
-			mesh.material.mainPass.addShader(shader);
-			array.push(mesh);
-		}
-		_meshShaders.set(shader, array);
-		return true;
-	}
-
-	public function removeShaderFromMeshes(shader:hxsl.Shader) {
-		if (!_meshShaders.exists(shader)) {
-			return;
-		}
-		for (mesh in _meshShaders.get(shader)) {
-			mesh.material.mainPass.removeShader(shader);
-		}
-		_meshShaders.remove(shader);
 	}
 
 	override public function init() {
