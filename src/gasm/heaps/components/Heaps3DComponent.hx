@@ -1,6 +1,5 @@
 package gasm.heaps.components;
 
-import gasm.core.utils.Assert;
 import gasm.core.Component;
 import gasm.core.components.ThreeDModelComponent;
 import gasm.core.enums.ComponentType;
@@ -9,6 +8,7 @@ import gasm.core.events.InteractionEvent;
 import gasm.core.events.api.IEvent;
 import gasm.core.math.geom.Point;
 import gasm.core.math.geom.Vector;
+import gasm.core.utils.Assert;
 import gasm.heaps.shaders.Alpha;
 import h3d.col.ObjectCollider;
 import h3d.scene.Interactive;
@@ -170,7 +170,9 @@ class Heaps3DComponent extends Component {
 
 	override public function dispose() {
 		if (_model != null) {
-			owner.remove(_model);
+			if (owner != null) {
+				owner.remove(this);
+			}
 			_model = null;
 		}
 		object.remove();

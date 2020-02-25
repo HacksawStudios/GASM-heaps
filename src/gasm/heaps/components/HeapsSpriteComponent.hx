@@ -1,12 +1,12 @@
 package gasm.heaps.components;
 
-import gasm.core.math.geom.Point;
 import gasm.core.Component;
 import gasm.core.components.AppModelComponent;
 import gasm.core.components.SpriteModelComponent;
 import gasm.core.enums.ComponentType;
 import gasm.core.enums.EventType;
 import gasm.core.events.api.IEvent;
+import gasm.core.math.geom.Point;
 import h2d.Object;
 import hxd.Event;
 
@@ -94,7 +94,9 @@ class HeapsSpriteComponent extends Component {
 	override public function dispose() {
 		removeEventListeners();
 		if (_model != null) {
-			owner.remove(_model);
+			if (owner != null) {
+				owner.remove(this);
+			}
 			_model = null;
 		}
 		if (sprite.parent != null) {
