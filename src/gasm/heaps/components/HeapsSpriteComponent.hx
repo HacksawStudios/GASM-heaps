@@ -94,9 +94,7 @@ class HeapsSpriteComponent extends Component {
 	override public function dispose() {
 		removeEventListeners();
 		if (_model != null) {
-			if (owner != null) {
-				owner.remove(this);
-			}
+			remove();
 			_model = null;
 		}
 		if (sprite.parent != null) {

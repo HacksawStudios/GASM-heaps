@@ -170,9 +170,7 @@ class Heaps3DComponent extends Component {
 
 	override public function dispose() {
 		if (_model != null) {
-			if (owner != null) {
-				owner.remove(this);
-			}
+			remove();
 			_model = null;
 		}
 		object.remove();
