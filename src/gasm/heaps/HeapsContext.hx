@@ -514,7 +514,7 @@ class HeapsContext extends App implements Context {
 			for (frame in c) {
 				if (frame != null) {
 					maxW = Std.int(Math.max(maxW, frame.width));
-					maxH = Std.int(Math.max(maxW, frame.height));
+					maxH = Std.int(Math.max(maxH, frame.height));
 					frames.push(frame.t);
 				} else {
 					frames.push(null);
