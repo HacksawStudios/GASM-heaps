@@ -11,13 +11,18 @@ import gasm.core.math.geom.Vector;
 import gasm.core.utils.Assert;
 import gasm.heaps.shaders.Alpha;
 import h3d.col.ObjectCollider;
+import h3d.mat.Texture;
+import h3d.prim.ModelCache;
 import h3d.scene.Interactive;
 import h3d.scene.Mesh;
 import h3d.scene.Object;
-import haxe.ds.ObjectMap;
+import haxe.ds.StringMap;
 import hxd.Event;
 import tink.CoreApi.Future;
 import tink.core.Future.FutureTrigger;
+
+using Safety;
+using thx.Arrays;
 
 /**
  * ...
@@ -35,6 +40,11 @@ class Heaps3DComponent extends Component {
 	var _movePos = new Vector();
 	var _alpha = 1.;
 	var _stageUpFuture:Future<InteractionEvent> = null;
+
+	public function new(object:Null<Object> = null) {
+		this.object = object != null ? object : new Object();
+		componentType = ComponentType.Graphics3D;
+	}
 
 	/**
 		Add shader to first mesh of components pass
@@ -95,11 +105,6 @@ class Heaps3DComponent extends Component {
 		for (s in pass.getShaders()) {
 			instanceGroupId += "s" + @:privateAccess s.shader.getInstance(0).id + ",";
 		}
-	}
-
-	public function new(object:Null<Object> = null) {
-		this.object = object != null ? object : new Object();
-		componentType = ComponentType.Graphics3D;
 	}
 
 	/**
@@ -182,4 +187,11 @@ class Heaps3DComponent extends Component {
 		}
 		return val;
 	}
+}
+
+@:structInit
+class ModelTexture {
+	public var texture:Texture;
+	public var normal:Texture = null;
+	public var path:String;
 }

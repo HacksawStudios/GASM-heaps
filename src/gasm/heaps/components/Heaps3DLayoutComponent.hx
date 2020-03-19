@@ -1,16 +1,16 @@
 package gasm.heaps.components;
 
-import h3d.scene.Object;
 import gasm.core.Component;
 import gasm.core.api.singnals.TResize;
 import gasm.core.components.AppModelComponent;
 import gasm.core.components.ThreeDModelComponent;
-import gasm.core.enums.ScaleType;
 import gasm.core.enums.Anchor;
 import gasm.core.enums.ComponentType;
+import gasm.core.enums.ScaleType;
 import gasm.core.math.geom.Point;
 import gasm.core.math.geom.Vector;
 import gasm.core.utils.Assert;
+import h3d.scene.Object;
 import h3d.scene.Scene;
 
 class Heaps3DLayoutComponent extends Component {
