@@ -121,7 +121,7 @@ class HeapsCameraFitComponent extends Component {
 		final angleX = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
 		final distanceX = diffX / Math.tan(angleX);
 
-		var distance = Math.min(distanceX, distanceY);
+		var distance = _config.crop ? Math.max(distanceX, distanceY) : Math.min(distanceX, distanceY);
 
 		if (distance > 10000 || Math.isNaN(distance) || !Math.isFinite(distance)) {
 			distance = 0.0;
@@ -137,4 +137,5 @@ class CameraFitConfig {
 	public var fitSpeed = 1.0;
 	public var fitCurve = (val:Float) -> val.linear();
 	public var bounds:Null<h3d.col.Bounds> = null;
+	public var crop = false;
 }
