@@ -331,7 +331,8 @@ class HeapsContext extends App implements Context {
 		// Show error when WebGL context lost
 		js.Syntax.code("var canvas = document.getElementById('webgl');
 			canvas.addEventListener('webglcontextlost', function(event) {
-				throw new Error('WebGL context lost, please reload game');
+				var statusMessage = (event.statusMessage != null) ? event.statusMessage : 'no statusMessage';
+				throw new Error('WebGL context lost, please reload game, ' + statusMessage);
 			});");
 		#end
 		appModel.frozen = false;
