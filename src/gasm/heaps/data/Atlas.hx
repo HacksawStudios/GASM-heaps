@@ -2,10 +2,11 @@ package gasm.heaps.data;
 
 import h2d.Tile;
 
-typedef Atlas = {
-	tile:Tile,
-	contents:Map<String, Array<AtlasContents>>,
-	animation:AtlasAnimation,
+@:structInit class Atlas {
+	public var tile:Tile;
+	public var contents:Map<String, Array<AtlasContents>>;
+	public var animation:AtlasAnimation;
+	public var scale = 1.0;
 }
 
 typedef AtlasContents = {
