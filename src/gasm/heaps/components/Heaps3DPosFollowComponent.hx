@@ -3,7 +3,9 @@ package gasm.heaps.components;
 import gasm.core.Component;
 import gasm.core.enums.ComponentType;
 import gasm.core.utils.Assert;
+import gasm.heaps.components.HeapsPosFollowComponent.OffsetScaleFollow;
 
+@:deprecated("Please use HeapsPosFollow instead")
 class Heaps3DPosFollowComponent extends Component {
 	public var freeze = false;
 
@@ -47,12 +49,6 @@ class Heaps3DPosFollowComponent extends Component {
 			o.z = follow.z + (offset.z * offsetScaleZ);
 		}
 	}
-}
-
-enum OffsetScaleFollow {
-	None;
-	This;
-	Target;
 }
 
 @:structInit

@@ -9,8 +9,8 @@ import gasm.core.events.api.IEvent;
 import gasm.core.math.geom.Point;
 import gasm.core.math.geom.Vector;
 import gasm.core.utils.Assert;
-import gasm.heaps.shaders.Alpha;
 import h3d.col.ObjectCollider;
+import h3d.mat.BlendMode;
 import h3d.scene.Interactive;
 import h3d.scene.Mesh;
 import h3d.scene.Object;
@@ -145,6 +145,17 @@ class Heaps3DComponent extends Component {
 					final materials = object.getMaterials();
 					for (material in materials) {
 						material.color.a = _model.alpha;
+						// This is deprecated usage but still here for backwards compatibility
+						final shader = material.mainPass.getShader(gasm.heaps.shaders.Alpha);
+						if (material.blendMode == AlphaAdd) {
+							if (shader == null) {
+								material.mainPass.addShader(shader);
+							}
+						} else {
+							if (shader != null) {
+								material.mainPass.removeShader(shader);
+							}
+						}
 					}
 				}
 				object.scaleX = _model.scale.x;
