@@ -53,6 +53,7 @@ class HeapsContext extends App implements Context {
 	public var appModel(default, null):AppModelComponent;
 	public var sceneModel(default, null):SceneModelComponent;
 	public var premultipliedAlphaAtlases = false;
+	public var sdScale = 1.0;
 
 	var _engine:IEngine;
 	var _core:ISystem;
@@ -244,7 +245,9 @@ class HeapsContext extends App implements Context {
 			final preferredExt = imageFormat != null ? imageFormat.extension : null;
 			final getAtlas = (path, ext) -> {
 				getImageTexture(path, ext, 'atlas/$name').then((texture) -> {
-					final atlas = parseAtlas('$name$ext', item.data, Tile.fromTexture(texture));
+					final isSd = item.path.contains('/sd/');
+					final t = Tile.fromTexture(texture);
+					final atlas = parseAtlas('$name.$ext', item.data, t, isSd ? sdScale : 1.0);
 					queued.remove('atlas:${item.id}');
 					Reflect.setField(_assetContainers.atlases, item.id, atlas);
 				});
@@ -266,7 +269,9 @@ class HeapsContext extends App implements Context {
 			if (_fileSystem.exists(atlasPath)) {
 				getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
 					queued.remove('atlas:${item.id}');
-					final atlas = parseAtlas('$name.$ext', _fileSystem.get(atlasPath).getBytes(), Tile.fromTexture(texture));
+					final isSd = item.path.contains('/sd/');
+					final t = Tile.fromTexture(texture);
+					final atlas = parseAtlas('$name.$ext', _fileSystem.get(atlasPath).getBytes(), t, isSd ? sdScale : 1.0);
 					Reflect.setField(_assetContainers.atlases, item.id, atlas);
 				});
 			}
@@ -331,7 +336,8 @@ class HeapsContext extends App implements Context {
 		// Show error when WebGL context lost
 		js.Syntax.code("var canvas = document.getElementById('webgl');
 			canvas.addEventListener('webglcontextlost', function(event) {
-				throw new Error('WebGL context lost, please reload game');
+				var statusMessage = (event.statusMessage != null) ? event.statusMessage : 'no statusMessage';
+				throw new Error('WebGL context lost, please reload game, ' + statusMessage);
 			});");
 		#end
 		appModel.frozen = false;
@@ -409,7 +415,7 @@ class HeapsContext extends App implements Context {
 		_injector.map(SceneModelComponent).toValue(sceneModel);
 	}
 
-	function parseAtlas(id:String, definition:haxe.io.Bytes, tile:Tile):Atlas {
+	function parseAtlas(id:String, definition:haxe.io.Bytes, tile:Tile, scale:Float):Atlas {
 		var contents = new Map();
 		var lines = definition.toString().split("\n");
 		if (premultipliedAlphaAtlases) {
@@ -530,6 +536,7 @@ class HeapsContext extends App implements Context {
 			tile: tile,
 			contents: contents,
 			animation: animation,
+			scale: scale,
 		}
 		return atlas;
 	}

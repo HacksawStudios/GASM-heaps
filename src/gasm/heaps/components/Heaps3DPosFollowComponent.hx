@@ -22,7 +22,7 @@ class Heaps3DPosFollowComponent extends Component {
 
 	override public function init() {
 		_comp = owner.get(Heaps3DComponent);
-		Assert.that(_comp != null, 'Heaps3DScaleFollowComponent needs to be added to an entity with a Heaps3DComponent');
+		Assert.that(_comp != null, 'Heaps3DPosFollowComponent needs to be added to an entity with a Heaps3DComponent');
 	}
 
 	override public function update(dt:Float) {

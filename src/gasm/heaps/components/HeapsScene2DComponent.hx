@@ -1,10 +1,10 @@
 package gasm.heaps.components;
 
-import hacksaw.core.filters.h2d.TextureShader;
-import gasm.core.math.geom.Point;
-import gasm.core.enums.ComponentType;
 import gasm.core.components.LayoutComponent;
+import gasm.core.enums.ComponentType;
+import gasm.core.math.geom.Point;
 import gasm.heaps.components.HeapsSceneBase;
+import hacksaw.core.filters.h2d.TextureShader;
 
 class HeapsScene2DComponent extends HeapsSceneBase {
 	public var scene2d:h2d.Scene;
@@ -60,6 +60,7 @@ class HeapsScene2DComponent extends HeapsSceneBase {
 	}
 
 	public function removePostProcessingShader(shader:hacksaw.core.filters.h2d.TextureShader) {
+		// TODO: Is it correct to set postProcess to false here? Should it not be true if there are passes left?
 		_postProcess = false;
 		shader.texture = null;
 		_passes.remove(shader);
