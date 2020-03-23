@@ -141,16 +141,11 @@ class Heaps3DComponent extends Component {
 				object.y = _model.pos.y + _model.offset.y;
 				object.z = _model.pos.z + _model.offset.z;
 				if (_model.alpha != _alpha) {
-					final mats = object.getMaterials();
-					for (mat in mats) {
-						final shader = mat.mainPass.getShader(Alpha);
-						if (shader != null) {
-							shader.alpha = _model.alpha;
-						} else {
-							mat.mainPass.addShader(new Alpha(_model.alpha));
-						}
-					}
 					_alpha = _model.alpha;
+					final materials = object.getMaterials();
+					for (material in materials) {
+						material.color.a = _model.alpha;
+					}
 				}
 				object.scaleX = _model.scale.x;
 				object.scaleY = _model.scale.y;
