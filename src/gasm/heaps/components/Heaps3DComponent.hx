@@ -145,24 +145,30 @@ class Heaps3DComponent extends Component {
 				object.x = _model.pos.x + _model.offset.x;
 				object.y = _model.pos.y + _model.offset.y;
 				object.z = _model.pos.z + _model.offset.z;
+				
 				if (_model.alpha != _alpha) {
 					_alpha = _model.alpha;
 					final materials = object.getMaterials();
+					
 					for (material in materials) {
-						material.color.a = _model.alpha;
 						// This is deprecated usage but still here for backwards compatibility
-						final shader = material.mainPass.getShader(gasm.heaps.shaders.Alpha);
+						var shader = material.mainPass.getShader(gasm.heaps.shaders.Alpha);
 						if (material.blendMode == AlphaAdd) {
 							if (shader == null) {
+								shader = new gasm.heaps.shaders.Alpha(_model.alpha);
 								material.mainPass.addShader(shader);
 							}
+							shader.alpha = _model.alpha;
 						} else {
+							material.color.a = _model.alpha;
 							if (shader != null) {
 								material.mainPass.removeShader(shader);
 							}
 						}
 					}
 				}
+
+
 				object.scaleX = _model.scale.x;
 				object.scaleY = _model.scale.y;
 				object.scaleZ = _model.scale.z;
