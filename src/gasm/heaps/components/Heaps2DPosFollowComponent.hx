@@ -4,6 +4,7 @@ import gasm.core.Component;
 import gasm.core.enums.ComponentType;
 import gasm.core.utils.Assert;
 
+@:deprecated("Please use HeapsPosFollow instead")
 class Heaps2DPosFollowComponent extends Component {
 	public var freeze = false;
 

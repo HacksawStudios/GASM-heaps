@@ -49,7 +49,7 @@ class HeapsScene2DComponent extends HeapsSceneBase {
 	}
 
 	public function addPostProcessingShader(shader:hacksaw.core.filters.h2d.TextureShader, ?blendMode:h3d.mat.BlendMode) {
-		blendMode = blendMode != null ? blendMode : h3d.mat.BlendMode.AlphaAdd;
+		blendMode = blendMode != null ? blendMode : h3d.mat.BlendMode.Alpha;
 
 		allocPostProcessingTexture();
 		_postProcess = true;

@@ -90,7 +90,7 @@ class Heaps3DLayoutComponent extends Component {
 			size = bounds.getSize();
 			// If size is empty we are trying to layout too early
 			if (size.x == -2e20) {
-				haxe.Timer.delay(layout, 10);
+				haxe.Timer.delay(layout, 120);
 				return;
 			}
 			_config.size = {x: size.x, y: size.y};
@@ -179,7 +179,7 @@ class Heaps3DLayoutComponent extends Component {
 			size = bounds.getSize();
 			// If size is empty we are trying to layout too early
 			if (size.x == -2e20) {
-				haxe.Timer.delay(layout, 10);
+				haxe.Timer.delay(layout, 120);
 				return;
 			}
 			_config.size = {x: size.x, y: size.y};

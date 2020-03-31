@@ -268,6 +268,8 @@ class HeapsContext extends App implements Context {
 			_fileSystem.add(imagePath, imageData);
 			if (_fileSystem.exists(atlasPath)) {
 				getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
+					// Don't need to allocate atlas again
+					_fileSystem.remove(imagePath);
 					queued.remove('atlas:${item.id}');
 					final isSd = item.path.contains('/sd/');
 					final t = Tile.fromTexture(texture);
@@ -391,14 +393,15 @@ class HeapsContext extends App implements Context {
 	}
 
 	function getImageTexture(path:String, ext:String, name:String):js.lib.Promise<h3d.mat.Texture> {
+		final bytes = _fileSystem.get(path).getBytes();
 		return switch ext {
 			case 'basis':
-				final bytes = _fileSystem.get(path).getBytes().getData();
-				hxd.res.BasisTextureLoader.getTexture(bytes);
+				hxd.res.BasisTextureLoader.getTexture(bytes.getData());
 			default:
-				final bytes = _fileSystem.get(path).getBytes();
 				try {
-					js.lib.Promise.resolve(hxd.res.Any.fromBytes(path, bytes).toTexture());
+					final texture = hxd.res.Any.fromBytes(path, bytes).toTexture();
+					texture.realloc = null;
+					return js.lib.Promise.resolve(texture);
 				} catch (e:Dynamic) {
 					throw 'Unable to decode image $path. $e';
 				}

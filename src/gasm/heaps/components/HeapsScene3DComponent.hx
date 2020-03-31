@@ -40,6 +40,7 @@ class HeapsScene3DComponent extends HeapsSceneBase {
 				final shader = pass.getShader(hacksaw.core.filters.h2d.TextureShader);
 				shader.texture = _postProcessingTexture;
 				pass.render();
+				return;
 			}
 		} else {
 			scene3d.render(_engine);
@@ -47,8 +48,8 @@ class HeapsScene3DComponent extends HeapsSceneBase {
 	}
 
 	public function addPostProcessingShader(shader:hacksaw.core.filters.h2d.TextureShader, ?blendMode:h3d.mat.BlendMode) {
-		blendMode = blendMode != null ? blendMode : h3d.mat.BlendMode.AlphaAdd;
-
+		
+		blendMode = blendMode != null ? blendMode : h3d.mat.BlendMode.Alpha;
 		allocPostProcessingTexture();
 		_postProcess = true;
 		shader.texture = _postProcessingTexture;

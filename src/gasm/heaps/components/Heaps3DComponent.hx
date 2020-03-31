@@ -9,8 +9,8 @@ import gasm.core.events.api.IEvent;
 import gasm.core.math.geom.Point;
 import gasm.core.math.geom.Vector;
 import gasm.core.utils.Assert;
-import gasm.heaps.shaders.Alpha;
 import h3d.col.ObjectCollider;
+import h3d.mat.BlendMode;
 import h3d.mat.Texture;
 import h3d.prim.ModelCache;
 import h3d.scene.Interactive;
@@ -145,18 +145,30 @@ class Heaps3DComponent extends Component {
 				object.x = _model.pos.x + _model.offset.x;
 				object.y = _model.pos.y + _model.offset.y;
 				object.z = _model.pos.z + _model.offset.z;
+				
 				if (_model.alpha != _alpha) {
-					final mats = object.getMaterials();
-					for (mat in mats) {
-						final shader = mat.mainPass.getShader(Alpha);
-						if (shader != null) {
+					_alpha = _model.alpha;
+					final materials = object.getMaterials();
+					
+					for (material in materials) {
+						// This is deprecated usage but still here for backwards compatibility
+						var shader = material.mainPass.getShader(gasm.heaps.shaders.Alpha);
+						if (material.blendMode == AlphaAdd) {
+							if (shader == null) {
+								shader = new gasm.heaps.shaders.Alpha(_model.alpha);
+								material.mainPass.addShader(shader);
+							}
 							shader.alpha = _model.alpha;
 						} else {
-							mat.mainPass.addShader(new Alpha(_model.alpha));
+							material.color.a = _model.alpha;
+							if (shader != null) {
+								material.mainPass.removeShader(shader);
+							}
 						}
 					}
-					_alpha = _model.alpha;
 				}
+
+
 				object.scaleX = _model.scale.x;
 				object.scaleY = _model.scale.y;
 				object.scaleZ = _model.scale.z;
