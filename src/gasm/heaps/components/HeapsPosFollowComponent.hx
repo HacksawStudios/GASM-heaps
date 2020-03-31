@@ -44,8 +44,6 @@ class HeapsPosFollowComponent extends Component {
 	var _this2d:h2d.Object = null;
 	var _this3d:h3d.scene.Object;
 
-	var _camera:h3d.Camera = null;
-
 	final _engine:h3d.Engine;
 
 	public function new(config:HeapsPosFollowComponentConfig) {
@@ -55,8 +53,8 @@ class HeapsPosFollowComponent extends Component {
 	}
 
 	override public function init() {
-		// Determine target (this, target for position)
 
+		// Determine target (this, target for position)
 		final comp2d = owner.get(HeapsSpriteComponent);
 		final comp3d = owner.get(Heaps3DComponent);
 		_this2d = (comp2d != null) ? comp2d.sprite : null;
@@ -69,12 +67,6 @@ class HeapsPosFollowComponent extends Component {
 		_target2d = (followComp2d != null) ? followComp2d.sprite : null;
 		_target3d = (followComp3d != null) ? followComp3d.object : null;
 		Assert.that(_target3d != null || _target2d != null, "follow component needs to be a 3DComponent or a SpriteComponent");
-
-		if (_target3d != null) {
-			final scene = _config.target.getFromParents(HeapsScene3DComponent);
-			Assert.that(scene != null, "No scene found in graph");
-			_camera = scene.scene3d.camera;
-		}
 
 		// Use heaps internal mechanic for 3d follow 3d
 		if (_this3d != null && _target3d != null) {
@@ -141,7 +133,8 @@ class HeapsPosFollowComponent extends Component {
 			final engine = h3d.Engine.getCurrent();
 			// Find source world position
 			final worldPos = _target3d.localToGlobal();
-			final pos2d = _camera.project(worldPos.x + offsetUnitsX, worldPos.y + offsetUnitsY, worldPos.z + offsetUnitsZ, engine.width, engine.height);
+			final camera = _target3d.getScene().camera;
+			final pos2d = camera.project(worldPos.x + offsetUnitsX, worldPos.y + offsetUnitsY, worldPos.z + offsetUnitsZ, engine.width, engine.height);
 
 			// Center
 			_this2d.x = pos2d.x - bounds.width * 0.5 + offsetPixelsX;
@@ -157,7 +150,8 @@ class HeapsPosFollowComponent extends Component {
 			final y = 2.0 * (px / _engine.height) - 1.0;
 
 			// Fetch 2d coordinate on scree
-			final pos = _camera.unproject(x, y, _this3d.z);
+			final camera = _this3d.getScene().camera;
+			final pos = camera.unproject(x, y, _this3d.z);
 			_this3d.x = pos.x + offsetUnitsX;
 			_this3d.y = pos.y + offsetUnitsY;
 		}
