@@ -200,10 +200,3 @@ class Heaps3DComponent extends Component {
 		return val;
 	}
 }
-
-@:structInit
-class ModelTexture {
-	public var texture:Texture;
-	public var normal:Texture = null;
-	public var path:String;
-}
