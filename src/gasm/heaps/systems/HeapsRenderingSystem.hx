@@ -1,18 +1,18 @@
 package gasm.heaps.systems;
 
-import gasm.core.enums.ComponentType;
-import gasm.heaps.components.HeapsTextComponent;
-import gasm.core.components.SpriteModelComponent;
 import gasm.core.Component;
-import gasm.core.enums.SystemType;
 import gasm.core.ISystem;
 import gasm.core.System;
+import gasm.core.components.SpriteModelComponent;
+import gasm.core.enums.ComponentType;
+import gasm.core.enums.SystemType;
 import gasm.core.utils.Assert;
 import gasm.heaps.components.Heaps3DComponent;
-import gasm.heaps.components.HeapsSpriteComponent;
-import gasm.heaps.components.HeapsSceneBase;
 import gasm.heaps.components.HeapsScene2DComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
+import gasm.heaps.components.HeapsSceneBase;
+import gasm.heaps.components.HeapsSpriteComponent;
+import gasm.heaps.components.HeapsTextComponent;
 import haxe.ds.StringMap;
 
 /**
@@ -87,7 +87,10 @@ class HeapsRenderingSystem extends System implements ISystem {
 				default:
 					null;
 			}
+			comp.update(delta);
+			comp.onAdded();
+		} else {
+			comp.update(delta);
 		}
-		comp.update(delta);
 	}
 }
