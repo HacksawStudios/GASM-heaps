@@ -68,6 +68,7 @@ class HeapsContext extends App implements Context {
 	final _fileSystem = new gasm.heaps.fs.VirtualFileSystem();
 
 	public function new(?core:ISystem, ?renderer:ISystem, ?sound:ISystem, ?engine:IEngine) {
+		GlDriver.MAX_PRECISION = 'highp';
 		_core = core;
 		_renderer = renderer;
 		_sound = sound;
