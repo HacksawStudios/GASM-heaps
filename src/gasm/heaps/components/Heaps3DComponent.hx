@@ -16,6 +16,7 @@ import h3d.prim.ModelCache;
 import h3d.scene.Interactive;
 import h3d.scene.Mesh;
 import h3d.scene.Object;
+import hacksaw.core.h3d.transform.TweenObject;
 import haxe.ds.StringMap;
 import hxd.Event;
 import tink.CoreApi.Future;
@@ -31,6 +32,7 @@ using thx.Arrays;
 class Heaps3DComponent extends Component {
 	public var instanceGroupId:String;
 	public var object(default, default):Object;
+	public var tweenObject(default, default):TweenObject;
 	public var root(default, default):Bool;
 	public var dirty(default, default):Bool;
 	public var alpha(default, set):Float;
@@ -140,6 +142,11 @@ class Heaps3DComponent extends Component {
 	}
 
 	override public function update(dt:Float) {
+		if (tweenObject == null) {
+			tweenObject = object;
+		}
+
+		tweenObject.update(dt);
 		if (_model != null) {
 			if (_model.dirty) {
 				object.x = _model.pos.x + _model.offset.x;

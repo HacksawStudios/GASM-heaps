@@ -30,14 +30,14 @@ class HeapsCameraFitComponent extends Component {
 	var _startPos:h3d.Vector;
 	var _fitSpeed = 0.0;
 
-	public var margins(get, set):Point;
+	public var margins(get, set):CameraFitMargins;
 
 	function get_margins() {
 		return _config.margins;
 	}
 
-	function set_margins(point:Point) {
-		return _config.margins = point;
+	function set_margins(margins:CameraFitMargins) {
+		return _config.margins = margins;
 	}
 
 	var _onFitCallback:Null<Void->Void> = null;
@@ -102,6 +102,12 @@ class HeapsCameraFitComponent extends Component {
 		}
 	}
 
+	function calculateDistance(cameraY:Float, objectY:Float, cameraZ:Float):Float {
+		final diffY = cameraY - objectY;
+		final angleY = Math.atan(Math.abs(cameraY) / Math.abs(cameraZ));
+		return diffY / Math.tan(angleY);
+	}
+
 	function calculateObjectFit():h3d.Vector {
 		final obj = _targetComponent.object;
 		final sx = hxd.Window.getInstance().width;
@@ -111,19 +117,32 @@ class HeapsCameraFitComponent extends Component {
 		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
 		final cameraSides = _s3d.camera.unproject(1.0, 1.0, objectZ);
 
-		// fit vertical
-		final diffY = cameraSides.y - (bounds.yMax + _config.margins.y);
-		final angleY = Math.atan(Math.abs(cameraSides.y) / Math.abs(_s3d.camera.pos.z));
-		final distanceY = diffY / Math.tan(angleY);
+		final dist = [];
 
-		// fit horizontal
-		final diffX = cameraSides.x - (bounds.xMax + _config.margins.x);
-		final angleX = Math.atan(Math.abs(cameraSides.x) / Math.abs(_s3d.camera.pos.z));
-		final distanceX = diffX / Math.tan(angleX);
+		final top = bounds.yMax;
 
-		var distance = _config.crop ? Math.max(distanceX, distanceY) : Math.min(distanceX, distanceY);
+		final m = _config.margins;
+		final tMargin = m.top != null ? m.top : m.y;
+		final bMargin = m.bottom != null ? m.bottom : m.y;
+		final rMargin = m.right != null ? m.right : m.x;
+		final lMargin = m.left != null ? m.left : m.x;
 
-		if (distance > 10000 || Math.isNaN(distance) || !Math.isFinite(distance)) {
+		dist.push(calculateDistance(cameraSides.x, bounds.xMax + rMargin, _s3d.camera.pos.z));
+		dist.push(calculateDistance(cameraSides.x, Math.abs(bounds.xMin) + lMargin, _s3d.camera.pos.z));
+		dist.push(calculateDistance(cameraSides.y, bounds.yMax + tMargin, _s3d.camera.pos.z));
+		dist.push(calculateDistance(cameraSides.y, Math.abs(bounds.yMin) + bMargin, _s3d.camera.pos.z));
+
+		var max:Float = null;
+		var min:Float = null;
+
+		for (d in dist) {
+			max = max == null || d > max ? d : max;
+			min = min == null || d < min ? d : min;
+		}
+
+		var distance = _config.crop ? max : min;
+
+		if (Math.abs(distance) > 10000 || Math.isNaN(distance) || !Math.isFinite(distance)) {
 			distance = 0.0;
 		}
 
@@ -132,8 +151,18 @@ class HeapsCameraFitComponent extends Component {
 }
 
 @:structInit
+class CameraFitMargins {
+	public var x:Float = 0.0;
+	public var y:Float = 0.0;
+	public var top:Float = null;
+	public var bottom:Float = null;
+	public var left:Float = null;
+	public var right:Float = null;
+}
+
+@:structInit
 class CameraFitConfig {
-	public var margins:Point = {x: 0.0, y: 0.0};
+	public var margins:CameraFitMargins = {x: 0.0, y: 0.0};
 	public var fitSpeed = 1.0;
 	public var fitCurve = (val:Float) -> val.linear();
 	public var bounds:Null<h3d.col.Bounds> = null;
