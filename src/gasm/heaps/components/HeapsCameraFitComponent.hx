@@ -24,8 +24,6 @@ class HeapsCameraFitComponent extends Component {
 
 	public var enabled = true;
 
-	final _offset = new h3d.Vector(0.0, 0.0, 0.0);
-
 	var _s3d:h3d.scene.Scene;
 	var _targetComponent:Heaps3DComponent;
 	var _time = 0.0;
