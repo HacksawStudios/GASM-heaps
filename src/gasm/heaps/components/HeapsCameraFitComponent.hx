@@ -127,7 +127,7 @@ class HeapsCameraFitComponent extends Component {
 		_s3d.camera.pos.y = diffy;
 
 		_s3d.camera.target.load(_s3d.camera.pos);
-		_s3d.camera.target.z = -1000.0;
+		_s3d.camera.target.z = -_s3d.camera.zFar;
 
 		_s3d.camera.update();
 		final cameraSidesP = _s3d.camera.unproject(1.0, 1.0, objectZ);
@@ -168,12 +168,7 @@ class CameraFitMargins {
 
 @:structInit
 class CameraFitConfig {
-	public var margins:CameraFitMargins = {
-		top: 0.0,
-		bottom: 0.0,
-		left: 0.0,
-		right: 0.0
-	};
+	public var margins:CameraFitMargins = {};
 	public var fitSpeed = 1.0;
 	public var fitCurve = (val:Float) -> val.linear();
 	public var bounds:Null<h3d.col.Bounds> = null;
