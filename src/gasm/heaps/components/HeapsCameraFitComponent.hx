@@ -120,8 +120,8 @@ class HeapsCameraFitComponent extends Component {
 
 		final m = _config.margins;
 
-		var diffx = m.right - m.left;
-		var diffy = m.top - m.bottom;
+		final diffx = m.right - m.left;
+		final diffy = m.top - m.bottom;
 
 		_s3d.camera.pos.x = diffx;
 		_s3d.camera.pos.y = diffy;
@@ -148,11 +148,11 @@ class HeapsCameraFitComponent extends Component {
 
 		var distance = _config.crop ? max : min;
 
-		if (Math.abs(distance) > 1000 || Math.isNaN(distance) || !Math.isFinite(distance)) {
+		if (Math.abs(distance) > 10000 || Math.isNaN(distance) || !Math.isFinite(distance)) {
 			distance = 0.0;
 		}
 
-		var result = _s3d.camera.pos.clone();
+		final result = _s3d.camera.pos.clone();
 		result.z -= distance;
 		return result;
 	}
@@ -168,7 +168,12 @@ class CameraFitMargins {
 
 @:structInit
 class CameraFitConfig {
-	public var margins:CameraFitMargins;
+	public var margins:CameraFitMargins = {
+		top: 0.0,
+		bottom: 0.0,
+		left: 0.0,
+		right: 0.0
+	};
 	public var fitSpeed = 1.0;
 	public var fitCurve = (val:Float) -> val.linear();
 	public var bounds:Null<h3d.col.Bounds> = null;
