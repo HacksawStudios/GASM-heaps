@@ -129,7 +129,6 @@ class HeapsCameraFitComponent extends Component {
 		_s3d.camera.target.load(_s3d.camera.pos);
 		_s3d.camera.target.z = -1000.0;
 
-		// Remove offset before calculating fit
 		_s3d.camera.update();
 		final cameraSidesP = _s3d.camera.unproject(1.0, 1.0, objectZ);
 		final cameraSidesN = _s3d.camera.unproject(-1.0, -1.0, objectZ);
