@@ -31,8 +31,7 @@ using thx.Arrays;
  */
 class Heaps3DComponent extends Component {
 	public var instanceGroupId:String;
-	public var object(default, default):Object;
-	public var tweenObject(default, default):TweenObject;
+	public var object(default, default):TweenObject;
 	public var root(default, default):Bool;
 	public var dirty(default, default):Bool;
 	public var alpha(default, set):Float;
@@ -142,21 +141,17 @@ class Heaps3DComponent extends Component {
 	}
 
 	override public function update(dt:Float) {
-		if (tweenObject == null) {
-			tweenObject = object;
-		}
-
-		tweenObject.update(dt);
+		object.update(dt);
 		if (_model != null) {
 			if (_model.dirty) {
 				object.x = _model.pos.x + _model.offset.x;
 				object.y = _model.pos.y + _model.offset.y;
 				object.z = _model.pos.z + _model.offset.z;
-				
+
 				if (_model.alpha != _alpha) {
 					_alpha = _model.alpha;
 					final materials = object.getMaterials();
-					
+
 					for (material in materials) {
 						// This is deprecated usage but still here for backwards compatibility
 						var shader = material.mainPass.getShader(gasm.heaps.shaders.Alpha);
@@ -174,7 +169,6 @@ class Heaps3DComponent extends Component {
 						}
 					}
 				}
-
 
 				object.scaleX = _model.scale.x;
 				object.scaleY = _model.scale.y;
