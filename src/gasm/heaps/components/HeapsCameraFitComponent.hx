@@ -123,6 +123,15 @@ class HeapsCameraFitComponent extends Component {
 		final diffx = m.right - m.left;
 		final diffy = m.top - m.bottom;
 
+		// Calculate adding for minimal size handling
+		final width = bounds.xMax - bounds.xMin;
+		final height = bounds.yMax - bounds.yMin;
+
+		bounds.xMax += 0.5 * (width < _config.minSize.x ? _config.minSize.x - width : 0.0);
+		bounds.xMin -= 0.5 * (width < _config.minSize.x ? _config.minSize.x - width : 0.0);
+		bounds.yMax += 0.5 * (height < _config.minSize.y ? _config.minSize.y - height : 0.0);
+		bounds.yMin -= 0.5 * (height < _config.minSize.y ? _config.minSize.y - height : 0.0);
+
 		_s3d.camera.pos.x = diffx;
 		_s3d.camera.pos.y = diffy;
 
@@ -169,6 +178,7 @@ class CameraFitMargins {
 @:structInit
 class CameraFitConfig {
 	public var margins:CameraFitMargins = {};
+	public var minSize:Point = {x: 0.0, y: 0.0}
 	public var fitSpeed = 1.0;
 	public var fitCurve = (val:Float) -> val.linear();
 	public var bounds:Null<h3d.col.Bounds> = null;
