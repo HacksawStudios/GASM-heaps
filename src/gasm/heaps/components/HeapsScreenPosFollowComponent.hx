@@ -12,15 +12,15 @@ import gasm.core.utils.Assert;
 class HeapsScreenPosFollowComponent extends Component {
 	final _config:HeapsScreenPosFollowComponentConfig;
 
-	var _this:h3d.scene.Object;
+	var _source:h3d.scene.Object;
 	var _target:h3d.scene.Object;
-	var _thisCamera:h3d.Camera;
+	var _sourceCamera:h3d.Camera;
 	var _targetCamera:h3d.Camera;
 	var _appModel:AppModelComponent;
 
 	// World space coordinates
 	var _targetWorld = new h3d.Vector(0.0, 0.0, 0.0);
-	var _thisWorld = new h3d.Vector(0.0, 0.0, 0.0);
+	var _sourceWorld = new h3d.Vector(0.0, 0.0, 0.0);
 
 	public function new(config:HeapsScreenPosFollowComponentConfig) {
 		_config = config;
@@ -29,33 +29,33 @@ class HeapsScreenPosFollowComponent extends Component {
 
 	override public function init() {
 		final target = _config.target.get(Heaps3DComponent);
-		Assert.that(target != null, 'HeapsScreenPosFollowComponent requires target with Heaps3DComponent');
+		Assert.that(target != null, 'target requires Heaps3DComponent in its entity');
 
-		final me = owner.get(Heaps3DComponent);
-		Assert.that(me != null, 'HeapsScreenPosFollowComponent requires Heaps3DComponent in its entity');
+		final source = owner.get(Heaps3DComponent);
+		Assert.that(source != null, 'requires Heaps3DComponent in its entity');
 
-		final thisScene = owner.getFromParents(HeapsScene3DComponent);
-		Assert.that(thisScene != null, 'HeapsScreenPosFollowComponent must have a 3d scene in its graph');
+		final sourceScene = owner.getFromParents(HeapsScene3DComponent);
+		Assert.that(sourceScene != null, 'requires HeapsScene3DComponent in its graph');
 
 		final targetScene = _config.target.getFromParents(HeapsScene3DComponent);
-		Assert.that(targetScene != null, 'HeapsScreenPosFollowComponent target must have a 3d scene in its graph');
+		Assert.that(targetScene != null, 'target requires HeapsScene3DComponent in its graph');
 
 		_appModel = owner.getFromParents(AppModelComponent);
-		Assert.that(_appModel != null, 'HeapsScreenPosFollowComponent requires AppModelComponent in its graph');
+		Assert.that(_appModel != null, 'requires AppModelComponent in its graph');
 
-		_this = me.object;
+		_source = source.object;
 		_target = target.object;
-		_thisCamera = thisScene.scene3d.camera;
+		_sourceCamera = sourceScene.scene3d.camera;
 		_targetCamera = targetScene.scene3d.camera;
 
 		// Because of absolute coordinate, we no longer respect our parents
-		_this.ignoreParentTransform = true;
+		_source.ignoreParentTransform = true;
 	}
 
 	override public function update(dt:Float) {
 		// Parents transformations needs to be considered
 		_target.getAbsPos().getPosition(_targetWorld);
-		_this.getAbsPos().getPosition(_thisWorld);
+		_source.getAbsPos().getPosition(_sourceWorld);
 
 		// Offset is added before target projection to minimize calculation
 		_targetWorld.x += _config.targetOffset.x;
@@ -69,22 +69,22 @@ class HeapsScreenPosFollowComponent extends Component {
 		final sx = (2.0 * (targetScreenPos.x / _appModel.stageSize.x) - 1.0);
 		final sy = (2.0 * (targetScreenPos.y / _appModel.stageSize.y) - 1.0) * -1;
 
-		// Determine z in frustum 0->1 for this
-		final sz = _thisCamera.project(_thisWorld.x, _thisWorld.y, _thisWorld.z, _appModel.stageSize.x, _appModel.stageSize.y).z;
+		// Determine z in frustum 0->1 for source
+		final sz = _sourceCamera.project(_sourceWorld.x, _sourceWorld.y, _sourceWorld.z, _appModel.stageSize.x, _appModel.stageSize.y).z;
 
-		// On this Z, where is the target screen pos?
-		final finalPos = _thisCamera.unproject(sx, sy, sz);
+		// On source Z, where is the target screen pos?
+		final finalPos = _sourceCamera.unproject(sx, sy, sz);
 
-		// Add final offset (this is now in worldspace for this)
-		finalPos.x += _config.thisOffset.x;
-		finalPos.y += _config.thisOffset.y;
-		finalPos.z += _config.thisOffset.z;
+		// Add final offset (source is now in worldspace for source)
+		finalPos.x += _config.sourceOffset.x;
+		finalPos.y += _config.sourceOffset.y;
+		finalPos.z += _config.sourceOffset.z;
 
-		_this.setPosition(finalPos.x, finalPos.y, finalPos.z);
+		_source.setPosition(finalPos.x, finalPos.y, finalPos.z);
 	}
 
 	override public function dispose() {
-		_this.ignoreParentTransform = false;
+		_source.ignoreParentTransform = false;
 		super.remove();
 	}
 }
@@ -92,7 +92,7 @@ class HeapsScreenPosFollowComponent extends Component {
 @:structInit
 class HeapsScreenPosFollowComponentConfig {
 	/**
-		Follow the Heaps3DComponent in this entity
+		Follow the Heaps3DComponent in source entity
 	**/
 	public var target:Entity;
 
@@ -102,7 +102,7 @@ class HeapsScreenPosFollowComponentConfig {
 	public var targetOffset = new h3d.Vector(0.0, 0.0, 0.0);
 
 	/**
-		Offset position from this worldspace
+		Offset position from source worldspace
 	**/
-	public var thisOffset = new h3d.Vector(0.0, 0.0, 0.0);
+	public var sourceOffset = new h3d.Vector(0.0, 0.0, 0.0);
 }
