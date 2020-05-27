@@ -29,19 +29,19 @@ class HeapsScreenPosFollowComponent extends Component {
 
 	override public function init() {
 		final target = _config.target.get(Heaps3DComponent);
-		Assert.that(target != null, 'target requires Heaps3DComponent in its entity');
+		Assert.that(target != null, 'HeapsScreenPosFollowComponent target requires Heaps3DComponent in its entity');
 
 		final source = owner.get(Heaps3DComponent);
-		Assert.that(source != null, 'requires Heaps3DComponent in its entity');
+		Assert.that(source != null, 'HeapsScreenPosFollowComponent requires Heaps3DComponent in its entity');
 
 		final sourceScene = owner.getFromParents(HeapsScene3DComponent);
-		Assert.that(sourceScene != null, 'requires HeapsScene3DComponent in its graph');
+		Assert.that(sourceScene != null, 'HeapsScreenPosFollowComponent requires HeapsScene3DComponent in its graph');
 
 		final targetScene = _config.target.getFromParents(HeapsScene3DComponent);
-		Assert.that(targetScene != null, 'target requires HeapsScene3DComponent in its graph');
+		Assert.that(targetScene != null, 'HeapsScreenPosFollowComponent target requires HeapsScene3DComponent in its graph');
 
 		_appModel = owner.getFromParents(AppModelComponent);
-		Assert.that(_appModel != null, 'requires AppModelComponent in its graph');
+		Assert.that(_appModel != null, 'HeapsScreenPosFollowComponent requires AppModelComponent in its graph');
 
 		_source = source.object;
 		_target = target.object;
