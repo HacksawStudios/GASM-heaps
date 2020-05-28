@@ -185,11 +185,6 @@ class CameraFitConfig {
 	public var margins:CameraFitMargins = {};
 
 	/**
-		Minimum size of object fitted.
-	**/
-	public var minSize:Point = {x: 0.0, y: 0.0}
-
-	/**
 		Fitting speed
 	**/
 	public var fitSpeed = 1.0;
