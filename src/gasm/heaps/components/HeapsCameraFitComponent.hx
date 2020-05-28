@@ -32,12 +32,22 @@ class HeapsCameraFitComponent extends Component {
 
 	public var margins(get, set):CameraFitMargins;
 
+	public var minSize(get, set):Point;
+
 	function get_margins() {
 		return _config.margins;
 	}
 
 	function set_margins(margins:CameraFitMargins) {
 		return _config.margins = margins;
+	}
+
+	function get_minSize() {
+		return _config.minSize;
+	}
+
+	function set_minSize(minSize:Point) {
+		return _config.minSize = minSize;
 	}
 
 	var _onFitCallback:Null<Void->Void> = null;
@@ -123,14 +133,14 @@ class HeapsCameraFitComponent extends Component {
 		final diffx = m.right - m.left;
 		final diffy = m.top - m.bottom;
 
-		// Calculate adding for minimal size handling
-		final width = bounds.xMax - bounds.xMin;
-		final height = bounds.yMax - bounds.yMin;
+		final halfMinSizeX = _config.minSize.x * 0.5;
+		final halfMinSizeY = _config.minSize.y * 0.5;
 
-		bounds.xMax += 0.5 * (width < _config.minSize.x ? _config.minSize.x - width : 0.0);
-		bounds.xMin -= 0.5 * (width < _config.minSize.x ? _config.minSize.x - width : 0.0);
-		bounds.yMax += 0.5 * (height < _config.minSize.y ? _config.minSize.y - height : 0.0);
-		bounds.yMin -= 0.5 * (height < _config.minSize.y ? _config.minSize.y - height : 0.0);
+		// Clamp size from midpoint to minSize if below
+		bounds.xMax = Math.max(bounds.xMax, halfMinSizeX);
+		bounds.xMin = Math.min(bounds.xMin, -halfMinSizeX);
+		bounds.yMax = Math.max(bounds.yMax, halfMinSizeY);
+		bounds.yMin = Math.min(bounds.yMin, -halfMinSizeY);
 
 		_s3d.camera.pos.x = diffx;
 		_s3d.camera.pos.y = diffy;
