@@ -8,6 +8,7 @@ import gasm.core.utils.Assert;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.Heaps3DViewportComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
+import h3d.col.Bounds;
 import tink.CoreApi.Future;
 import tweenx909.TweenX;
 import tweenxcore.Tools.Easing;
@@ -32,7 +33,7 @@ class HeapsCameraFitComponent extends Component {
 
 	public var margins(get, set):CameraFitMargins;
 
-	public var minSize(get, set):Point;
+	public var bounds(get, set):Bounds;
 
 	function get_margins() {
 		return _config.margins;
@@ -42,12 +43,12 @@ class HeapsCameraFitComponent extends Component {
 		return _config.margins = margins;
 	}
 
-	function get_minSize() {
-		return _config.minSize;
+	function get_bounds() {
+		return _config.bounds;
 	}
 
-	function set_minSize(minSize:Point) {
-		return _config.minSize = minSize;
+	function set_bounds(bounds:Bounds) {
+		return _config.bounds = bounds;
 	}
 
 	var _onFitCallback:Null<Void->Void> = null;
@@ -133,15 +134,6 @@ class HeapsCameraFitComponent extends Component {
 		final diffx = m.right - m.left;
 		final diffy = m.top - m.bottom;
 
-		final halfMinSizeX = _config.minSize.x * 0.5;
-		final halfMinSizeY = _config.minSize.y * 0.5;
-
-		// Clamp size from midpoint to minSize if below
-		bounds.xMax = Math.max(bounds.xMax, halfMinSizeX);
-		bounds.xMin = Math.min(bounds.xMin, -halfMinSizeX);
-		bounds.yMax = Math.max(bounds.yMax, halfMinSizeY);
-		bounds.yMin = Math.min(bounds.yMin, -halfMinSizeY);
-
 		_s3d.camera.pos.x = diffx;
 		_s3d.camera.pos.y = diffy;
 
@@ -187,10 +179,33 @@ class CameraFitMargins {
 
 @:structInit
 class CameraFitConfig {
+	/**
+		Margins for object to be fitted
+	**/
 	public var margins:CameraFitMargins = {};
+
+	/**
+		Minimum size of object fitted.
+	**/
 	public var minSize:Point = {x: 0.0, y: 0.0}
+
+	/**
+		Fitting speed
+	**/
 	public var fitSpeed = 1.0;
+
+	/**
+		Curve used for fitting
+	**/
 	public var fitCurve = (val:Float) -> val.linear();
+
+	/**
+		Override object bounds with fixed bounds
+	**/
 	public var bounds:Null<h3d.col.Bounds> = null;
+
+	/**
+		Instead of fitting for largest bound, the smallest bound is used
+	**/
 	public var crop = false;
 }
