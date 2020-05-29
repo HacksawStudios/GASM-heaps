@@ -8,6 +8,7 @@ import gasm.core.utils.Assert;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.Heaps3DViewportComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
+import h3d.col.Bounds;
 import tink.CoreApi.Future;
 import tweenx909.TweenX;
 import tweenxcore.Tools.Easing;
@@ -32,12 +33,22 @@ class HeapsCameraFitComponent extends Component {
 
 	public var margins(get, set):CameraFitMargins;
 
+	public var bounds(get, set):Bounds;
+
 	function get_margins() {
 		return _config.margins;
 	}
 
 	function set_margins(margins:CameraFitMargins) {
 		return _config.margins = margins;
+	}
+
+	function get_bounds() {
+		return _config.bounds;
+	}
+
+	function set_bounds(bounds:Bounds) {
+		return _config.bounds = bounds;
 	}
 
 	var _onFitCallback:Null<Void->Void> = null;
@@ -123,15 +134,6 @@ class HeapsCameraFitComponent extends Component {
 		final diffx = m.right - m.left;
 		final diffy = m.top - m.bottom;
 
-		// Calculate adding for minimal size handling
-		final width = bounds.xMax - bounds.xMin;
-		final height = bounds.yMax - bounds.yMin;
-
-		bounds.xMax += 0.5 * (width < _config.minSize.x ? _config.minSize.x - width : 0.0);
-		bounds.xMin -= 0.5 * (width < _config.minSize.x ? _config.minSize.x - width : 0.0);
-		bounds.yMax += 0.5 * (height < _config.minSize.y ? _config.minSize.y - height : 0.0);
-		bounds.yMin -= 0.5 * (height < _config.minSize.y ? _config.minSize.y - height : 0.0);
-
 		_s3d.camera.pos.x = diffx;
 		_s3d.camera.pos.y = diffy;
 
@@ -177,10 +179,28 @@ class CameraFitMargins {
 
 @:structInit
 class CameraFitConfig {
+	/**
+		Margins for object to be fitted
+	**/
 	public var margins:CameraFitMargins = {};
-	public var minSize:Point = {x: 0.0, y: 0.0}
+
+	/**
+		Fitting speed
+	**/
 	public var fitSpeed = 1.0;
+
+	/**
+		Curve used for fitting
+	**/
 	public var fitCurve = (val:Float) -> val.linear();
+
+	/**
+		Override object bounds with fixed bounds
+	**/
 	public var bounds:Null<h3d.col.Bounds> = null;
+
+	/**
+		Instead of fitting for largest bound, the smallest bound is used
+	**/
 	public var crop = false;
 }
