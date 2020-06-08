@@ -2,6 +2,8 @@ package gasm.heaps.components;
 
 import gasm.core.Component;
 import gasm.core.Entity;
+import gasm.core.api.singnals.TResize;
+import gasm.core.components.AppModelComponent;
 import gasm.core.enums.ComponentType;
 import gasm.core.math.geom.Point;
 import gasm.core.utils.Assert;
@@ -35,6 +37,8 @@ class HeapsCameraFitComponent extends Component {
 	var _oldCamPos:Vector;
 	var _oldObjBounds:Bounds;
 	var _oldStageSize:Point;
+	var _appModel:AppModelComponent;
+	var _resize = true;
 
 	public var margins(get, set):CameraFitMargins;
 
@@ -66,9 +70,13 @@ class HeapsCameraFitComponent extends Component {
 	override public function init() {
 		_targetComponent = owner.get(Heaps3DComponent);
 		Assert.that(_targetComponent != null, "CameraFitObjectComponent requires Heaps3DComponent in owner");
+		_appModel = owner.getFromParents(AppModelComponent);
 		_s3d = owner.getFromParents(HeapsScene3DComponent).scene3d;
 		_startPos = _s3d.camera.pos;
 		setFitSpeed(_config.fitSpeed);
+		_appModel.resizeSignal.connect((?size:TResize) -> {
+			_resize = true;
+		});
 		super.init();
 	}
 
@@ -76,28 +84,28 @@ class HeapsCameraFitComponent extends Component {
 		super.update(dt);
 		if (enabled) {
 			_time += dt;
-
-			final camPos = _s3d.camera.pos.clone();
-			final stageSize:Point = cast {x: Engine.getCurrent().width, y: Engine.getCurrent().height};
-			final cb = _targetComponent.object.getBounds();
-			final ob = _oldObjBounds;
-
-			final camMoved = _oldCamPos == null || camPos.distanceSq(_oldCamPos) > 0.001;
-			final objChanged = ob == null
-				|| (cb.xMax != ob.xMax || cb.xMin != ob.xMin || cb.yMax != ob.yMax || cb.yMin != ob.yMin || cb.yMax != ob.yMax);
-			final stageChanged = _oldStageSize == null || stageSize.x != _oldStageSize.x || stageSize.y != _oldStageSize.y;
-
 			final part = _time / _fitSpeed;
-			final p = _fitSpeed == 0 ? Math.POSITIVE_INFINITY : part;
-			// Calculate fit if this is first update or cam, object or scene has updated
-			if (ob == null || p <= 1 || camMoved || objChanged || stageChanged) {
-				fit(calculateObjectFit(cb), Math.min(1.0, part));
-				_oldStageSize = stageSize;
-				_oldCamPos = camPos;
-				_oldObjBounds = cb;
+			final p = _fitSpeed == 0 ? 1 : part;
+			if (p <= 1) {
+				final camPos = _s3d.camera.pos.clone();
+				final stageSize:Point = cast {x: Engine.getCurrent().width, y: Engine.getCurrent().height};
+				final cb = _targetComponent.object.getBounds();
+				final ob = _oldObjBounds;
+
+				final camMoved = _oldCamPos == null || camPos.distanceSq(_oldCamPos) > 0.001;
+				final objChanged = ob == null
+					|| (cb.xMax != ob.xMax || cb.xMin != ob.xMin || cb.yMax != ob.yMax || cb.yMin != ob.yMin || cb.yMax != ob.yMax);
+				final stageChanged = _oldStageSize == null || stageSize.x != _oldStageSize.x || stageSize.y != _oldStageSize.y;
+
+				// Calculate fit if this is first update or cam, object or scene has updated
+				if (_resize == true || camMoved || objChanged || stageChanged) {
+					fit(calculateObjectFit(cb), Math.min(1.0, part));
+					_oldStageSize = stageSize;
+					_oldCamPos = camPos;
+					_oldObjBounds = cb;
+					_resize = false;
+				}
 			}
-		} else {
-			_time = 0.0;
 		}
 	}
 
@@ -183,7 +191,10 @@ class HeapsCameraFitComponent extends Component {
 
 		var distance = _config.crop ? max : min;
 
-		if (Math.abs(distance) > 10000 || Math.isNaN(distance) || !Math.isFinite(distance)) {
+		// HACK: There is a problem with fit sometimes having a hard time finding position, causing jerking
+		// This limit will patch over the issue, but should preferably be properly addressed.
+		final distanceLimit = 222 * _s3d.camera.fovY;
+		if (Math.abs(distance) > distanceLimit || Math.isNaN(distance) || !Math.isFinite(distance)) {
 			distance = 0.0;
 		}
 
