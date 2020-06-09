@@ -1,17 +1,16 @@
 package gasm.heaps.components;
 
-import gasm.heaps.text.ScalingTextField;
-import h2d.Tile;
-import h2d.Bitmap;
-import h2d.Object;
-import h3d.mat.Texture;
-import h3d.mat.Data.TextureFlags;
-import gasm.core.data.TextConfig;
-import h2d.Font;
-import h2d.Text;
-import hxd.Res;
 import gasm.core.components.TextModelComponent;
+import gasm.core.data.TextConfig;
 import gasm.core.enums.ComponentType;
+import gasm.heaps.text.ScalingTextField;
+import h2d.Bitmap;
+import h2d.Font;
+import h2d.Object;
+import h2d.Text;
+import h2d.Tile;
+import h3d.mat.Data.TextureFlags;
+import h3d.mat.Texture;
 
 /**
  * ...
