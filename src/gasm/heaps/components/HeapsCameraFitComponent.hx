@@ -131,6 +131,7 @@ class HeapsCameraFitComponent extends Component {
 				_shouldFit = false;
 				_s3d.camera.update();
 				_s3d.syncOnly(0.0);
+				final bounds = _targetComponent.object.getBounds();
 				_time = 0.0;
 				_startPos = _s3d.camera.pos;
 				_targetPos = calculateObjectFit(bounds);
@@ -203,23 +204,22 @@ class HeapsCameraFitComponent extends Component {
 		final sx = engine.width;
 		final sy = engine.height;
 
+		final oldPos = _s3d.camera.pos.clone();
+		_s3d.camera.pos.x = 0.0;
+		_s3d.camera.pos.y = 0.0;
+		_s3d.camera.target.load(_s3d.camera.pos);
+		_s3d.camera.target.z = -_s3d.camera.zFar;
+		_s3d.camera.update();
+
 		final bounds = _config.bounds != null ? _config.bounds : objBounds;
-		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy, false).z;
+		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
 
 		final dist = [];
 
 		final m = _config.margins;
 
-		final diffx = m.right - m.left;
-		final diffy = m.top - m.bottom;
-
-		_s3d.camera.pos.x = diffx;
-		_s3d.camera.pos.y = diffy;
-
-		_s3d.camera.target.load(_s3d.camera.pos);
-		_s3d.camera.target.z = -_s3d.camera.zFar;
-
-		_s3d.camera.update();
+		// _s3d.camera.pos.x = diffx;
+		// _s3d.camera.pos.y = diffy;
 
 		final cameraSidesP = _s3d.camera.unproject(1.0, 1.0, objectZ);
 		final cameraSidesN = _s3d.camera.unproject(-1.0, -1.0, objectZ);
@@ -239,6 +239,31 @@ class HeapsCameraFitComponent extends Component {
 
 		final result = _s3d.camera.pos.clone();
 		result.z = _config.crop ? min : max;
+
+		// How much do we have to move in camera X,Y to meet the corresponding camera XY ?
+		final diffx = m.right - m.left;
+		final diffy = m.top - m.bottom;
+
+		// We need to calculate how much to move to compensate for margins when at fitted position.
+		_s3d.camera.pos.load(result);
+		_s3d.camera.update();
+
+		// Fetch screen coordinates for the diff at objectZ
+		final diffScreen = _s3d.camera.project(diffx * 0.5, diffy * 0.5, objectZ, sx, sy);
+
+		// Convert to -1 -> 1
+		final dfx = 2.0 * (diffScreen.x / sx) - 1.0;
+		final dfy = -(2.0 * (diffScreen.y / sy) - 1.0);
+
+		// Get diff at near frustum
+		final realDiff = _s3d.camera.unproject(dfx, dfy, 1.0);
+
+		// Apply diff
+		result.x = realDiff.x;
+		result.y = realDiff.y;
+
+		_s3d.camera.pos.load(oldPos);
+		_s3d.camera.update();
 
 		return result;
 	}
