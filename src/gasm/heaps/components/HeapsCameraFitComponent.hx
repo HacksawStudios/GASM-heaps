@@ -27,18 +27,27 @@ using tweenxcore.Tools;
 class HeapsCameraFitComponent extends Component {
 	final _config:CameraFitConfig;
 
-	public var enabled = true;
+	public var enabled(default, set) = true;
 
 	var _s3d:h3d.scene.Scene;
 	var _targetComponent:Heaps3DComponent;
 	var _time = 0.0;
 	var _startPos:Vector;
+	var _targetPos:Vector;
 	var _fitSpeed = 0.0;
 	var _oldCamPos:Vector;
 	var _oldObjBounds:Bounds;
 	var _oldStageSize:Point;
 	var _appModel:AppModelComponent;
-	var _resize = true;
+	var _forceFit = false;
+	var _shouldFit = false;
+
+	public function set_enabled(e:Bool) {
+		if (e == true) {
+			_forceFit = true;
+		}
+		return enabled = e;
+	}
 
 	public var margins(get, set):CameraFitMargins;
 
@@ -74,38 +83,66 @@ class HeapsCameraFitComponent extends Component {
 		_s3d = owner.getFromParents(HeapsScene3DComponent).scene3d;
 		_startPos = _s3d.camera.pos;
 		setFitSpeed(_config.fitSpeed);
+
 		_appModel.resizeSignal.connect((?size:TResize) -> {
-			_resize = true;
+			_forceFit = true;
 		});
+
 		super.init();
+	}
+
+	public function detectChange(objectBounds:Bounds):Bool {
+		final camPos = _s3d.camera.pos.clone();
+		final stageSize:Point = cast {x: Engine.getCurrent().width, y: Engine.getCurrent().height};
+		final cb = objectBounds;
+		final ob = _oldObjBounds;
+
+		final camMoved = _oldCamPos == null || camPos.distanceSq(_oldCamPos) > 0.001;
+		final objChanged = ob == null
+			|| (cb.xMax != ob.xMax || cb.xMin != ob.xMin || cb.yMax != ob.yMax || cb.yMin != ob.yMin || cb.yMax != ob.yMax);
+		final stageChanged = _oldStageSize == null || stageSize.x != _oldStageSize.x || stageSize.y != _oldStageSize.y;
+
+		_oldStageSize = stageSize;
+		_oldCamPos = camPos;
+		_oldObjBounds = cb;
+
+		return (stageChanged || objChanged);
 	}
 
 	override public function update(dt:Float) {
 		super.update(dt);
 		if (enabled) {
+			final bounds = _targetComponent.object.getBounds();
+
+			// At some initial parts, the bounds are in a initial state of a very big value. ignore that frame and skip to the next
+			if (bounds.xMin > 100000.0) {
+				return;
+			}
+
+			// As long as there's a change detected, we should set a flag and wait for changes to settle
+			// This is to prevent out of sync camera and scene-states
+			if (detectChange(bounds) || _forceFit) {
+				_shouldFit = true;
+				_forceFit = false;
+				return;
+			}
+
+			if (_shouldFit) {
+				_shouldFit = false;
+				_s3d.camera.update();
+				_s3d.syncOnly(0.0);
+				_time = 0.0;
+				_startPos = _s3d.camera.pos;
+				_targetPos = calculateObjectFit(bounds);
+			}
+
 			_time += dt;
 			final part = _time / _fitSpeed;
-			final p = _fitSpeed == 0 ? 1 : part;
-			if (p <= 1) {
-				final camPos = _s3d.camera.pos.clone();
-				final stageSize:Point = cast {x: Engine.getCurrent().width, y: Engine.getCurrent().height};
-				final cb = _targetComponent.object.getBounds();
-				final ob = _oldObjBounds;
+			final p = _fitSpeed == 0 ? 1 : Math.min(1.0, part);
 
-				final camMoved = _oldCamPos == null || camPos.distanceSq(_oldCamPos) > 0.001;
-				final objChanged = ob == null
-					|| (cb.xMax != ob.xMax || cb.xMin != ob.xMin || cb.yMax != ob.yMax || cb.yMin != ob.yMin || cb.yMax != ob.yMax);
-				final stageChanged = _oldStageSize == null || stageSize.x != _oldStageSize.x || stageSize.y != _oldStageSize.y;
-
-				// Calculate fit if this is first update or cam, object or scene has updated
-				if (_resize == true || camMoved || objChanged || stageChanged) {
-					fit(calculateObjectFit(cb), Math.min(1.0, part));
-					_oldStageSize = stageSize;
-					_oldCamPos = camPos;
-					_oldObjBounds = cb;
-					_resize = false;
-				}
-			}
+			fit(p);
+		} else {
+			_time = 0.0;
 		}
 	}
 
@@ -114,7 +151,7 @@ class HeapsCameraFitComponent extends Component {
 			_time = 0.0;
 			final oldFs = _fitSpeed;
 			setFitSpeed(speed);
-			_startPos = _s3d.camera.pos;
+			_forceFit = true;
 			_onFitCallback = () -> {
 				setFitSpeed(oldFs);
 				cb(null);
@@ -126,11 +163,10 @@ class HeapsCameraFitComponent extends Component {
 		_fitSpeed = fs;
 	}
 
-	inline function fit(target:Vector, pos:Float) {
-		_s3d.camera.pos.x = pos.lerp(_startPos.x, target.x);
-		_s3d.camera.pos.y = pos.lerp(_startPos.y, target.y);
-		_s3d.camera.pos.z = pos.lerp(_startPos.z, target.z);
-		final remaining = target.sub(_s3d.camera.pos);
+	inline function fit(pos:Float) {
+		_s3d.camera.pos.x = pos.lerp(_startPos.x, _targetPos.x);
+		_s3d.camera.pos.y = pos.lerp(_startPos.y, _targetPos.y);
+		_s3d.camera.pos.z = pos.lerp(_startPos.z, _targetPos.z);
 
 		// Close enough for fit
 		if (pos >= 1.0) {
@@ -145,19 +181,30 @@ class HeapsCameraFitComponent extends Component {
 		}
 	}
 
-	function calculateDistance(cameraY:Float, objectY:Float, cameraZ:Float):Float {
-		final diffY = cameraY - objectY;
-		final angleY = Math.atan(Math.abs(cameraY) / Math.abs(cameraZ));
-		return diffY / Math.tan(angleY);
+	function calculateTargetZ(cameraY:Float, objectY:Float, cameraZ:Float, objectZ:Float):Float {
+		final diffY = objectY - cameraY;
+		final angleY = Math.atan(cameraY / Math.abs(cameraZ));
+
+		// Distance from object is calculated given a triangle formula tan(v) = opp/adj
+		// tan(v) = diffY/distance
+		// tan(v)*distance = diffY
+		// distance = diffY / tan(v)
+		final distance = (diffY / Math.tan(angleY));
+
+		// In case we have a scene where camera is facing towards positive, we need to invert
+		final direction = (cameraZ - objectZ) > 0 ? 1.0 : -1.0;
+
+		return cameraZ + distance * direction;
 	}
 
 	function calculateObjectFit(objBounds:Bounds):Vector {
 		final obj = _targetComponent.object;
-		final sx = hxd.Window.getInstance().width;
-		final sy = hxd.Window.getInstance().height;
+		final engine = Engine.getCurrent();
+		final sx = engine.width;
+		final sy = engine.height;
 
 		final bounds = _config.bounds != null ? _config.bounds : objBounds;
-		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
+		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy, false).z;
 
 		final dist = [];
 
@@ -173,13 +220,14 @@ class HeapsCameraFitComponent extends Component {
 		_s3d.camera.target.z = -_s3d.camera.zFar;
 
 		_s3d.camera.update();
+
 		final cameraSidesP = _s3d.camera.unproject(1.0, 1.0, objectZ);
 		final cameraSidesN = _s3d.camera.unproject(-1.0, -1.0, objectZ);
 
-		dist.push(calculateDistance(cameraSidesP.x, bounds.xMax + m.right, _s3d.camera.pos.z));
-		dist.push(calculateDistance(Math.abs(cameraSidesN.x), Math.abs(bounds.xMin) + m.left, _s3d.camera.pos.z));
-		dist.push(calculateDistance(cameraSidesP.y, bounds.yMax + m.top, _s3d.camera.pos.z));
-		dist.push(calculateDistance(Math.abs(cameraSidesN.y), Math.abs(bounds.yMin) + m.bottom, _s3d.camera.pos.z));
+		dist.push(calculateTargetZ(cameraSidesP.x, bounds.xMax + m.right, _s3d.camera.pos.z, obj.z));
+		dist.push(calculateTargetZ(Math.abs(cameraSidesN.x), Math.abs(bounds.xMin) + m.left, _s3d.camera.pos.z, obj.z));
+		dist.push(calculateTargetZ(cameraSidesP.y, bounds.yMax + m.top, _s3d.camera.pos.z, obj.z));
+		dist.push(calculateTargetZ(Math.abs(cameraSidesN.y), Math.abs(bounds.yMin) + m.bottom, _s3d.camera.pos.z, obj.z));
 
 		var max:Float = null;
 		var min:Float = null;
@@ -189,17 +237,9 @@ class HeapsCameraFitComponent extends Component {
 			min = min == null || d < min ? d : min;
 		}
 
-		var distance = _config.crop ? max : min;
-
-		// HACK: There is a problem with fit sometimes having a hard time finding position, causing jerking
-		// This limit will patch over the issue, but should preferably be properly addressed.
-		final distanceLimit = 222 * _s3d.camera.fovY;
-		if (Math.abs(distance) > distanceLimit || Math.isNaN(distance) || !Math.isFinite(distance)) {
-			distance = 0.0;
-		}
-
 		final result = _s3d.camera.pos.clone();
-		result.z -= distance;
+		result.z = _config.crop ? min : max;
+
 		return result;
 	}
 }
