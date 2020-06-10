@@ -119,8 +119,6 @@ class HeapsCameraFitComponent extends Component {
 				return;
 			}
 
-			// As long as there's a change detected, we should set a flag and wait for changes to settle
-			// This is to prevent out of sync camera and scene-states
 			if (detectChange(bounds) || _forceFit) {
 				_shouldFit = true;
 				_forceFit = false;
@@ -165,9 +163,10 @@ class HeapsCameraFitComponent extends Component {
 	}
 
 	inline function fit(pos:Float) {
-		_s3d.camera.pos.x = pos.lerp(_startPos.x, _targetPos.x);
-		_s3d.camera.pos.y = pos.lerp(_startPos.y, _targetPos.y);
-		_s3d.camera.pos.z = pos.lerp(_startPos.z, _targetPos.z);
+		final x = pos;
+		_s3d.camera.pos.x = x.lerp(_startPos.x, _targetPos.x);
+		_s3d.camera.pos.y = x.lerp(_startPos.y, _targetPos.y);
+		_s3d.camera.pos.z = x.lerp(_startPos.z, _targetPos.z);
 
 		// Close enough for fit
 		if (pos >= 1.0) {
@@ -243,24 +242,8 @@ class HeapsCameraFitComponent extends Component {
 		// How much do we have to move in camera X,Y to meet the corresponding camera XY ?
 		final diffx = m.right - m.left;
 		final diffy = m.top - m.bottom;
-
-		// We need to calculate how much to move to compensate for margins when at fitted position.
-		_s3d.camera.pos.load(result);
-		_s3d.camera.update();
-
-		// Fetch screen coordinates for the diff at objectZ
-		final diffScreen = _s3d.camera.project(diffx * 0.5, diffy * 0.5, objectZ, sx, sy);
-
-		// Convert to -1 -> 1
-		final dfx = 2.0 * (diffScreen.x / sx) - 1.0;
-		final dfy = -(2.0 * (diffScreen.y / sy) - 1.0);
-
-		// Get diff at near frustum
-		final realDiff = _s3d.camera.unproject(dfx, dfy, 1.0);
-
-		// Apply diff
-		result.x = realDiff.x;
-		result.y = realDiff.y;
+		result.x = diffx;
+		result.y = diffy;
 
 		_s3d.camera.pos.load(oldPos);
 		_s3d.camera.update();
