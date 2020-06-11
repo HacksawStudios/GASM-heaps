@@ -91,7 +91,7 @@ class HeapsCameraFitComponent extends Component {
 		super.init();
 	}
 
-	public function detectChange(objectBounds:Bounds):Bool {
+	inline function detectChange(objectBounds:Bounds):Bool {
 		final camPos = _s3d.camera.pos.clone();
 		final stageSize:Point = cast {x: Engine.getCurrent().width, y: Engine.getCurrent().height};
 		final cb = objectBounds;
