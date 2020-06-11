@@ -111,7 +111,7 @@ class HeapsCameraFitComponent extends Component {
 			final bounds = _targetComponent.object.getBounds();
 
 			// At some initial parts, the bounds are in a initial state of a very big value. ignore that frame and skip to the next
-			if (bounds.xMin > 100000.0) {
+			if (bounds.xMin >= 1e20) {
 				return;
 			}
 
