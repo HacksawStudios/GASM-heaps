@@ -35,7 +35,6 @@ class HeapsCameraFitComponent extends Component {
 	var _startPos:Vector;
 	var _targetPos:Vector;
 	var _fitSpeed = 0.0;
-	var _oldCamPos:Vector;
 	var _oldObjBounds:Bounds;
 	var _oldStageSize:Point;
 	var _appModel:AppModelComponent;
@@ -96,14 +95,11 @@ class HeapsCameraFitComponent extends Component {
 		final stageSize:Point = cast {x: Engine.getCurrent().width, y: Engine.getCurrent().height};
 		final cb = objectBounds;
 		final ob = _oldObjBounds;
-
-		final camMoved = _oldCamPos == null || camPos.distanceSq(_oldCamPos) > 0.001;
 		final objChanged = ob == null
 			|| (cb.xMax != ob.xMax || cb.xMin != ob.xMin || cb.yMax != ob.yMax || cb.yMin != ob.yMin || cb.yMax != ob.yMax);
 		final stageChanged = _oldStageSize == null || stageSize.x != _oldStageSize.x || stageSize.y != _oldStageSize.y;
 
 		_oldStageSize = stageSize;
-		_oldCamPos = camPos;
 		_oldObjBounds = cb;
 
 		return (stageChanged || objChanged);
@@ -119,17 +115,17 @@ class HeapsCameraFitComponent extends Component {
 				return;
 			}
 
+			// As long as there's a change detected, or forced fit, set a flag and skip to next frame to ensure cameras and scene is settled
 			if (detectChange(bounds) || _forceFit) {
 				_shouldFit = true;
 				_forceFit = false;
 				return;
 			}
 
+			// At this point, all the properties for fitting are sure to be settled and we can calculate a new camera position
 			if (_shouldFit) {
 				_shouldFit = false;
-				_s3d.camera.update();
 				_s3d.syncOnly(0.0);
-				final bounds = _targetComponent.object.getBounds();
 				_time = 0.0;
 				_startPos = _s3d.camera.pos;
 				_targetPos = calculateObjectFit(bounds);
@@ -163,10 +159,9 @@ class HeapsCameraFitComponent extends Component {
 	}
 
 	inline function fit(pos:Float) {
-		final x = pos;
-		_s3d.camera.pos.x = x.lerp(_startPos.x, _targetPos.x);
-		_s3d.camera.pos.y = x.lerp(_startPos.y, _targetPos.y);
-		_s3d.camera.pos.z = x.lerp(_startPos.z, _targetPos.z);
+		_s3d.camera.pos.x = pos.lerp(_startPos.x, _targetPos.x);
+		_s3d.camera.pos.y = pos.lerp(_startPos.y, _targetPos.y);
+		_s3d.camera.pos.z = pos.lerp(_startPos.z, _targetPos.z);
 
 		// Close enough for fit
 		if (pos >= 1.0) {
@@ -203,6 +198,7 @@ class HeapsCameraFitComponent extends Component {
 		final sx = engine.width;
 		final sy = engine.height;
 
+		// Since calculations are done centered, we need to reset camera position and save the old position
 		final oldPos = _s3d.camera.pos.clone();
 		_s3d.camera.pos.x = 0.0;
 		_s3d.camera.pos.y = 0.0;
@@ -213,15 +209,11 @@ class HeapsCameraFitComponent extends Component {
 		final bounds = _config.bounds != null ? _config.bounds : objBounds;
 		final objectZ = _s3d.camera.project(obj.x, obj.y, obj.z, sx, sy).z;
 
-		final dist = [];
-
-		final m = _config.margins;
-
-		// _s3d.camera.pos.x = diffx;
-		// _s3d.camera.pos.y = diffy;
-
 		final cameraSidesP = _s3d.camera.unproject(1.0, 1.0, objectZ);
 		final cameraSidesN = _s3d.camera.unproject(-1.0, -1.0, objectZ);
+
+		final dist = [];
+		final m = _config.margins;
 
 		dist.push(calculateTargetZ(cameraSidesP.x, bounds.xMax + m.right, _s3d.camera.pos.z, obj.z));
 		dist.push(calculateTargetZ(Math.abs(cameraSidesN.x), Math.abs(bounds.xMin) + m.left, _s3d.camera.pos.z, obj.z));
