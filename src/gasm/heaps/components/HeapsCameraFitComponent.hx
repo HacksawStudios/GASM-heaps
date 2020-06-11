@@ -25,16 +25,17 @@ using tweenxcore.Tools;
  * Note that you can only use one camera fit component per stage graph, otherwise they will fight eachother.
  */
 class HeapsCameraFitComponent extends Component {
-	final _config:CameraFitConfig;
-
 	public var enabled(default, set) = true;
+	public var duration = 1.0;
+
+	final _config:CameraFitConfig;
 
 	var _s3d:h3d.scene.Scene;
 	var _targetComponent:Heaps3DComponent;
 	var _time = 0.0;
 	var _startPos:Vector;
 	var _targetPos:Vector;
-	var _fitSpeed = 0.0;
+
 	var _oldObjBounds:Bounds;
 	var _oldStageSize:Point;
 	var _appModel:AppModelComponent;
@@ -81,7 +82,7 @@ class HeapsCameraFitComponent extends Component {
 		_appModel = owner.getFromParents(AppModelComponent);
 		_s3d = owner.getFromParents(HeapsScene3DComponent).scene3d;
 		_startPos = _s3d.camera.pos;
-		setFitSpeed(_config.fitSpeed);
+		duration = _config.duration;
 
 		_appModel.resizeSignal.connect((?size:TResize) -> {
 			_forceFit = true;
@@ -132,30 +133,24 @@ class HeapsCameraFitComponent extends Component {
 			}
 
 			_time += dt;
-			final part = _time / _fitSpeed;
-			final p = _fitSpeed == 0 ? 1 : Math.min(1.0, part);
-
-			fit(p);
+			final part = duration > 0.0 ? Math.min(1.0, _time / duration) : 1.0;
+			fit(part);
 		} else {
 			_time = 0.0;
 		}
 	}
 
-	public function animateFit(speed:Float) {
+	public function animateFit(duration:Float) {
 		return Future.async(cb -> {
 			_time = 0.0;
-			final oldFs = _fitSpeed;
-			setFitSpeed(speed);
+			final oldDuration = this.duration;
+			this.duration = duration;
 			_forceFit = true;
 			_onFitCallback = () -> {
-				setFitSpeed(oldFs);
+				this.duration = oldDuration;
 				cb(null);
 			};
 		});
-	}
-
-	public function setFitSpeed(fs:Float) {
-		_fitSpeed = fs;
 	}
 
 	inline function fit(pos:Float) {
@@ -260,9 +255,9 @@ class CameraFitConfig {
 	public var margins:CameraFitMargins = {};
 
 	/**
-		Fitting speed
+		Duration of fit
 	**/
-	public var fitSpeed = 1.0;
+	public var duration = 1.0;
 
 	/**
 		Curve used for fitting
