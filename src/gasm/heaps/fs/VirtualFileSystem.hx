@@ -18,6 +18,12 @@ class VirtualFileSystem implements hxd.fs.FileSystem {
 		return null;
 	}
 
+	public function remove(path:String) {
+		if (paths.exists(path)) {
+			paths.remove(path);
+		}
+	}
+
 	public function getBytes(path:String):haxe.io.Bytes {
 		return get(path).getBytes();
 	}

@@ -43,14 +43,14 @@ class ScalingTextField extends h2d.Text {
 		return bm;
 	}
 
-	override function initGlyphs(text:String, rebuild = true, handleAlign = true, lines:Array<Int> = null):Void {
-		super.initGlyphs(text, rebuild, handleAlign, lines);
+	override function initGlyphs(text:String, rebuild = true):Void {
+		super.initGlyphs(text, rebuild);
 		calcHeight += yMarg;
 		calcWidth += xMarg;
 	}
 
 	override function set_text(t:String) {
-		// Replace non breaking space we get inte translations (char code 160) with regular space (char code 32), else multiline will break.
+		// Replace non breaking space we get in the translations (char code 160) with regular space (char code 32), else multiline will break.
 		t = t != null ? t.replace(' ', ' ') : t;
 		return super.text = t;
 	}
