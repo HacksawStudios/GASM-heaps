@@ -25,6 +25,7 @@ import h3d.impl.GlDriver;
 import h3d.mat.Data.TextureFlags;
 import h3d.mat.Texture;
 import hacksaw.common.enums.Orientation;
+import hacksaw.core.components.actor.render.PostProcessingComponent;
 import hacksaw.core.utils.GuardAction;
 import haxe.Timer;
 import haxe.ds.StringMap;
@@ -370,6 +371,18 @@ class HeapsContext extends App implements Context {
 	}
 
 	override public function render(e:h3d.Engine) {
+		if (_engine != null) {
+			final postProcessor = baseEntity.get(PostProcessingComponent);
+			if (postProcessor != null) {
+				postProcessor.render(renderScenes);
+				return;
+			}
+		} else {
+			renderScenes(e);
+		}
+	}
+
+	public function renderScenes(e:h3d.Engine) {
 		if (appModel.customRenderCallback != null) {
 			appModel.customRenderCallback(e);
 		} else {
