@@ -376,6 +376,8 @@ class HeapsContext extends App implements Context {
 			if (postProcessor != null) {
 				postProcessor.render(renderScenes);
 				return;
+			} else {
+				renderScenes(e);
 			}
 		} else {
 			renderScenes(e);
