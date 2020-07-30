@@ -1,15 +1,16 @@
 package gasm.heaps.components;
 
-import haxe.ds.StringMap;
-import hxd.SceneEvents;
-import hex.di.ClassRef;
-import hex.di.Injector;
 import gasm.core.Entity;
 import gasm.core.components.SceneModelComponent;
+import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.HeapsScene2DComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
-import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.HeapsSpriteComponent;
+import hacksaw.core.components.actor.render.PostProcessingComponent;
+import haxe.ds.StringMap;
+import hex.di.ClassRef;
+import hex.di.Injector;
+import hxd.SceneEvents;
 
 using Lambda;
 
@@ -84,6 +85,10 @@ class HeapsSceneModelComponent extends SceneModelComponent {
 		sceneMap.set(scene.name, anyScene);
 
 		baseEntity.addChild(entity);
+
+		final postProcessor = new PostProcessingComponent({});
+		entity.add(postProcessor);
+
 		return entity;
 	}
 
