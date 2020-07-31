@@ -11,8 +11,7 @@ import hacksaw.core.h3d.shaders.postprocessing.PostProcessingShaderBase;
 class HeapsScene2DComponent extends HeapsSceneBase {
 	public var scene2d:h2d.Scene;
 
-	final _passes = new Map<TextureShader, h3d.pass.ScreenFx<TextureShader>>();
-
+	var _passes = new Array<PostProcessingPassConfig>();
 	var _size:Point;
 
 	public function new(scene:h2d.Scene) {
@@ -24,9 +23,9 @@ class HeapsScene2DComponent extends HeapsSceneBase {
 	public function render(e:h3d.Engine) {
 		final postProcessor = owner.get(PostProcessingComponent);
 		if (postProcessor != null) {
-			postProcessor.render(engine -> scene3d.render(engine));
+			postProcessor.render(engine -> scene2d.render(engine));
 		} else {
-			scene3d.render(e);
+			scene2d.render(e);
 		}
 	}
 
