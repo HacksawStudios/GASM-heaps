@@ -46,12 +46,11 @@ class HeapsScene3DComponent extends HeapsSceneBase {
 			owner.remove(existingChain);
 		}
 		if (_passes.length != 0) {
-			final chainComponent = new BasicChainComponent(_passes);
+			owner.add(new BasicChainComponent(_passes));
 		}
 	}
 
 	public function removePostProcessingShader(shader:PostProcessingShaderBase) {
-		var remove = [];
 		_passes = _passes.filter(p -> p.shader != shader);
 		updateChainComponent();
 	}
