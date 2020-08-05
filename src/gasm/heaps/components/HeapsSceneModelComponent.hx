@@ -86,9 +86,11 @@ class HeapsSceneModelComponent extends SceneModelComponent {
 
 		baseEntity.addChild(entity);
 
-		final postProcessor = new PostProcessingComponent({});
-		entity.add(postProcessor);
-
+		// TODO: Enabling postprocessing is causing rendering issues in existing code, so disabling for now.
+		/*
+			final postProcessor = new PostProcessingComponent({});
+			entity.add(postProcessor);
+		 */
 		return entity;
 	}
 
