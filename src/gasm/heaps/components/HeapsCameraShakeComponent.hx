@@ -1,15 +1,15 @@
 package gasm.heaps.components;
 
+import gasm.core.Component;
+import gasm.core.Entity;
+import gasm.core.enums.ComponentType;
+import gasm.core.math.geom.Point;
+import gasm.core.utils.Assert;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.Heaps3DViewportComponent;
-import gasm.core.enums.ComponentType;
-import gasm.core.Entity;
-import gasm.core.Component;
-import gasm.core.math.geom.Point;
 import gasm.heaps.components.HeapsScene3DComponent;
 import tweenx909.TweenX;
 import tweenxcore.Tools.Easing;
-import gasm.core.utils.Assert;
 
 using tweenxcore.Tools;
 
@@ -38,11 +38,23 @@ class HeapsCameraShakeComponent extends Component {
 		final scene = owner.getFromParents(HeapsScene3DComponent);
 		Assert.that(scene != null, "HeapsCameraShakeComponent requires HeapsScene3DComponent in parent graph");
 		_s3d = scene.scene3d;
-		_startPos = _s3d.camera.pos;
 		super.init();
+		if (_config.autoStart) {
+			shake(_config.duration, _config.magnitude);
+		}
 	}
 
-	public function shake(duration = 1.0, magnitude = 0.1) {
+	/**
+	 * Start shake
+	 * @param duration Duration of shake in seconds. If null, duration from config is used.
+	 * @param magnitude Magnitude of shake in units. If null, magnitude from config is used.
+	 */
+	public function shake(?duration:Null<Float>, ?magnitude:Null<Float>) {
+		Assert.that(_s3d != null, 'Cannot shake before component is inited. Use autoStart or trigger shake later.');
+
+		duration = duration == null ? _config.duration : duration;
+		magnitude = magnitude == null ? _config.magnitude : magnitude;
+
 		_time = 0.0;
 		_shake = true;
 		_duration = duration;
@@ -50,8 +62,13 @@ class HeapsCameraShakeComponent extends Component {
 		_startPos = _s3d.camera.pos.clone();
 	}
 
+	/**
+	 * Stop shake and return to original position immediately.
+	 */
 	public function stop() {
+		_s3d.camera.pos.load(_startPos);
 		_shake = false;
+		_config.onDone();
 	}
 
 	override public function update(dt:Float) {
@@ -63,13 +80,15 @@ class HeapsCameraShakeComponent extends Component {
 				final inPart = (part / _config.increment) * _magnitude;
 				final outPart = (1 - ((part - _config.increment) / (1 - _config.increment))) * _magnitude;
 				final scale = part <= _config.increment ? inPart : outPart;
-				final xPos = scale.shake(0.0, _config.curve);
-				final yPos = scale.shake(0.0, _config.curve);
+				final xPos = scale.shake(_startPos.x, _config.curve);
+				final yPos = scale.shake(_startPos.y, _config.curve);
 				_s3d.camera.pos.x = xPos;
 				_s3d.camera.pos.y = yPos;
 			} else {
-				_s3d.camera.pos = _startPos;
-				_shake = false;
+				stop();
+				if (_config.autoStart) {
+					remove();
+				}
 			}
 			_s3d.camera.update();
 		}
@@ -78,6 +97,33 @@ class HeapsCameraShakeComponent extends Component {
 
 @:structInit
 class CameraShakeConfig {
+	/**
+	 * Curve to use for shake
+	 */
 	public var curve = () -> Math.random().backOutIn();
+
+	/**
+	 * How fast shake should gain intensity. 0.0 means it will increment half of the time and decrement rest. 0.66 means it will increment 2/3 of the time.
+	 */
 	public var increment = 0.95;
+
+	/**
+	 * If set to true, component will automaticlly start when added, and remoive itself when complete.
+	 */
+	public var autoStart = false;
+
+	/**
+	 * Duration of shake
+	 */
+	public var duration:Float = 1.0;
+
+	/**
+	 * How many units maximum position offset will be.
+	 */
+	public var magnitude:Float = 1.0;
+
+	/**
+	 * Called when shake is complete.
+	 */
+	public var onDone = () -> {};
 }
