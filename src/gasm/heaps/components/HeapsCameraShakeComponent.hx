@@ -93,10 +93,6 @@ class HeapsCameraShakeComponent extends Component {
 			_s3d.camera.update();
 		}
 	}
-
-	override public function dispose() {
-		super.dispose();
-	}
 }
 
 @:structInit
@@ -122,7 +118,7 @@ class CameraShakeConfig {
 	public var duration:Float = 1.0;
 
 	/**
-	 * How manu units maximum position offset will be.
+	 * How many units maximum position offset will be.
 	 */
 	public var magnitude:Float = 1.0;
 
