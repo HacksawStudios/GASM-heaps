@@ -20,9 +20,11 @@ import tweenxcore.Tools.Easing;
 using tweenxcore.Tools;
 
 /**
- * Make camera of scene fit Heaps3DComponent
- *
- * Note that you can only use one camera fit component per stage graph, otherwise they will fight eachother.
+ * Make object or entire scene fit to screen given object.z
+ * object is prioritized above scene
+ * Entity containing Scene + Object -> object is fitted
+ * Entity containing Scene -> scene is fitted
+ * Entity containing Object -> object is fitted
  */
 class HeapsScreenFitComponent extends Component {
 	public var enabled(default, set) = true;
