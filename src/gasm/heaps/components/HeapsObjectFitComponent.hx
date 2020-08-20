@@ -61,9 +61,12 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		}
 
 		final engine = Engine.getCurrent();
+		_object.setScale(1.0);
+
+		final preBounds = _object.getBounds();
 
 		// Get center Z for screen at _object.z
-		final screenZ = _camera.project(0.0, 0.0, _object.z, engine.width, engine.height).z;
+		final screenZ = _camera.project(0.0, 0.0, preBounds.zMax, engine.width, engine.height).z;
 
 		// get outer edges of screen
 		final screen3DPosition = _camera.unproject(1.0, 1.0, screenZ);
@@ -78,7 +81,6 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		final screenLeft = (-screen3DPosition.x) + margins.left * screenW;
 
 		// Place object in the middle of the virtual screen, reset scaling to 1
-		_object.setScale(1.0);
 		_object.x = screenLeft + (screenRight - screenLeft) * 0.5;
 		_object.y = screenBottom + (screenTop - screenBottom) * 0.5;
 
@@ -89,11 +91,13 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		final scaleY = determineScale((screenTop - _object.y) / (bounds.yMax - _object.y), (_object.y - screenBottom) / (_object.y - bounds.yMin));
 
 		if (_config.keepRatio) {
-			_object.setScale(determineScale(scaleX, scaleY));
+			// _object.setScale(determineScale(scaleX, scaleY));
+			final scale = determineScale(scaleX, scaleY);
+			_object.scaleX = scale;
+			_object.scaleY = scale;
 		} else {
 			_object.scaleX = scaleX;
 			_object.scaleY = scaleY;
-			_object.scaleZ = determineScale(scaleX, scaleY);
 		}
 	}
 
