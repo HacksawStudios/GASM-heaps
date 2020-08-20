@@ -16,6 +16,8 @@ import h3d.col.Bounds;
  * Entity containing Object -> object is fitted
  */
 class HeapsScreenFitComponent extends Component {
+	public var enable = true;
+
 	final _config:ScreenFitConfig;
 	var _object:h3d.scene.Object;
 	var _camera:h3d.Camera;
@@ -59,6 +61,9 @@ class HeapsScreenFitComponent extends Component {
 
 	override public function update(dt:Float) {
 		super.update(dt);
+		if (!enable) {
+			return;
+		}
 
 		final engine = Engine.getCurrent();
 
