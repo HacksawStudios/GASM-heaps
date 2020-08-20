@@ -10,25 +10,23 @@ import h3d.col.Bounds;
 
 /**
  * Make object or entire scene fit to screen given object.z och scene.z
- * object is prioritized above scene
- * Entity containing Scene + Object -> object is fitted
- * Entity containing Scene -> scene is fitted
- * Entity containing Object -> object is fitted
  */
-class HeapsScreenFitComponent extends Component {
+class HeapsObjectFitComponent extends Heaps3DComponent {
 	public var enable = true;
 
-	final _config:ScreenFitConfig;
+	public var margins(get, set):ObjectFitMargins;
+
+	public var bounds(get, set):Bounds;
+
+	final _config:ObjectFitConfig;
 	var _object:h3d.scene.Object;
 	var _camera:h3d.Camera;
-
-	public var margins(get, set):ScreenFitMargins;
 
 	function get_margins() {
 		return _config.margins;
 	}
 
-	function set_margins(margins:ScreenFitMargins) {
+	function set_margins(margins:ObjectFitMargins) {
 		return _config.margins = margins;
 	}
 
@@ -40,21 +38,18 @@ class HeapsScreenFitComponent extends Component {
 		return _config.bounds = bounds;
 	}
 
-	public function new(config:ScreenFitConfig) {
+	public function new(config:ObjectFitConfig, ?parent:h3d.scene.Object) {
+		super(parent);
 		_config = config;
-		componentType = ComponentType.Actor;
 	}
 
 	override public function init() {
-		final targetScene = owner.get(HeapsScene3DComponent);
-		final targetObject = owner.get(Heaps3DComponent);
-		final parentScene = owner.getFromParents(HeapsScene3DComponent);
+		final sceneComp = owner.getFromParents(HeapsScene3DComponent);
 
-		Assert.that(targetScene != null || targetObject != null,
-			"HeapsScreenFitComponent must have either a HeapsScene3DComponent or Heaps3DComponent in entity");
+		Assert.that(sceneComp != null, "HeapsObjectFitComponent must have a HeapsScene3DComponent in graph");
 
-		_object = targetObject != null ? targetObject.object : targetScene.scene3d;
-		_camera = targetObject != null ? parentScene.scene3d.camera : targetScene.scene3d.camera;
+		_object = object.object;
+		_camera = sceneComp.scene3d.camera;
 
 		super.init();
 	}
@@ -108,7 +103,7 @@ class HeapsScreenFitComponent extends Component {
 }
 
 @:structInit
-class ScreenFitMargins {
+class ObjectFitMargins {
 	public var top:Float = 0.0;
 	public var bottom:Float = 0.0;
 	public var left:Float = 0.0;
@@ -116,11 +111,11 @@ class ScreenFitMargins {
 }
 
 @:structInit
-class ScreenFitConfig {
+class ObjectFitConfig {
 	/**
 		percentual margins for object to be fitted
 	**/
-	public var margins:ScreenFitMargins = {};
+	public var margins:ObjectFitMargins = {};
 
 	/**
 		Override object bounds with fixed bounds
