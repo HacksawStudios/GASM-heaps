@@ -1,23 +1,12 @@
 package gasm.heaps.components;
 
 import gasm.core.Component;
-import gasm.core.Entity;
-import gasm.core.api.singnals.TResize;
-import gasm.core.components.AppModelComponent;
 import gasm.core.enums.ComponentType;
-import gasm.core.math.geom.Point;
 import gasm.core.utils.Assert;
 import gasm.heaps.components.Heaps3DComponent;
-import gasm.heaps.components.Heaps3DViewportComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
 import h3d.Engine;
-import h3d.Vector;
 import h3d.col.Bounds;
-import tink.CoreApi.Future;
-import tweenx909.TweenX;
-import tweenxcore.Tools.Easing;
-
-using tweenxcore.Tools;
 
 /**
  * Make object or entire scene fit to screen given object.z
