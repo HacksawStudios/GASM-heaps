@@ -27,11 +27,9 @@ using tweenxcore.Tools;
  * Entity containing Object -> object is fitted
  */
 class HeapsScreenFitComponent extends Component {
-	public var enabled(default, set) = true;
-
 	final _config:ScreenFitConfig;
-	final _object:h3d.scene.Object;
-	final _camera:h3d.scene.Camera;
+	var _object:h3d.scene.Object;
+	var _camera:h3d.Camera;
 
 	public var margins(get, set):ScreenFitMargins;
 
@@ -59,12 +57,13 @@ class HeapsScreenFitComponent extends Component {
 	override public function init() {
 		final targetScene = owner.get(HeapsScene3DComponent);
 		final targetObject = owner.get(Heaps3DComponent);
+		final parentScene = owner.getFromParents(HeapsScene3DComponent);
 
 		Assert.that(targetScene != null || targetObject != null,
 			"HeapsScreenFitComponent must have either a HeapsScene3DComponent or Heaps3DComponent in entity");
 
-		_object = targetObject != null:targetObject.object:targetScene.scene3d;
-		_camera = targetObject != null:_object.getScene().camera : targetScene.scene3d.camera;
+		_object = targetObject != null ? targetObject.object : targetScene.scene3d;
+		_camera = targetObject != null ? parentScene.scene3d.camera : targetScene.scene3d.camera;
 
 		super.init();
 	}
@@ -81,7 +80,7 @@ class HeapsScreenFitComponent extends Component {
 		final screen3DPosition = _camera.unproject(1.0, 1.0, screenZ);
 
 		final screenW = screen3DPosition.x * 2.0;
-		final screenH = screen3DPosition.x * 2.0;
+		final screenH = screen3DPosition.y * 2.0;
 
 		// Create a new "virtual" screen with included margin
 		final screenTop = screen3DPosition.y - margins.top * screenH;
@@ -89,22 +88,18 @@ class HeapsScreenFitComponent extends Component {
 		final screenRight = screen3DPosition.x - margins.right * screenW;
 		final screenLeft = (-screen3DPosition.x) + margins.left * screenW;
 
-		// Place object in the middle of the virtual screen
+		// Place object in the middle of the virtual screen, reset scaling to 1
+		_object.setScale(1.0);
 		_object.x = screenLeft + (screenRight - screenLeft) * 0.5;
 		_object.y = screenBottom + (screenTop - screenBottom) * 0.5;
 
-		// Detect how much scaling is needed to fit the new screen
 		final bounds = _config.bounds != null ? _config.bounds : _object.getBounds();
 
-		// Find smallest difference
-		final dx = Math.min(screenRight - bounds.xMax, bounds.xMin - screenLeft);
-		final dy = Math.min(screenTop - bounds.yMax, bounds.yMin - screenBottom);
-
-		// Find out scaling
-		final scaleX = dx / (bounds.xMax - bounds.xMin);
-		final scaleY = dy / (bounds.yMax - bounds.yMin);
-
-		_object.scale(_config.crop ? Math.max(scaleX, scaleY) : Math.min(scaleX, scaleY));
+		// Detect how much scaling is needed to fit the new screen
+		final scaleX = Math.min((screenRight - _object.x) / (bounds.xMax - _object.x), (_object.x - screenLeft) / (_object.x - bounds.xMin));
+		final scaleY = Math.min((screenTop - _object.y) / (bounds.yMax - _object.y), (_object.y - screenBottom) / (_object.y - bounds.yMin));
+		final scale = Math.min(scaleX, scaleY);
+		_object.setScale(scale);
 	}
 }
 
