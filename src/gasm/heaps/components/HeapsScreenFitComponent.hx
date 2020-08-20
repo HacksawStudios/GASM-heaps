@@ -9,7 +9,7 @@ import h3d.Engine;
 import h3d.col.Bounds;
 
 /**
- * Make object or entire scene fit to screen given object.z
+ * Make object or entire scene fit to screen given object.z och scene.z
  * object is prioritized above scene
  * Entity containing Scene + Object -> object is fitted
  * Entity containing Scene -> scene is fitted
