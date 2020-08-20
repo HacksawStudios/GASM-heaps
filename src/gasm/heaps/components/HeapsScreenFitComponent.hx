@@ -92,7 +92,14 @@ class HeapsScreenFitComponent extends Component {
 		// Detect how much scaling is needed to fit the new screen
 		final scaleX = determineScale((screenRight - _object.x) / (bounds.xMax - _object.x), (_object.x - screenLeft) / (_object.x - bounds.xMin));
 		final scaleY = determineScale((screenTop - _object.y) / (bounds.yMax - _object.y), (_object.y - screenBottom) / (_object.y - bounds.yMin));
-		_object.setScale(determineScale(scaleX, scaleY));
+
+		if (_config.keepRatio) {
+			_object.setScale(determineScale(scaleX, scaleY));
+		} else {
+			_object.scaleX = scaleX;
+			_object.scaleY = scaleY;
+			_object.scaleZ = determineScale(scaleX, scaleY);
+		}
 	}
 
 	inline function determineScale(x:Float, y:Float):Float {
@@ -124,4 +131,9 @@ class ScreenFitConfig {
 		Instead of fitting for largest bound, the smallest bound is used
 	**/
 	public var crop = false;
+
+	/**
+		If set to false, object will be stretched to fill screen
+	**/
+	public var keepRatio = true;
 }
