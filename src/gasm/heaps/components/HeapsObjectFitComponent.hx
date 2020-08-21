@@ -22,22 +22,6 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 	var _object:h3d.scene.Object;
 	var _camera:h3d.Camera;
 
-	function get_margins() {
-		return _config.margins;
-	}
-
-	function set_margins(margins:ObjectFitMargins) {
-		return _config.margins = margins;
-	}
-
-	function get_bounds() {
-		return _config.bounds;
-	}
-
-	function set_bounds(bounds:Bounds) {
-		return _config.bounds = bounds;
-	}
-
 	public function new(config:ObjectFitConfig, ?parent:h3d.scene.Object) {
 		super(parent);
 		_config = config;
@@ -91,7 +75,6 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		final scaleY = determineScale((screenTop - _object.y) / (bounds.yMax - _object.y), (_object.y - screenBottom) / (_object.y - bounds.yMin));
 
 		if (_config.keepRatio) {
-			// _object.setScale(determineScale(scaleX, scaleY));
 			final scale = determineScale(scaleX, scaleY);
 			_object.scaleX = scale;
 			_object.scaleY = scale;
@@ -106,6 +89,22 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 	inline function determineScale(x:Float, y:Float):Float {
 		return _config.crop ? Math.max(x, y) : Math.min(x, y);
 	}
+
+	function get_margins() {
+		return _config.margins;
+	}
+
+	function set_margins(margins:ObjectFitMargins) {
+		return _config.margins = margins;
+	}
+
+	function get_bounds() {
+		return _config.bounds;
+	}
+
+	function set_bounds(bounds:Bounds) {
+		return _config.bounds = bounds;
+	}
 }
 
 @:structInit
@@ -119,7 +118,7 @@ class ObjectFitMargins {
 @:structInit
 class ObjectFitConfig {
 	/**
-		percentual margins for object to be fitted
+		Percentual margins for object to be fitted
 	**/
 	public var margins:ObjectFitMargins = {};
 
