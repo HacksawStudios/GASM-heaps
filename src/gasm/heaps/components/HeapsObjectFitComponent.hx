@@ -95,9 +95,11 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 			final scale = determineScale(scaleX, scaleY);
 			_object.scaleX = scale;
 			_object.scaleY = scale;
+			_object.scaleZ = _config.scaleZ ? scale : _object.scaleZ;
 		} else {
 			_object.scaleX = scaleX;
 			_object.scaleY = scaleY;
+			_object.scaleZ = _config.scaleZ ? determineScale(scaleX, scaleY) : _object.scaleZ;
 		}
 	}
 
@@ -135,4 +137,9 @@ class ObjectFitConfig {
 		If set to false, object will be stretched to fill screen
 	**/
 	public var keepRatio = true;
+
+	/**
+		Also apply scaling for z.
+	**/
+	public var scaleZ = false;
 }
