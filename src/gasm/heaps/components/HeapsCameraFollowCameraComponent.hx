@@ -6,7 +6,7 @@ import gasm.core.enums.ComponentType;
 import gasm.core.utils.Assert;
 
 /**
-
+	Follows another camera
 **/
 class HeapsCameraFollowCameraComponent extends Component {
 	final _config:HeapsCameraFollowComponentConfig;
