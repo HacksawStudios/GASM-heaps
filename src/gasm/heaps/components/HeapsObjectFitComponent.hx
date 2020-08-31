@@ -49,20 +49,25 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 
 		final preBounds = _object.getBounds();
 
+		if (Math.abs(preBounds.zMax) >= _camera.zFar) {
+			return;
+		}
+
 		// Get center Z for screen at _object.z
-		final screenZ = _camera.project(0.0, 0.0, preBounds.zMax, engine.width, engine.height).z;
+		final screenZ = _camera.project(0.0, 0.0, preBounds.zMax, engine.width, engine.height, false).z;
 
 		// get outer edges of screen
-		final screen3DPosition = _camera.unproject(1.0, 1.0, screenZ);
+		final screen3DPositionPos = _camera.unproject(1.0, 1.0, screenZ);
+		final screen3DPositionNeg = _camera.unproject(-1.0, -1.0, screenZ);
 
-		final screenW = screen3DPosition.x * 2.0;
-		final screenH = screen3DPosition.y * 2.0;
+		final screenW = screen3DPositionPos.x - screen3DPositionNeg.x;
+		final screenH = screen3DPositionNeg.y - screen3DPositionNeg.y;
 
 		// Create a new "virtual" screen with included margin
-		final screenTop = screen3DPosition.y - margins.top * screenH;
-		final screenBottom = (-screen3DPosition.y) + margins.bottom * screenH;
-		final screenRight = screen3DPosition.x - margins.right * screenW;
-		final screenLeft = (-screen3DPosition.x) + margins.left * screenW;
+		final screenTop = screen3DPositionPos.y - margins.top * screenH;
+		final screenBottom = screen3DPositionNeg.y + margins.bottom * screenH;
+		final screenRight = screen3DPositionPos.x - margins.right * screenW;
+		final screenLeft = screen3DPositionNeg.x + margins.left * screenW;
 
 		// Place object in the middle of the virtual screen, reset scaling to 1
 		_object.x = screenLeft + (screenRight - screenLeft) * 0.5;
@@ -120,7 +125,12 @@ class ObjectFitConfig {
 	/**
 		Percentual margins for object to be fitted
 	**/
-	public var margins:ObjectFitMargins = {};
+	public var margins:ObjectFitMargins = {
+		top: 0.0,
+		bottom: 0.0,
+		left: 0.0,
+		right: 0.0
+	};
 
 	/**
 		Override object bounds with fixed bounds
