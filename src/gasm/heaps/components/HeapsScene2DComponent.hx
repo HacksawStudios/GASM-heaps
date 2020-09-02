@@ -4,65 +4,52 @@ import gasm.core.components.LayoutComponent;
 import gasm.core.enums.ComponentType;
 import gasm.core.math.geom.Point;
 import gasm.heaps.components.HeapsSceneBase;
-import hacksaw.core.filters.h2d.TextureShader;
+import hacksaw.core.components.actor.render.BasicChainComponent;
+import hacksaw.core.components.actor.render.PostProcessingComponent;
+import hacksaw.core.h3d.shaders.postprocessing.PostProcessingShaderBase;
 
 class HeapsScene2DComponent extends HeapsSceneBase {
 	public var scene2d:h2d.Scene;
 
-	final _passes = new Map<TextureShader, h3d.pass.ScreenFx<TextureShader>>();
-	final _engine:h3d.Engine;
-
+	var _passes = new Array<PostProcessingPassConfig>();
 	var _size:Point;
-	var _postProcess = false;
-	var _postProcessingTexture:h3d.mat.Texture;
 
 	public function new(scene:h2d.Scene) {
 		componentType = ComponentType.Model;
 		this.scene2d = scene;
-		_engine = h3d.Engine.getCurrent();
 		super(scene);
 	}
 
-	public function allocPostProcessingTexture() {
-		if (_postProcessingTexture == null) {
-			_postProcessingTexture = new h3d.mat.Texture(_engine.width, _engine.height);
-		} else if (_postProcessingTexture.width != _engine.width || _postProcessingTexture.height != _engine.height) {
-			_postProcessingTexture.resize(_engine.width, _engine.height);
-		}
-	}
-
 	public function render(e:h3d.Engine) {
-		if (_postProcess) {
-			allocPostProcessingTexture();
-			_postProcessingTexture.clear(0, 0);
-			_engine.pushTarget(_postProcessingTexture);
-			scene2d.render(_engine);
-			_engine.popTarget();
-			for (pass in _passes) {
-				final shader = pass.getShader(hacksaw.core.filters.h2d.TextureShader);
-				shader.texture = _postProcessingTexture;
-				pass.render();
-			}
+		final postProcessor = owner.get(PostProcessingComponent);
+		if (postProcessor != null) {
+			postProcessor.render(engine -> scene2d.render(engine));
 		} else {
-			scene2d.render(_engine);
+			scene2d.render(e);
 		}
 	}
 
-	public function addPostProcessingShader(shader:hacksaw.core.filters.h2d.TextureShader, ?blendMode:h3d.mat.BlendMode) {
-		blendMode = blendMode != null ? blendMode : h3d.mat.BlendMode.Alpha;
-
-		allocPostProcessingTexture();
-		_postProcess = true;
-		shader.texture = _postProcessingTexture;
-		final pass = new h3d.pass.ScreenFx<hacksaw.core.filters.h2d.TextureShader>(shader);
-		pass.pass.setBlendMode(blendMode);
-		_passes.set(shader, pass);
+	public function addPostProcessingShader(shader:PostProcessingShaderBase, ?blendMode:h3d.mat.BlendMode) {
+		_passes.push({
+			shader: shader,
+			blendMode: blendMode,
+			textureInput: [TextureInput.COLOR => TextureSource.LastPass(0)]
+		});
+		updateChainComponent();
 	}
 
-	public function removePostProcessingShader(shader:hacksaw.core.filters.h2d.TextureShader) {
-		// TODO: Is it correct to set postProcess to false here? Should it not be true if there are passes left?
-		_postProcess = false;
-		shader.texture = null;
-		_passes.remove(shader);
+	function updateChainComponent() {
+		final existingChain = owner.get(BasicChainComponent);
+		if (existingChain != null) {
+			owner.remove(existingChain);
+		}
+		if (_passes.length != 0) {
+			owner.add(new BasicChainComponent(_passes));
+		}
+	}
+
+	public function removePostProcessingShader(shader:PostProcessingShaderBase) {
+		_passes = _passes.filter(p -> p.shader != shader);
+		updateChainComponent();
 	}
 }
