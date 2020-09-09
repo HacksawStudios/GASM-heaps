@@ -2,9 +2,9 @@ package gasm.heaps.components;
 
 import gasm.core.enums.ComponentType;
 import gasm.core.math.geom.Point;
-import hacksaw.core.components.actor.render.BasicChainComponent;
-import hacksaw.core.components.actor.render.PostProcessingComponent;
-import hacksaw.core.h3d.shaders.postprocessing.PostProcessingShaderBase;
+import gasm.heaps.components.actor.render.BasicChainComponent;
+import gasm.heaps.components.actor.render.PostProcessingComponent;
+import gasm.heaps.shaders.PostProcessingShaderBase;
 
 using Lambda;
 

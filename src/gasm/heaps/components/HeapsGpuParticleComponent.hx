@@ -5,7 +5,6 @@ import h3d.col.Bounds;
 import h3d.mat.BlendMode;
 import h3d.mat.Texture;
 import h3d.parts.GpuParticles;
-import hacksaw.core.h3d.shaders.DarkToAlphaShader;
 
 /**
 	3D GPU particles component
