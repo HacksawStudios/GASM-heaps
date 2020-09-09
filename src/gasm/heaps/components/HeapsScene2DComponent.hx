@@ -4,9 +4,9 @@ import gasm.core.components.LayoutComponent;
 import gasm.core.enums.ComponentType;
 import gasm.core.math.geom.Point;
 import gasm.heaps.components.HeapsSceneBase;
-import hacksaw.core.components.actor.render.BasicChainComponent;
-import hacksaw.core.components.actor.render.PostProcessingComponent;
-import hacksaw.core.h3d.shaders.postprocessing.PostProcessingShaderBase;
+import gasm.heaps.components.actor.render.BasicChainComponent;
+import gasm.heaps.components.actor.render.PostProcessingComponent;
+import gasm.heaps.shaders.PostProcessingShaderBase;
 
 class HeapsScene2DComponent extends HeapsSceneBase {
 	public var scene2d:h2d.Scene;
