@@ -16,6 +16,7 @@ import gasm.heaps.components.HeapsScene3DComponent;
 import gasm.heaps.components.HeapsSceneBase;
 import gasm.heaps.components.HeapsSceneModelComponent;
 import gasm.heaps.components.HeapsSpriteComponent;
+import gasm.heaps.components.actor.render.PostProcessingComponent;
 import gasm.heaps.data.Atlas;
 import gasm.heaps.systems.HeapsCoreSystem;
 import gasm.heaps.systems.HeapsRenderingSystem;
@@ -25,7 +26,6 @@ import h3d.impl.GlDriver;
 import h3d.mat.Data.TextureFlags;
 import h3d.mat.Texture;
 import hacksaw.common.enums.Orientation;
-import hacksaw.core.components.actor.render.PostProcessingComponent;
 import hacksaw.core.utils.GuardAction;
 import haxe.Timer;
 import haxe.ds.StringMap;
@@ -43,6 +43,7 @@ import tweenx909.TweenX;
 using Lambda;
 using StringTools;
 using hacksaw.core.utils.TileUtils;
+using tink.CoreApi;
 
 /**
  * ...
@@ -173,17 +174,24 @@ class HeapsContext extends App implements Context {
 			final timer = Timer.delay(() -> {
 				throw 'Unable to load assets: $queued';
 			}, 25000);
-			new GuardAction(() -> {
-				return queued.length == 0;
-			}, () -> {
+
+			var isDone = false;
+			final interval = new haxe.Timer(100);
+			interval.run = () -> {
+				isDone = queued.length == 0;
+				if (isDone) {
+					interval.stop();
 					timer.stop();
 					done();
-				});
+				}
+			};
 		}
+
 		loader.onProgress = function(percent:Int) {
 			progress(percent);
 			engine.render(this);
 		}
+
 		loader.onError = function(error:String) {
 			throw error;
 		}
