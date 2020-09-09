@@ -6,7 +6,7 @@ import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.HeapsScene2DComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
 import gasm.heaps.components.HeapsSpriteComponent;
-import hacksaw.core.components.actor.render.PostProcessingComponent;
+import gasm.heaps.components.actor.render.PostProcessingComponent;
 import haxe.ds.StringMap;
 import hex.di.ClassRef;
 import hex.di.Injector;
