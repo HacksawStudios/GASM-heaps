@@ -75,22 +75,13 @@ class TweenObjectBacking {
 
 	/**
 		Cancel all running tweens
+		@param finishActive Finish the tweens instantly before removing
 	**/
-	public function cancel() {
-		position.cancel();
-		rotation.cancel();
-		scaling.cancel();
-		color.cancel();
-	}
-
-	/**
-		Finish all running tweens
-	**/
-	public function finishTweens() {
-		position.finish();
-		rotation.finish();
-		scaling.finish();
-		color.finish();
+	public function cancel(finishActive = false) {
+		position.cancel(finishActive);
+		rotation.cancel(finishActive);
+		scaling.cancel(finishActive);
+		color.cancel(finishActive);
 	}
 
 	public function dispose() {
