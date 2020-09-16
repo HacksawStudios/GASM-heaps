@@ -259,6 +259,17 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 		}
 	}
 
+	/**
+		Instantly finish all active tweens
+	**/
+	public function fastForward() {
+		if (this._activeTweens != null) {
+			for (tween in this._activeTweens) {
+				tween.time = tween.duration + tween.delay;
+			}
+		}
+	}
+
 	public function clone() {
 		return new TweenVector(this.x, this.y, this.z, this.w);
 	}
