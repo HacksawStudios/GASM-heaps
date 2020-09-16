@@ -348,7 +348,7 @@ class PostProcessingPass {
 class PostProcessingPassConfig {
 	public var shader:PostProcessingShaderBase;
 	public var textureInput:Map<TextureInput, TextureSource>;
-	public var blendMode = BlendMode.Alpha;
+	public var blendMode = BlendMode.AlphaAdd;
 	public var targets = 1;
 	public var scaleX = 1.0;
 	public var scaleY = 1.0;
