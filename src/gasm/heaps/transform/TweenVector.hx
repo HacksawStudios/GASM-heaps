@@ -240,10 +240,14 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 		this._activeTweens = [];
 	}
 
-	public function cancel() {
+	/**
+		Cancel running tweens
+		@param finishActive Tween will be finished instantly before removed
+	**/
+	public function cancel(finishActive = false) {
 		if (this._activeTweens != null) {
 			for (tween in this._activeTweens) {
-				cancelTween(tween);
+				cancelTween(tween, finishActive);
 			}
 		}
 	}
@@ -263,12 +267,16 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 		return new TweenVector(this.x, this.y, this.z, this.w);
 	}
 
-	function cancelTween(tween:VectorTween) {
-		tween.to.x = null;
-		tween.to.y = null;
-		tween.to.z = null;
-		tween.to.w = null;
-		tween.onDone(false);
+	function cancelTween(tween:VectorTween, finish = false) {
+		if (finish) {
+			tween.time = tween.duration + tween.delay + 1.0;
+		} else {
+			tween.to.x = null;
+			tween.to.y = null;
+			tween.to.z = null;
+			tween.to.w = null;
+			tween.onDone(false);
+		}
 	}
 
 	/**
