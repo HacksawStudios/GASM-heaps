@@ -84,13 +84,13 @@ class TweenObjectBacking {
 	}
 
 	/**
-		Fast forward all running tweens
+		Finish all running tweens
 	**/
-	public function fastForward() {
-		position.fastForward();
-		rotation.fastForward();
-		scaling.fastForward();
-		color.fastForward();
+	public function finishTweens() {
+		position.finish();
+		rotation.finish();
+		scaling.finish();
+		color.finish();
 	}
 
 	public function dispose() {
