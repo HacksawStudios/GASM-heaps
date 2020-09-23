@@ -46,7 +46,9 @@ class PostProcessingChainComponent extends Component {
 	public function onDisabled() {}
 
 	override public function dispose() {
-		_processor.destroyChain(chainId);
+		if (_processor != null) {
+			_processor.destroyChain(chainId);
+		}
 	}
 
 	function setupChain():Int {
