@@ -14,10 +14,9 @@ class HeapsScene3DComponent extends HeapsSceneBase {
 
 	final _engine:h3d.Engine;
 	var _postProcessingTexture:h3d.mat.Texture;
-	var _textureRender = false;
 
 	var _passes = new Array<PostProcessingPassConfig>();
-	var _texturePasses = new Map<TextureShader, h3d.pass.ScreenFx<TextureShader>>();
+	var _texturePass:h3d.pass.ScreenFx<TextureShader>;
 
 	public function new(scene:h3d.scene.Scene) {
 		componentType = ComponentType.Model;
@@ -27,18 +26,16 @@ class HeapsScene3DComponent extends HeapsSceneBase {
 	}
 
 	public function render(e:h3d.Engine) {
-		if (_textureRender) {
+		if (_texturePass != null) {
 			allocPostProcessingTexture();
 			_postProcessingTexture.clear(0, 0.0);
 			_engine.pushTarget(_postProcessingTexture);
 			scene3d.render(_engine);
 			_engine.popTarget();
-			for (pass in _texturePasses) {
-				final shader = pass.getShader(hacksaw.core.filters.h2d.TextureShader);
-				shader.texture = _postProcessingTexture;
-				pass.render();
-				return;
-			}
+
+			final shader = _texturePass.getShader(hacksaw.core.filters.h2d.TextureShader);
+			shader.texture = _postProcessingTexture;
+			_texturePass.render();
 		} else {
 			final postProcessor = owner.get(PostProcessingComponent);
 			if (postProcessor != null) {
@@ -76,11 +73,9 @@ class HeapsScene3DComponent extends HeapsSceneBase {
 
 		allocPostProcessingTexture();
 
-		_textureRender = true;
 		shader.texture = _postProcessingTexture;
-		final pass = new h3d.pass.ScreenFx<hacksaw.core.filters.h2d.TextureShader>(shader);
-		pass.pass.setBlendMode(blendMode);
-		_texturePasses.set(shader, pass);
+		_texturePass = new h3d.pass.ScreenFx<hacksaw.core.filters.h2d.TextureShader>(shader);
+		_texturePass.pass.setBlendMode(blendMode);
 	}
 
 	/**
@@ -99,9 +94,8 @@ class HeapsScene3DComponent extends HeapsSceneBase {
 		@param shader Shader to remove
 	**/
 	public function removePostProcessingTextureShader(shader:hacksaw.core.filters.h2d.TextureShader) {
-		_textureRender = false;
 		shader.texture = null;
-		_texturePasses.remove(shader);
+		_texturePass = null;
 	}
 
 	/**
