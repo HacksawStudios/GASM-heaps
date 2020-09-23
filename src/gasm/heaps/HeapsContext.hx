@@ -114,7 +114,7 @@ class HeapsContext extends App implements Context {
 		_basisSupport = webAssemblySupport() && switch (glDriver.textureSupport) {
 			// ETC1 requires separate alpha and is only used on old android devices, so fall back to png
 			// PVRTC is messing up when not using premultiplied alpha, so use png instead for now
-			case hxd.PixelFormat.ETC(_), #if !DISABLE_BASIS_IOS hxd.PixelFormat.PVRTC(_) #end, null: false;
+			case hxd.PixelFormat.ETC(_), #if !DISABLE_BASIS_IOS hxd.PixelFormat.PVRTC(_), #end null: false;
 			default: true;
 		};
 		#if debug
@@ -383,7 +383,6 @@ class HeapsContext extends App implements Context {
 			final postProcessor = baseEntity.get(PostProcessingComponent);
 			if (postProcessor != null) {
 				postProcessor.render(renderScenes);
-				return;
 			} else {
 				renderScenes(e);
 			}
