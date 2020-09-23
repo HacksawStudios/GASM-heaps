@@ -23,6 +23,9 @@ class BasicChainComponent extends PostProcessingChainComponent {
 	}
 
 	override function setupChain():Int {
+		if (_processor == null) {
+			return null;
+		}
 		final passes = [];
 		for (passConfig in _passConfigs) {
 			passes.push(_processor.createPass(passConfig));
