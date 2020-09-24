@@ -79,16 +79,18 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		final scaleX = determineScale((screenRight - _object.x) / (bounds.xMax - _object.x), (_object.x - screenLeft) / (_object.x - bounds.xMin));
 		final scaleY = determineScale((screenTop - _object.y) / (bounds.yMax - _object.y), (_object.y - screenBottom) / (_object.y - bounds.yMin));
 
+		var scale = determineScale(scaleX, scaleY);
+		if (_config.maxScale != null) {
+			scale = Math.min(scale, _config.maxScale);
+		}
 		if (_config.keepRatio) {
-			final scale = determineScale(scaleX, scaleY);
 			_object.scaleX = scale;
 			_object.scaleY = scale;
-			_object.scaleZ = _config.scaleZ ? scale : _object.scaleZ;
 		} else {
 			_object.scaleX = scaleX;
 			_object.scaleY = scaleY;
-			_object.scaleZ = _config.scaleZ ? determineScale(scaleX, scaleY) : _object.scaleZ;
 		}
+		_object.scaleZ = _config.scaleZ ? scale : _object.scaleZ;
 	}
 
 	inline function determineScale(x:Float, y:Float):Float {
@@ -151,4 +153,9 @@ class ObjectFitConfig {
 		Also apply scaling for z.
 	**/
 	public var scaleZ = false;
+
+	/**
+		Ensure scale never exceeds this value
+	**/
+	public var maxScale:Null<Float> = null;
 }
