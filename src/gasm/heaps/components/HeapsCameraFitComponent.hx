@@ -108,7 +108,7 @@ class HeapsCameraFitComponent extends Component {
 
 	override public function update(dt:Float) {
 		super.update(dt);
-		if (enabled) {
+		if (enabled && _targetComponent != null) {
 			final bounds = _targetComponent.object.getBounds();
 
 			// At some initial parts, the bounds are in a initial state of a very big value. ignore that frame and skip to the next
