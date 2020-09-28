@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "postinstall": "npx @hacksawstudios/haxe-module-installer",
-    "test": ""
+    "pretest": "haxelib newrepo && haxelib --always install tests.hxml && haxelib run travix install",
+    "test": "haxelib run travix node"
   },
   "repository": {
     "type": "git",
