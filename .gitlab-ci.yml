@@ -1,11 +1,25 @@
 stages:
+  - test
   - release
 
+test:
+  image: hacksawgaming/hacksaw-build:4.0.5-1
+  stage: test
+  before_script:
+    - yarn
+  script:
+    - npm test
+  except:
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+(?:-rc\.[0-9]+)?/
+
 package_release:
-  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-18
+  image: hacksawgaming/hacksaw-build:4.0.5-1
   stage: release
   before_script:
-    - pnpm i --unsafe-perm
+    - yarn
   script:
     - npx @hacksawstudios/gitlab-ci-releaser --npm
   only:
@@ -16,10 +30,10 @@ package_release:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/ 
 
 package_rc:
-  image: hacksawgaming/hacksaw-build:4.0.0-rc.2-18
+  image: hacksawgaming/hacksaw-build:4.0.5-1
   stage: release
   before_script:
-    - pnpm i --unsafe-perm
+    - yarn
   script:
     - npx @hacksawstudios/gitlab-ci-releaser --npm --preid rc
   only:
