@@ -60,7 +60,7 @@ package_rc:
   
 merge_back:
   stage: mergeback
-    before_script:
+  before_script:
     - yarn
     - git config --global user.email "ci@hacksawstudios.com"
     - git config --global user.name "CI"
