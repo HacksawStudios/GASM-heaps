@@ -11,6 +11,7 @@ test:
     - yarn
   script:
     - npm test
+    - echo ${CI_COMMIT_TAG}
   except:
     refs:
       - tags
@@ -52,7 +53,7 @@ package_rc:
     - yarn 
     - git add .
     - git commit -m "Update version"
-    - git push --follow-tags "https://${GITLAB_USER_NAME}:${GITLAB_CI_RELEASER_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_COMMIT_TAG}"
+    - git push "https://${GITLAB_USER_NAME}:${GITLAB_CI_RELEASER_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_COMMIT_TAG}"
   only:
     - develop
   except:
@@ -71,7 +72,7 @@ merge_back:
     - git checkout origin/develop
     - git merge origin/master -X theirs
     - npm version preminor --preid=rc -m "Update package from master"
-    - git push --follow-tags "https://${GITLAB_USER_NAME}:${GITLAB_CI_RELEASER_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:develop"
+    - git push "https://${GITLAB_USER_NAME}:${GITLAB_CI_RELEASER_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_COMMIT_TAG}"
   only:
     refs:
       - tags
