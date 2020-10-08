@@ -15,7 +15,7 @@ test:
     - yarn
   script:
     - if [ -n "$(git diff --exit-code)" ]; then echo >&2 "Something changed, run yarn before push:"; git diff --name-status --oneline; exit 1; fi
-    - npm run dox
+    - npm run test
   except:
     refs:
       - tags
