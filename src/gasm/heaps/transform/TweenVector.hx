@@ -1,6 +1,7 @@
 package gasm.heaps.transform;
 
 import gasm.core.utils.Assert;
+import gasm.heaps.types.Number;
 import h3d.Vector;
 
 using Lambda;
@@ -76,10 +77,17 @@ class VectorTween {
 @:structInit
 @:allow(TweenTarget)
 class TweenPos {
-	public var x:Float = null;
-	public var y:Float = null;
-	public var z:Float = null;
-	public var w:Float = null;
+	public var x:Number = null;
+	public var y:Number = null;
+	public var z:Number = null;
+	public var w:Number = null;
+
+	public function new(x:Number = 0.0, y:Number = 0.0, z:Number = 0.0, w:Number = 1.0) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
+	}
 }
 
 /**
