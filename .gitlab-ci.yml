@@ -1,22 +1,29 @@
+image: hacksawgaming/hacksaw-build:4.0.5-1
+
 stages:
   - test
   - release
+  - mergeback
+
+before_script:
+  - git config --global user.email "ci@hacksawstudios.com"
+  - git config --global user.name "CI"
 
 test:
-  image: hacksawgaming/hacksaw-build:4.0.5-1
   stage: test
   before_script:
     - yarn
   script:
-    - npm test
+    - if [ -n "$(git diff --exit-code)" ]; then echo >&2 "Something changed, run yarn before push:"; git diff --name-status --oneline; exit 1; fi
+    - npm run test
   except:
     refs:
       - tags
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+(?:-rc\.[0-9]+)?/
-
+      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/
+      - $CI_COMMIT_MESSAGE =~ /^Update package from master$/m
+    
 package_release:
-  image: hacksawgaming/hacksaw-build:4.0.5-1
   stage: release
   before_script:
     - yarn
@@ -25,12 +32,12 @@ package_release:
   only:
     refs:
       - master
+      - /^patch_.*$/
   except:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/ 
+      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+$/m
 
 package_rc:
-  image: hacksawgaming/hacksaw-build:4.0.5-1
   stage: release
   before_script:
     - yarn
@@ -41,3 +48,19 @@ package_rc:
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+(?:-rc\.[0-9]+)?/
+      - $CI_COMMIT_MESSAGE =~ /^Update package from master$/m   
+  
+merge_back:
+  stage: mergeback
+  script:
+    - yarn 
+    - git fetch
+    - git checkout origin/develop
+    - git merge origin/master -X theirs
+    - npm version preminor --preid=rc -m "Update package from master"
+    - git push --follow-tags "https://${GITLAB_USER_NAME}:${GITLAB_CI_RELEASER_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:develop"
+  only:
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+$/m
