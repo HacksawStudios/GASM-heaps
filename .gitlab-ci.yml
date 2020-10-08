@@ -38,9 +38,6 @@ package_release:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+$/m
       - $CI_COMMIT_MESSAGE =~ /^Update (package from master|version)$/m
-  artifacts:
-    paths:
-    - pages      
 
 package_rc:
   stage: release
@@ -60,14 +57,13 @@ package_rc:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+(?:-rc\.[0-9]+)?/
       - $CI_COMMIT_MESSAGE =~ /^Update (package from master|version)$/m
-  artifacts:
-    paths:
-    - pages      
   
 merge_back:
   stage: mergeback
   script:
     - yarn 
+    - git add .
+    - git commit -m "Update version"
     - git fetch
     - git checkout origin/develop
     - git merge origin/master -X theirs
