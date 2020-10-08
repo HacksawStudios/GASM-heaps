@@ -5,50 +5,63 @@ stages:
   - release
   - mergeback
 
-before_script:
-  - git config --global user.email "ci@hacksawstudios.com"
-  - git config --global user.name "CI"
-
 test:
   stage: test
   before_script:
     - yarn
   script:
-    - if [ -n "$(git diff --exit-code)" ]; then echo >&2 "Something changed, run yarn before push:"; git diff --name-status --oneline; exit 1; fi
-    - npm run test
+    - npm test
   except:
     refs:
       - tags
     variables:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/
-      - $CI_COMMIT_MESSAGE =~ /^Update package from master$/m
+      - $CI_COMMIT_MESSAGE =~ /^Update (package from master|version)$/m
     
 package_release:
   stage: release
   before_script:
     - yarn
+    - git config --global user.email "ci@hacksawstudios.com"
+    - git config --global user.name "CI"
   script:
     - npx @hacksawstudios/gitlab-ci-releaser --npm
+    - yarn 
+    - git add .
+    - git commit -m "Update version"
+    - git push --follow-tags "https://${GITLAB_USER_NAME}:${GITLAB_CI_RELEASER_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_COMMIT_TAG}"
   only:
     refs:
       - master
       - /^patch_.*$/
   except:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+$/m
+      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+$/m 
+  artifacts:
+    paths:
+    - pages      
 
 package_rc:
   stage: release
   before_script:
     - yarn
+    - git config --global user.email "ci@hacksawstudios.com"
+    - git config --global user.name "CI"
   script:
     - npx @hacksawstudios/gitlab-ci-releaser --npm --preid rc
+    - yarn 
+    - git add .
+    - git commit -m "Update version"
+    - git push --follow-tags "https://${GITLAB_USER_NAME}:${GITLAB_CI_RELEASER_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_COMMIT_TAG}"
   only:
     - develop
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+(?:-rc\.[0-9]+)?/
-      - $CI_COMMIT_MESSAGE =~ /^Update package from master$/m   
+      - $CI_COMMIT_MESSAGE =~ /^Update package from master$/m
+  artifacts:
+    paths:
+    - pages      
   
 merge_back:
   stage: mergeback
