@@ -11,7 +11,7 @@ test:
     - yarn
   script:
     - npm test
-    - echo ${CI_COMMIT_TAG}
+    - echo $CI_COMMIT_TAG
   except:
     refs:
       - tags
