@@ -36,7 +36,8 @@ package_release:
       - /^patch_.*$/
   except:
     variables:
-      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+$/m 
+      - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+$/m
+      - $CI_COMMIT_MESSAGE =~ /^Update (package from master|version)$/m
   artifacts:
     paths:
     - pages      
@@ -58,7 +59,7 @@ package_rc:
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+(?:-rc\.[0-9]+)?/
-      - $CI_COMMIT_MESSAGE =~ /^Update package from master$/m
+      - $CI_COMMIT_MESSAGE =~ /^Update (package from master|version)$/m
   artifacts:
     paths:
     - pages      
