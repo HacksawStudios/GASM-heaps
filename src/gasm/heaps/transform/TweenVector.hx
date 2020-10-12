@@ -82,7 +82,7 @@ class TweenPos {
 	public var z:Number = null;
 	public var w:Number = null;
 
-	public function new(x:Number = 0.0, y:Number = 0.0, z:Number = 0.0, w:Number = 1.0) {
+	public function new(x:Number = null, y:Number = null, z:Number = null, w:Number = null) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
