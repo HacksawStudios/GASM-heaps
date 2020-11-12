@@ -33,7 +33,6 @@ class VirtualFileSystem implements hxd.fs.FileSystem {
 	}
 
 	public function get(path:String) {
-		trace('path', path);
 		var entry = paths.get(path);
 		if (entry == null) {
 			throw new NotFound(path);
