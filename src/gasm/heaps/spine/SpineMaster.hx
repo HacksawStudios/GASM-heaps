@@ -14,30 +14,24 @@ class SpineMaster {
 	public final skeleton:Skeleton;
 	public final animationState:AnimationState;
 
-	final _skeletonData:SkeletonData;
-	final _loader:SpineTextureLoader;
-	final _textureAtlas:TextureAtlas;
-	final _atlasAttachmentLoader:AtlasAttachmentLoader;
-	final _skeletonJson:SkeletonJson;
-	final _spineConfigHandle:SpineConfigHandle;
-	final _animationStateData:AnimationStateData;
+	private final textureAtlas:TextureAtlas;
 
 	public function new(spine:Spine) {
-		_loader = new SpineTextureLoader(spine.tile);
-		_textureAtlas = new TextureAtlas(spine.atlas, _loader);
-		_atlasAttachmentLoader = new AtlasAttachmentLoader(_textureAtlas);
-		_skeletonJson = new SkeletonJson(_atlasAttachmentLoader);
-		_spineConfigHandle = new SpineConfigHandle(spine.config);
-		_skeletonData = _skeletonJson.readSkeletonData(_spineConfigHandle);
-		_animationStateData = new AnimationStateData(_skeletonData);
-		animationState = new AnimationState(_animationStateData);
-		skeleton = new Skeleton(_skeletonData);
+		final loader = new SpineTextureLoader(spine.tile);
+		textureAtlas = new TextureAtlas(spine.atlas, loader);
+		final atlasAttachmentLoader = new AtlasAttachmentLoader(textureAtlas);
+		final skeletonJson = new SkeletonJson(atlasAttachmentLoader);
+		final spineConfigHandle = new SpineConfigHandle(spine.config);
+		final skeletonData = skeletonJson.readSkeletonData(spineConfigHandle);
+		final animationStateData = new AnimationStateData(skeletonData);
+		animationState = new AnimationState(animationStateData);
+		skeleton = new Skeleton(skeletonData);
 		skeleton.updateWorldTransform();
 	}
 
 	public function dispose() {
-		if (_textureAtlas != null) {
-			_textureAtlas.dispose();
+		if (textureAtlas != null) {
+			textureAtlas.dispose();
 		}
 	}
 

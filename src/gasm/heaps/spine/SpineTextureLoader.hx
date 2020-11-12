@@ -1,7 +1,7 @@
 package gasm.heaps.spine;
 
-import spine.support.graphics.TextureLoader;
 import spine.support.graphics.TextureAtlas;
+import spine.support.graphics.TextureLoader;
 
 class SpineTextureLoader implements TextureLoader {
 	private var tile:h2d.Tile;
