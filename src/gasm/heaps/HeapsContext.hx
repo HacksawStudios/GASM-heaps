@@ -126,7 +126,7 @@ class HeapsContext extends App implements Context {
 		if (_basisSupport) {
 			_assetConfig.formats.push({type: AssetType.Image, extension: '.basis'});
 			_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.basis'});
-			_assetConfig.formats.push({type: AssetType.SpineImage, extension: '.png'});
+			_assetConfig.formats.push({type: AssetType.SpineImage, extension: '.basis'});
 		} else {
 			_assetConfig.formats.push({type: AssetType.Image, extension: '.png'});
 			_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.png'});
