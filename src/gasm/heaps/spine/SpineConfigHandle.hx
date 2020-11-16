@@ -14,7 +14,7 @@ class SpineConfigHandle implements FileHandle {
 	/**
 		Spine config data, containing animations and mapping
 	**/
-	private final configData:String;
+	final configData:String;
 
 	public function new(configData:String) {
 		path = '';

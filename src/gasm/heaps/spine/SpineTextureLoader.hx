@@ -10,7 +10,7 @@ class SpineTextureLoader implements TextureLoader {
 	/**
 		Spine tile atlas containing the elements/attachments
 	**/
-	private var tile:h2d.Tile;
+	var tile:h2d.Tile;
 
 	public function new(t:h2d.Tile) {
 		tile = t;
