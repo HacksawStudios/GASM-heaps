@@ -18,6 +18,7 @@ import gasm.heaps.components.HeapsSceneModelComponent;
 import gasm.heaps.components.HeapsSpriteComponent;
 import gasm.heaps.components.actor.render.PostProcessingComponent;
 import gasm.heaps.data.Atlas;
+import gasm.heaps.data.Spine;
 import gasm.heaps.systems.HeapsCoreSystem;
 import gasm.heaps.systems.HeapsRenderingSystem;
 import gasm.heaps.systems.HeapsSoundSystem;
@@ -119,16 +120,20 @@ class HeapsContext extends App implements Context {
 		};
 		#if debug
 		_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.png'});
+		_assetConfig.formats.push({type: AssetType.SpineImage, extension: '.png'});
 		_assetConfig.formats.push({type: AssetType.Image, extension: '.png'});
 		#else
 		if (_basisSupport) {
 			_assetConfig.formats.push({type: AssetType.Image, extension: '.basis'});
 			_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.basis'});
+			_assetConfig.formats.push({type: AssetType.SpineImage, extension: '.basis'});
 		} else {
 			_assetConfig.formats.push({type: AssetType.Image, extension: '.png'});
 			_assetConfig.formats.push({type: AssetType.AtlasImage, extension: '.png'});
+			_assetConfig.formats.push({type: AssetType.SpineImage, extension: '.png'});
 		}
 		#end
+		_assetConfig.formats.push({type: AssetType.SpineConfig, extension: '.json'});
 		appModel.pixelRatio = js.Browser.window.devicePixelRatio;
 		#end
 		engine.render(this);
@@ -155,6 +160,10 @@ class HeapsContext extends App implements Context {
 			for (atlas in Type.getClassFields(_assetContainers.atlases)) {
 				queued.push('atlas:$atlas');
 				loader.queueItem(atlas, AssetType.Atlas);
+			}
+			for (spine in Type.getClassFields(_assetContainers.spines)) {
+				queued.push('spine:$spine');
+				loader.queueItem(spine, AssetType.SpineAtlas);
 			}
 			for (gradient in Type.getClassFields(_assetContainers.gradients)) {
 				loader.queueItem(gradient, AssetType.Gradient);
@@ -285,6 +294,66 @@ class HeapsContext extends App implements Context {
 					final t = Tile.fromTexture(texture);
 					final atlas = parseAtlas('$name.$ext', _fileSystem.get(atlasPath).getBytes(), t, isSd ? sdScale : 1.0);
 					Reflect.setField(_assetContainers.atlases, item.id, atlas);
+				});
+			}
+		});
+
+		loader.addHandler(AssetType.SpineAtlas, function(item:HandlerItem) {
+			final name = item.id;
+			_fileSystem.add('spine/$name.atlas', item.data);
+
+			final configPath = 'spine/$name.json';
+			final imageFormat = _assetConfig.formats.find(val -> val.type == AssetType.SpineImage);
+			final preferredExt = imageFormat != null ? imageFormat.extension : null;
+			final getSpine = (path, ext) -> {
+				getImageTexture(path, ext, 'spine/$name').then((texture) -> {
+					final t = Tile.fromTexture(texture);
+					final spine = parseSpine('$name.$ext', item.data, t, _fileSystem.get(configPath).getBytes());
+					queued.remove('spine:${item.id}');
+					Reflect.setField(_assetContainers.spines, item.id, spine);
+				});
+			}
+
+			final validExt = ['.basis', '.png', '.jpg', '.jpeg'].find(ext -> _fileSystem.exists('spine/$name$ext'));
+			if (validExt != null && _fileSystem.exists(configPath)) {
+				final imagePath = 'atlas/$name$validExt';
+				getSpine(imagePath, validExt.substr(1));
+			}
+		});
+
+		loader.addHandler(AssetType.SpineImage, function(item:HandlerItem) {
+			final name = item.id;
+			final ext = Path.extension(item.path);
+			final atlasPath = 'spine/$name.atlas';
+			final imagePath = 'spine/$name.$ext';
+			final configPath = 'spine/$name.json';
+			final imageData = item.data;
+			_fileSystem.add(imagePath, imageData);
+			if (_fileSystem.exists(atlasPath) && _fileSystem.exists(configPath)) {
+				getImageTexture(imagePath, ext, 'spine/$name').then((texture) -> {
+					// Don't need to allocate atlas again
+					_fileSystem.remove(imagePath);
+					queued.remove('spine:${item.id}');
+					final t = Tile.fromTexture(texture);
+					final spine = parseSpine('$name.$ext', _fileSystem.get(atlasPath).getBytes(), t, _fileSystem.get(configPath).getBytes());
+					Reflect.setField(_assetContainers.spines, item.id, spine);
+				});
+			}
+		});
+
+		loader.addHandler(AssetType.SpineConfig, function(item:HandlerItem) {
+			final name = item.id;
+			final ext = Path.extension(item.path);
+			final configData = item.data;
+			final configPath = 'spine/$name.$ext';
+			final atlasPath = 'spine/$name.atlas';
+			final imagePath = 'spine/$name.png';
+			_fileSystem.add(configPath, configData);
+			if (_fileSystem.exists(atlasPath) && _fileSystem.exists(imagePath)) {
+				getImageTexture(imagePath, ext, 'spine/$name').then((texture) -> {
+					final t = Tile.fromTexture(texture);
+					final spine = parseSpine('$name.$ext', _fileSystem.get(atlasPath).getBytes(), t, item.data);
+					Reflect.setField(_assetContainers.spines, item.id, spine);
 				});
 			}
 		});
@@ -567,6 +636,17 @@ class HeapsContext extends App implements Context {
 		return atlas;
 	}
 
+	function parseSpine(id:String, atlasData:haxe.io.Bytes, tile:Tile, config:haxe.io.Bytes):Spine {
+		var atlasString = atlasData.toString();
+		var configString = config.toString();
+		var spine:Spine = {
+			tile: tile,
+			atlas: atlasString,
+			config: configString,
+		}
+		return spine;
+	}
+
 	@:access(h2d.Font)
 	function parseFont(id:String, definition:haxe.io.Bytes, image:haxe.io.Bytes):h2d.Font {
 		// Taken from https://github.com/HeapsIO/heaps/blob/master/hxd/res/BitmapFont.hx since there seems to be no way to parse bitmap font without using heaps resrouce system directly.
@@ -642,6 +722,7 @@ typedef AssetContainers = {
 	?fonts:haxe.ds.StringMap<hxd.res.Font>,
 	?bitmapFonts:haxe.ds.StringMap<hxd.res.BitmapFont>,
 	?atlases:Dynamic,
+	?spines:Dynamic,
 	?gradients:Dynamic,
 	?configs:Dynamic,
 	?brandingConfigs:BrandingConfigs,
