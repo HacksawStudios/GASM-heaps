@@ -1,15 +1,26 @@
 package gasm.heaps.components;
 
-import gasm.core.Component;
-import gasm.core.enums.ComponentType;
 import gasm.core.utils.Assert;
 import gasm.heaps.components.Heaps3DComponent;
 import gasm.heaps.components.HeapsScene3DComponent;
+import gasm.heaps.transform.TweenObject.ObjectTween;
 import h3d.Engine;
+import h3d.Vector;
 import h3d.col.Bounds;
+import h3d.col.Point;
+import hacksaw.core.components.view.h3d.TileTargetComponent;
 
 /**
- * Make object or entire scene fit to screen given object.z och scene.z
+	Make object or entire scene fit to screen given object.z och scene.z
+
+	Note that it needs to be parent to object to fit
+
+	@example
+	final plane = new TilePlaneComponent({tile: tile});
+	final fit = new HeapsObjectFitComponent();
+	final holder = new Entity().add(fit);
+	holder.addChild(new Entity().add(plane));
+
  */
 class HeapsObjectFitComponent extends Heaps3DComponent {
 	public var enable = true;
@@ -17,6 +28,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 	public var margins(get, set):ObjectFitMargins;
 
 	public var bounds(get, set):Bounds;
+	public var scale(get, null):Vector;
 
 	final _config:ObjectFitConfig;
 	var _object:h3d.scene.Object;
@@ -40,7 +52,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 
 	override public function update(dt:Float) {
 		super.update(dt);
-		if (!enable) {
+		if (!enable || _object == null) {
 			return;
 		}
 
@@ -56,33 +68,53 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		// Get center Z for screen at _object.z
 		final screenZ = _camera.project(0.0, 0.0, preBounds.zMax, engine.width, engine.height, false).z;
 
-		// get outer edges of screen
+		// Get outer edges of screen
 		final screen3DPositionPos = _camera.unproject(1.0, 1.0, screenZ);
 		final screen3DPositionNeg = _camera.unproject(-1.0, -1.0, screenZ);
 
-		final screenW = screen3DPositionPos.x - screen3DPositionNeg.x;
-		final screenH = screen3DPositionNeg.y - screen3DPositionNeg.y;
-
+		final screenW = Math.abs(screen3DPositionPos.x - screen3DPositionNeg.x);
+		final screenH = Math.abs(screen3DPositionNeg.y - screen3DPositionPos.y);
 		// Create a new "virtual" screen with included margin
 		final screenTop = screen3DPositionPos.y - margins.top * screenH;
 		final screenBottom = screen3DPositionNeg.y + margins.bottom * screenH;
 		final screenRight = screen3DPositionPos.x - margins.right * screenW;
 		final screenLeft = screen3DPositionNeg.x + margins.left * screenW;
 
-		// Place object in the middle of the virtual screen, reset scaling to 1
+		// Place object in the middle of the virtual screen
 		_object.x = screenLeft + (screenRight - screenLeft) * 0.5;
 		_object.y = screenBottom + (screenTop - screenBottom) * 0.5;
 
-		final bounds = _config.bounds != null ? _config.bounds : _object.getBounds();
+		final bounds = _config.bounds != null ? _config.bounds : _object.getBounds().clone();
+
+		var rotScale = 1.0;
+		final tileTarget = owner.firstChild != null ? owner.firstChild.get(TileTargetComponent) : null;
+		if (tileTarget != null && _config.crop) {
+			final rot = tileTarget.mesh.getRotationQuat().clone();
+			tileTarget.mesh.setRotation(0, 0, 0);
+			final straightBounds = tileTarget.mesh.getBounds().clone();
+			tileTarget.mesh.setRotationQuat(rot);
+			final xDiff = Math.abs(bounds.xMin / straightBounds.xMin);
+			final yDiff = Math.abs(bounds.yMin / straightBounds.yMin);
+			// Kinda works, but not really correct. If value is not a mod of 45 degrees it will trim a bit much.
+			// But typically we would use 0, 45 or 90 degrees, which are fine.
+			rotScale = Math.max(xDiff, yDiff) * 1.42;
+		}
 
 		// Detect how much scaling is needed to fit the new screen
-		final scaleX = determineScale((screenRight - _object.x) / (bounds.xMax - _object.x), (_object.x - screenLeft) / (_object.x - bounds.xMin));
-		final scaleY = determineScale((screenTop - _object.y) / (bounds.yMax - _object.y), (_object.y - screenBottom) / (_object.y - bounds.yMin));
+		final xMaxScale = Math.abs((screenRight - _object.x) / (bounds.xMax - _object.x));
+		final xMinScale = Math.abs((_object.x - screenLeft) / (_object.x - bounds.xMin));
+		final scaleX = determineScale(xMaxScale, xMinScale) * rotScale;
+
+		final yMaxScale = Math.abs((screenTop - _object.y) / (-bounds.yMax - _object.y));
+		final yMinScale = Math.abs((_object.y - screenBottom) / (_object.y + bounds.yMin));
+
+		final scaleY = determineScale(yMaxScale, yMinScale) * rotScale;
 
 		var scale = determineScale(scaleX, scaleY);
 		if (_config.maxScale != null) {
 			scale = Math.min(scale, _config.maxScale);
 		}
+
 		if (_config.keepRatio) {
 			_object.scaleX = scale;
 			_object.scaleY = scale;
@@ -91,6 +123,26 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 			_object.scaleY = scaleY;
 		}
 		_object.scaleZ = _config.scaleZ ? scale : _object.scaleZ;
+	}
+
+	public function tween(tweens:Array<ObjectTween>) {
+		enable = false;
+		for (tween in tweens) {
+			switch tween {
+				case Scale(v):
+					v.from.x *= scale.x;
+					v.from.y *= scale.y;
+					v.from.z *= scale.x;
+					v.to.x *= scale.x;
+					v.to.y *= scale.y;
+					v.to.z *= scale.x;
+				default:
+					null;
+			}
+		}
+		final handler = object.tween(tweens);
+		handler.handle(() -> enable = true);
+		return handler;
 	}
 
 	inline function determineScale(x:Float, y:Float):Float {
@@ -103,6 +155,10 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 
 	function set_margins(margins:ObjectFitMargins) {
 		return _config.margins = margins;
+	}
+
+	function get_scale() {
+		return new Vector(_object.scaleX, _object.scaleY, _object.scaleZ);
 	}
 
 	function get_bounds() {
