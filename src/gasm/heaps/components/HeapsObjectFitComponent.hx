@@ -72,8 +72,8 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		final screen3DPositionPos = _camera.unproject(1.0, 1.0, screenZ);
 		final screen3DPositionNeg = _camera.unproject(-1.0, -1.0, screenZ);
 
-		final screenW = screen3DPositionPos.x - screen3DPositionNeg.x;
-		final screenH = screen3DPositionNeg.y - screen3DPositionPos.y;
+		final screenW = Math.abs(screen3DPositionPos.x - screen3DPositionNeg.x);
+		final screenH = Math.abs(screen3DPositionNeg.y - screen3DPositionPos.y);
 		// Create a new "virtual" screen with included margin
 		final screenTop = screen3DPositionPos.y - margins.top * screenH;
 		final screenBottom = screen3DPositionNeg.y + margins.bottom * screenH;
