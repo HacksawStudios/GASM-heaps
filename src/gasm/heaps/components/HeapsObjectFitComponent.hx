@@ -136,8 +136,6 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 					v.to.x *= scale.x;
 					v.to.y *= scale.y;
 					v.to.z *= scale.x;
-					trace('v:${v}');
-
 				default:
 					null;
 			}
