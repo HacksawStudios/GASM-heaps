@@ -299,22 +299,17 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 		if (!tweening) {
 			return false;
 		}
-		var wassched = false;
 		for (tween in this._scheduled) {
 			tween.delay -= dt;
 			if (tween.delay <= 0) {
 				tween.delay = 0.0;
 				this._scheduled.remove(tween);
 				this._activeTweens.push(setupTween(tween));
-				wassched = true;
 			}
 		}
 
 		for (tween in this._activeTweens) {
 			tween.time += dt;
-			if (wassched) {
-				trace('tween.time:${tween.time}');
-			}
 			var done = false;
 			var p = tween.time / tween.duration;
 			if (p >= 1.0) {
