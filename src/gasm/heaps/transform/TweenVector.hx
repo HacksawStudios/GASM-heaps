@@ -418,6 +418,11 @@ class TweenVectorBacking extends Vector {
 	**/
 	public var isActive(get, never):Bool;
 
+	/**
+		Return first active tween
+	**/
+	public var firstActive(get, never):VectorTween;
+
 	// All active animations
 	@:allow(gasm.heaps.transform.TweenVector)
 	var _active:Array<VectorTween> = [];
@@ -439,5 +444,9 @@ class TweenVectorBacking extends Vector {
 
 	function get_isActive():Bool {
 		return _active.length > 0;
+	}
+
+	function get_firstActive():Bool {
+		return _active.length > 0 ? _active.first() : null;
 	}
 }

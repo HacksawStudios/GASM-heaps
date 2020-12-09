@@ -33,6 +33,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 	final _config:ObjectFitConfig;
 	var _object:h3d.scene.Object;
 	var _camera:h3d.Camera;
+	var _tweening = false;
 
 	public function new(config:ObjectFitConfig, ?parent:h3d.scene.Object) {
 		super(parent);
@@ -52,7 +53,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 
 	override public function update(dt:Float) {
 		super.update(dt);
-		if (!enable || _object == null) {
+		if (!enable || _object == null || !_tweening) {
 			return;
 		}
 
@@ -126,7 +127,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 	}
 
 	public function tween(tweens:Array<ObjectTween>) {
-		enable = false;
+		_tweening = true;
 		for (tween in tweens) {
 			switch tween {
 				case Scale(v):
@@ -141,7 +142,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 			}
 		}
 		final handler = object.tween(tweens);
-		handler.handle(() -> enable = true);
+		handler.handle(() -> _tweening = false);
 		return handler;
 	}
 
