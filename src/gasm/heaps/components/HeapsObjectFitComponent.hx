@@ -53,7 +53,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 
 	override public function update(dt:Float) {
 		super.update(dt);
-		if (!enable || _object == null || _tweening) {
+		if (!enable || _object == null || !_tweening) {
 			return;
 		}
 
@@ -144,7 +144,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 			}
 		}
 		final handler = object.tween(tweens);
-		// handler.handle(() -> _tweening = false);
+		handler.handle(() -> _tweening = false);
 		return handler;
 	}
 
