@@ -447,7 +447,7 @@ class TweenVectorBacking extends Vector {
 		return _active.length > 0;
 	}
 
-	function get_firstActive():Bool {
+	function get_firstActive():VectorTween {
 		return _active.length > 0 ? _active.first() : null;
 	}
 }
