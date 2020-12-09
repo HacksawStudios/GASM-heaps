@@ -166,13 +166,13 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 				this._scheduled.push(target);
 			} else {
 				target = setupTween(target);
-				this._activeTweens.push(target);
+				this._active.push(target);
 			}
 			target.onDone = (tweenDone:Bool) -> {
 				if (target.delay > 0) {
 					this._scheduled.remove(target);
 				} else {
-					this._activeTweens.remove(target);
+					this._active.remove(target);
 				}
 				done(tweenDone);
 			}
@@ -181,7 +181,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 
 	public function cancelUsedAxis(t:VectorTween) {
 		var remove = [];
-		for (tween in this._activeTweens) {
+		for (tween in this._active) {
 			// Replace axis if input not null
 			tween.to.x = t.to.x == null ? tween.to.x : null;
 			tween.to.y = t.to.y == null ? tween.to.y : null;
@@ -195,7 +195,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 		}
 		for (tween in remove) {
 			tween.onDone(false);
-			this._activeTweens.remove(tween);
+			this._active.remove(tween);
 		}
 	}
 
@@ -215,7 +215,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 
 	inline public function reset() {
 		cancel();
-		this._activeTweens = [];
+		this._active = [];
 		this._scheduled = [];
 	}
 
@@ -224,7 +224,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 		@param finishActive Tween will be finished instantly before removed
 	**/
 	public function cancel(finishActive = false) {
-		for (tween in this._activeTweens.concat(this._scheduled)) {
+		for (tween in this._active.concat(this._scheduled)) {
 			cancelTween(tween, finishActive);
 		}
 	}
@@ -233,7 +233,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 		Stop repetition of all active tweens, results in onDone when current repetition is complete
 	**/
 	public function stopRepeat() {
-		for (tween in this._activeTweens.concat(this._scheduled)) {
+		for (tween in this._active.concat(this._scheduled)) {
 			tween.repeat = false;
 		}
 	}
@@ -295,7 +295,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 		@param dt Delta time
 	**/
 	public function update(dt:Float) {
-		final tweening = this._activeTweens.concat(this._scheduled).length > 0;
+		final tweening = this._active.concat(this._scheduled).length > 0;
 		if (!tweening) {
 			return false;
 		}
@@ -304,11 +304,11 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 			if (tween.delay <= 0) {
 				tween.delay = 0.0;
 				this._scheduled.remove(tween);
-				this._activeTweens.push(setupTween(tween));
+				this._active.push(setupTween(tween));
 			}
 		}
 
-		for (tween in this._activeTweens) {
+		for (tween in this._active) {
 			tween.time += dt;
 			var done = false;
 			var p = tween.time / tween.duration;
@@ -420,7 +420,7 @@ class TweenVectorBacking extends Vector {
 
 	// All active animations
 	@:allow(gasm.heaps.transform.TweenVector)
-	var _activeTweens:Array<VectorTween> = [];
+	var _active:Array<VectorTween> = [];
 	@:allow(gasm.heaps.transform.TweenVector)
 	var _scheduled:Array<VectorTween> = [];
 
@@ -429,15 +429,15 @@ class TweenVectorBacking extends Vector {
 	}
 
 	public function dispose() {
-		_activeTweens = [];
+		_active = [];
 		_scheduled = [];
 	}
 
 	function get_isTweening():Bool {
-		return _activeTweens.length > 0 || _scheduled.length > 0;
+		return _active.length > 0 || _scheduled.length > 0;
 	}
 
 	function get_isActive():Bool {
-		return _activeTweens.length > 0;
+		return _active.length > 0;
 	}
 }
