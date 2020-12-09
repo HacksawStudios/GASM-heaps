@@ -6,6 +6,7 @@ import h3d.Vector;
 
 using Lambda;
 using Safety;
+using thx.Arrays;
 using tink.CoreApi;
 using tweenxcore.Tools;
 
@@ -446,7 +447,7 @@ class TweenVectorBacking extends Vector {
 		return _active.length > 0;
 	}
 
-	function get_firstActive():Bool {
+	function get_firstActive():VectorTween {
 		return _active.length > 0 ? _active.first() : null;
 	}
 }
