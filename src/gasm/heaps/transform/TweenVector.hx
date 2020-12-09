@@ -347,9 +347,6 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 				} else {
 					this.y = tween.curve(p).lerp(tween.from.y, tween.to.y);
 				}
-				if (wassched) {
-					trace('this.y:${this.y}');
-				}
 			}
 
 			// Animate Z
