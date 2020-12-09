@@ -6,6 +6,7 @@ import h3d.Vector;
 
 using Lambda;
 using Safety;
+using thx.Arrays;
 using tink.CoreApi;
 using tweenxcore.Tools;
 
