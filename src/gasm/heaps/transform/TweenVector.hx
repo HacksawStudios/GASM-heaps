@@ -409,9 +409,14 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 **/
 class TweenVectorBacking extends Vector {
 	/**
-		Returns true if an animation is active
+		Returns true if an animation is active or scheduled
 	**/
 	public var isTweening(get, never):Bool;
+
+	/**
+		Returns true if an animation is active, not including scheduled
+	**/
+	public var isActive(get, never):Bool;
 
 	// All active animations
 	@:allow(gasm.heaps.transform.TweenVector)
@@ -430,5 +435,9 @@ class TweenVectorBacking extends Vector {
 
 	function get_isTweening():Bool {
 		return _activeTweens.length > 0 || _scheduled.length > 0;
+	}
+
+	function get_isActive():Bool {
+		return _activeTweens.length > 0;
 	}
 }
