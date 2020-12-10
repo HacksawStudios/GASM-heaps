@@ -53,7 +53,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 
 	override public function update(dt:Float) {
 		super.update(dt);
-		if (!enable || _object == null || !_tweening) {
+		if (!enable || _object == null || _tweening) {
 			return;
 		}
 
