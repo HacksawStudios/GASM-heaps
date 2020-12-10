@@ -53,7 +53,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 
 	override public function update(dt:Float) {
 		super.update(dt);
-		if (!enable || _object == null || !_tweening) {
+		if (!enable || _object == null || _tweening) {
 			return;
 		}
 
@@ -104,16 +104,18 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		// Detect how much scaling is needed to fit the new screen
 		final xMaxScale = Math.abs((screenRight - _object.x) / (bounds.xMax - _object.x));
 		final xMinScale = Math.abs((_object.x - screenLeft) / (_object.x - bounds.xMin));
-		final scaleX = determineScale(xMaxScale, xMinScale) * rotScale;
+		var scaleX = determineScale(xMaxScale, xMinScale) * rotScale;
 
 		final yMaxScale = Math.abs((screenTop - _object.y) / (-bounds.yMax - _object.y));
 		final yMinScale = Math.abs((_object.y - screenBottom) / (_object.y + bounds.yMin));
 
-		final scaleY = determineScale(yMaxScale, yMinScale) * rotScale;
+		var scaleY = determineScale(yMaxScale, yMinScale) * rotScale;
 
 		var scale = determineScale(scaleX, scaleY);
 		if (_config.maxScale != null) {
 			scale = Math.min(scale, _config.maxScale);
+			scaleX = Math.min(scaleX, _config.maxScale);
+			scaleY = Math.min(scaleY, _config.maxScale);
 		}
 
 		if (_config.keepRatio) {
@@ -134,9 +136,9 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 					v.from.x *= scale.x;
 					v.from.y *= scale.y;
 					v.from.z *= scale.x;
-					v.to.x *= scale.x;
-					v.to.y *= scale.y;
-					v.to.z *= scale.x;
+					v.to.x *= scale.x + margins.left;
+					v.to.y *= scale.y + margins.top;
+					v.to.z *= scale.z;
 				default:
 					null;
 			}
@@ -159,6 +161,9 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 	}
 
 	function get_scale() {
+		if (_object == null) {
+			return new Vector();
+		}
 		return new Vector(_object.scaleX, _object.scaleY, _object.scaleZ);
 	}
 
@@ -188,7 +193,7 @@ class ObjectFitConfig {
 		top: 0.0,
 		bottom: 0.0,
 		left: 0.0,
-		right: 0.0
+		right: 0.0,
 	};
 
 	/**
