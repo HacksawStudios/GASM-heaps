@@ -106,9 +106,8 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		final xMinScale = Math.abs((_object.x - screenLeft) / (_object.x - bounds.xMin));
 		var scaleX = determineScale(xMaxScale, xMinScale) * rotScale;
 
-		final yMaxScale = Math.abs((screenTop - _object.y) / (-bounds.yMax - _object.y));
-		final yMinScale = Math.abs((_object.y - screenBottom) / (_object.y + bounds.yMin));
-
+		final yMaxScale = Math.abs((screenTop - _object.y) / (bounds.yMax - _object.y));
+		final yMinScale = Math.abs((_object.y - screenBottom) / (_object.y - bounds.yMin));
 		var scaleY = determineScale(yMaxScale, yMinScale) * rotScale;
 
 		var scale = determineScale(scaleX, scaleY);
