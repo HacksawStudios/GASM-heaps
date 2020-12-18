@@ -10,6 +10,8 @@ import h3d.col.Bounds;
 import h3d.col.Point;
 import hacksaw.core.components.view.h3d.TileTargetComponent;
 
+using tink.CoreApi;
+
 /**
 	Make object or entire scene fit to screen given object.z och scene.z
 
@@ -34,6 +36,8 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 	var _object:h3d.scene.Object;
 	var _camera:h3d.Camera;
 	var _tweening = false;
+	var _scheduledTweens:Array<ObjectTween> = null;
+	var _tweenDone = Future.trigger();
 
 	public function new(config:ObjectFitConfig, ?parent:h3d.scene.Object) {
 		super(parent);
@@ -53,6 +57,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 
 	override public function update(dt:Float) {
 		super.update(dt);
+
 		if (!enable || _object == null || _tweening) {
 			return;
 		}
@@ -125,26 +130,40 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 			_object.scaleY = scaleY;
 		}
 		_object.scaleZ = _config.scaleZ ? scale : _object.scaleZ;
+		if (_scheduledTweens != null && inited) {
+			tween(_scheduledTweens);
+			_scheduledTweens = null;
+		}
 	}
 
 	public function tween(tweens:Array<ObjectTween>) {
+		if (!inited) {
+			_scheduledTweens = tweens;
+			return _tweenDone;
+		}
+
 		_tweening = true;
 		for (tween in tweens) {
 			switch tween {
 				case Scale(v):
+					final leftMarg = margins != null ? margins.left : 0.0;
+					final topMarg = margins != null ? margins.top : 0.0;
 					v.from.x *= scale.x;
 					v.from.y *= scale.y;
 					v.from.z *= scale.x;
-					v.to.x *= scale.x + margins.left;
-					v.to.y *= scale.y + margins.top;
+					v.to.x *= scale.x + leftMarg;
+					v.to.y *= scale.y + topMarg;
 					v.to.z *= scale.z;
 				default:
 					null;
 			}
 		}
 		final handler = object.tween(tweens);
-		handler.handle(() -> _tweening = false);
-		return handler;
+		handler.handle(() -> {
+			_tweening = false;
+			_tweenDone.trigger(Noise);
+		});
+		return _tweenDone;
 	}
 
 	inline function determineScale(x:Float, y:Float):Float {
