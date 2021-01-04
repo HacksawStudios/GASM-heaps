@@ -112,7 +112,6 @@ abstract TweenTarget(TweenPos) from TweenPos to TweenPos {
 	}
 
 	/**
-
 	**/
 	public function set(tp:TweenTarget, overwriteNulls = false) {
 		this.x = (this.x != null || overwriteNulls) ? tp.x : null;
@@ -164,6 +163,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 		return Future.async(done -> {
 			target.time = 0.0;
 			if (target.delay > 0) {
+				cancelUsedAxis(target);
 				this._scheduled.push(target);
 			} else {
 				target = setupTween(target);
@@ -182,13 +182,12 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 
 	public function cancelUsedAxis(t:VectorTween) {
 		var remove = [];
-		for (tween in this._active) {
+		for (tween in this._active.concat(this._scheduled)) {
 			// Replace axis if input not null
 			tween.to.x = t.to.x == null ? tween.to.x : null;
 			tween.to.y = t.to.y == null ? tween.to.y : null;
 			tween.to.z = t.to.z == null ? tween.to.z : null;
 			tween.to.w = t.to.w == null ? tween.to.w : null;
-
 			// All parts gone? Remove tween
 			if (tween.to.x == null && tween.to.y == null && tween.to.z == null && tween.to.w == null) {
 				remove.push(tween);
@@ -246,9 +245,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 	function setupTween(tween:VectorTween) {
 		final hasFrom = tween.from != null;
 		final hasTo = tween.to != null;
-
 		Assert.that(tween.to != null || tween.from != null, 'Must supply to or from to tween');
-
 		// Ensure all input values have a valid start and endpoint
 		// If no tween is specified. Tween to position at activation time
 		if (!hasTo) {
@@ -256,14 +253,12 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 			tween.to = tween.from.clone();
 			tween.to.set(this);
 		}
-
 		// If only tween is specified. Tween from origin
 		if (!hasFrom) {
 			// Clone tween from to preserve nulls
 			tween.from = tween.to.clone();
 			tween.from.set(this);
 		}
-
 		// Add relative coords if needed
 		if (tween.relative) {
 			if (hasTo) {
@@ -308,7 +303,6 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 				this._active.push(setupTween(tween));
 			}
 		}
-
 		for (tween in this._active) {
 			tween.time += dt;
 			var done = false;
@@ -321,7 +315,6 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 			final curveDuration = tween.curveDuration.or(tween.duration);
 			final curveStart = tween.duration - Math.min(tween.curveDuration, tween.duration);
 			final curvePart = curveStart / tween.duration;
-
 			// Animate X
 			if (tween.to.x != null) {
 				if (tween.curveDuration != null) {
@@ -335,7 +328,6 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 					this.x = tween.curve(p).lerp(tween.from.x, tween.to.x);
 				}
 			}
-
 			// Animate Y
 			if (tween.to.y != null) {
 				if (tween.curveDuration != null) {
@@ -349,7 +341,6 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 					this.y = tween.curve(p).lerp(tween.from.y, tween.to.y);
 				}
 			}
-
 			// Animate Z
 			if (tween.to.z != null) {
 				if (tween.curveDuration != null) {
@@ -363,7 +354,6 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 					this.z = tween.curve(p).lerp(tween.from.z, tween.to.z);
 				}
 			}
-
 			// Animate W
 			if (tween.to.w != null) {
 				if (tween.curveDuration != null) {
@@ -380,7 +370,6 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 			if (tween.onUpdate != null) {
 				tween.onUpdate(this.x, this.y, this.z, this.w);
 			}
-
 			if (done) {
 				tween.onDone(true);
 				continue;
