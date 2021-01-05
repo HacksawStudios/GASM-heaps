@@ -65,7 +65,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		final engine = Engine.getCurrent();
 		_object.setScale(1.0);
 
-		final preBounds = _object.getBounds();
+		final preBounds = _config.bounds != null ? _config.bounds : _object.getBounds();
 
 		if (Math.abs(preBounds.zMax) >= _camera.zFar) {
 			return;
