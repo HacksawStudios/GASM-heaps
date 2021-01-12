@@ -68,6 +68,22 @@ class VectorTween {
 	public var repeat = false;
 
 	public var onUpdate:(x:Float, y:Float, z:Float, w:Float) -> Void = null;
+
+	public function clone():VectorTween {
+		return {
+			to: to != null ? to.clone() : null,
+			from: from != null ? from.clone() : null,
+			onDone: onDone,
+			delay: delay,
+			duration: duration,
+			time: time,
+			curve: curve,
+			relative: relative,
+			curveDuration: curveDuration,
+			repeat: repeat,
+			onUpdate: onUpdate,
+		}
+	}
 }
 
 /**
@@ -161,6 +177,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 	**/
 	public function tween(target:VectorTween):Future<Bool> {
 		return Future.async(done -> {
+			target = target.clone();
 			target.time = 0.0;
 			if (target.delay > 0) {
 				cancelUsedAxis(target);
