@@ -141,6 +141,7 @@ class Heaps3DComponent extends Component {
 	}
 
 	override public function update(dt:Float) {
+		super.update(dt);
 		object.update(dt);
 		if (_model != null) {
 			if (_model.dirty) {
