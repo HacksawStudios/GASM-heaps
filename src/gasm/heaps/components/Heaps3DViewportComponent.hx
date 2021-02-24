@@ -6,6 +6,8 @@ import gasm.core.enums.ComponentType;
 import gasm.heaps.components.HeapsScene3DComponent;
 import h3d.Vector;
 
+using Safety;
+
 class Heaps3DViewportComponent extends Component {
 	public var fov(default, set):Float;
 
@@ -52,12 +54,13 @@ class Heaps3DViewportComponent extends Component {
 			final high = Math.max(_appModel.stageSize.x, _appModel.stageSize.y);
 			final low = Math.min(_appModel.stageSize.x, _appModel.stageSize.y);
 			fov = val;
-			_s3d.camera.setFovX(fov, high / low);
+			_s3d.camera.setFovX(fov, _config.fixedFovRatio.or(high / low));
 		}
 		return val;
 	}
 
 	override public function update(dt:Float) {
+		// TODO: Look into why camera/fov etc is not being updated unless there are configured bounds
 		if (!_hasBounds && _config.boundsObject != null) {
 			var bounds = _config.boundsObject.getBounds();
 			// Empty bounds has values between -1e20 and 1e20
@@ -96,5 +99,6 @@ class Heaps3DViewportConfig {
 	public var zNear = 1.0;
 	public var zFar = 100.0;
 	public var fov:Null<Float> = null;
+	public var fixedFovRatio:Null<Float> = null;
 	public var rightHanded = true;
 }
