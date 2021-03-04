@@ -25,7 +25,10 @@ using tweenxcore.Tools;
  * Note that you can only use one camera fit component per stage graph, otherwise they will fight eachother.
  */
 class HeapsCameraFitComponent extends Component {
-	public var enabled(default, set) = true;
+	public var margins(get, set):CameraFitMargins;
+
+	public var bounds(get, set):Bounds;
+
 	public var duration = 1.0;
 
 	final _config:CameraFitConfig;
@@ -41,34 +44,7 @@ class HeapsCameraFitComponent extends Component {
 	var _appModel:AppModelComponent;
 	var _forceFit = false;
 	var _shouldFit = false;
-
-	public function set_enabled(e:Bool) {
-		if (e == true) {
-			_forceFit = true;
-		}
-		return enabled = e;
-	}
-
-	public var margins(get, set):CameraFitMargins;
-
-	public var bounds(get, set):Bounds;
-
-	function get_margins() {
-		return _config.margins;
-	}
-
-	function set_margins(margins:CameraFitMargins) {
-		return _config.margins = margins;
-	}
-
-	function get_bounds() {
-		return _config.bounds;
-	}
-
-	function set_bounds(bounds:Bounds) {
-		return _config.bounds = bounds;
-	}
-
+	var _enabled = true;
 	var _onFitCallback:Null<Void->Void> = null;
 
 	public function new(config:CameraFitConfig) {
@@ -236,6 +212,33 @@ class HeapsCameraFitComponent extends Component {
 		_s3d.camera.update();
 
 		return result;
+	}
+
+	override function get_enabled():Bool {
+		return _enabled;
+	}
+
+	override function set_enabled(val:Bool) {
+		if (val == true) {
+			_forceFit = true;
+		}
+		return _enabled = val;
+	}
+
+	function get_margins() {
+		return _config.margins;
+	}
+
+	function set_margins(margins:CameraFitMargins) {
+		return _config.margins = margins;
+	}
+
+	function get_bounds() {
+		return _config.bounds;
+	}
+
+	function set_bounds(bounds:Bounds) {
+		return _config.bounds = bounds;
 	}
 }
 

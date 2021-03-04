@@ -24,8 +24,6 @@ using Safety;
 	The render-stage needs to be manually called before any rendering can happen.
 **/
 class PostProcessingComponent extends Component {
-	public var enabled = true;
-
 	// These variables are globally unique ensuring chains can be passed between postprocessors
 	static final _passes = new IntMap<PostProcessingPass>();
 	static final _chains = new IntMap<Array<Int>>();
@@ -36,6 +34,7 @@ class PostProcessingComponent extends Component {
 	var _activeChainComponent:PostProcessingChainComponent = null;
 	var _lastUpdatedChainComponent:PostProcessingChainComponent = null;
 	var _baseTexture:h3d.mat.Texture = null;
+	var _enabled = true;
 
 	final _defaultChain:Int = null;
 	var _dt = 0.0;
@@ -258,6 +257,14 @@ class PostProcessingComponent extends Component {
 		t.wrap = Wrap.Repeat;
 		_noiseTextures.set(size, t);
 		return t;
+	}
+
+	override function get_enabled():Bool {
+		return _enabled;
+	}
+
+	override function set_enabled(val:Bool) {
+		return _enabled = val;
 	}
 }
 
