@@ -18,8 +18,6 @@ class Heaps3DViewportComponent extends Component {
 	var _hasBounds = false;
 	var _appModel:AppModelComponent;
 
-	var _fovRatioUpdated = false;
-
 	public function new(config:Heaps3DViewportConfig) {
 		_config = config;
 		componentType = ComponentType.Actor;
@@ -55,16 +53,9 @@ class Heaps3DViewportComponent extends Component {
 	}
 
 	function set_fovRatio(val:Float) {
-		_fovRatioUpdated = fovRatio != val;
 		fovRatio = val;
+		fov = fov;
 		return val;
-	}
-
-	override public function update(dt:Float) {
-		if (_fovRatioUpdated) {
-			_fovRatioUpdated = false;
-			fov = fov;
-		}
 	}
 }
 
