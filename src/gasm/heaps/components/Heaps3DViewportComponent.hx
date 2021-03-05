@@ -10,12 +10,15 @@ using Safety;
 
 class Heaps3DViewportComponent extends Component {
 	public var fov(default, set):Float;
+	public var fovRatio(default, set):Float;
 
 	var _config:Heaps3DViewportConfig;
 	var _scale:Float;
 	var _s3d:h3d.scene.Scene;
 	var _hasBounds = false;
 	var _appModel:AppModelComponent;
+
+	var _fovRatioUpdated = false;
 
 	public function new(config:Heaps3DViewportConfig) {
 		_config = config;
@@ -40,65 +43,39 @@ class Heaps3DViewportComponent extends Component {
 		cam.target = _config.cameraTarget;
 		cam.zNear = _config.zNear;
 		cam.zFar = _config.zFar;
-		if (_config.fov != null) {
-			fov = _config.fov;
-		}
 
-		if (_config.boundsObject != null) {
-			_s3d.visible = false;
-		}
+		fovRatio = _config.fovRatio;
+		fov = _config.fov;
 	}
 
 	function set_fov(val:Float) {
-		if (_appModel != null) {
-			final high = Math.max(_appModel.stageSize.x, _appModel.stageSize.y);
-			final low = Math.min(_appModel.stageSize.x, _appModel.stageSize.y);
-			fov = val;
-			_s3d.camera.setFovX(fov, _config.fixedFovRatio.or(high / low));
-		}
+		fov = val;
+		_s3d.camera.setFovX(fov, fovRatio);
+		return val;
+	}
+
+	function set_fovRatio(val:Float) {
+		_fovRatioUpdated = fovRatio != val;
+		fovRatio = val;
 		return val;
 	}
 
 	override public function update(dt:Float) {
-		// TODO: Look into why camera/fov etc is not being updated unless there are configured bounds
-		if (!_hasBounds && _config.boundsObject != null) {
-			var bounds = _config.boundsObject.getBounds();
-			// Empty bounds has values between -1e20 and 1e20
-			if (bounds.xMin != 1e20) {
-				_s3d.visible = true;
-				var top = bounds.ySize;
-				var right = bounds.xSize;
-				var w = _config.bounds2d.width / _appModel.pixelRatio;
-				var h = _config.bounds2d.height / _appModel.pixelRatio;
-				var wFactor = top / w;
-				var hFactor = right / h;
-				var wRatio = w * wFactor * _config.boundsMult.x;
-				var hRatio = h * hFactor * _config.boundsMult.y;
-				var ratio = Math.min(wRatio, hRatio);
-				if (_scale != ratio) {
-					_s3d.setScale(ratio);
-					_s3d.camera.update();
-					_scale = ratio;
-					if (fov != null) {
-						_s3d.camera.setFovX(fov, ratio);
-					}
-				}
-				_hasBounds = true;
-			}
+		if (_fovRatioUpdated) {
+			_fovRatioUpdated = false;
+			fov = fov;
 		}
 	}
 }
 
 @:structInit
 class Heaps3DViewportConfig {
-	public var boundsObject:h3d.scene.Object = null;
-	public var boundsMult = new Vector(1, 1);
-	public var bounds2d:h2d.col.Bounds = null;
+	public var name = 'default';
 	public var cameraPos = new Vector(2, 3, 4);
 	public var cameraTarget = new Vector(-0.00001);
 	public var zNear = 1.0;
 	public var zFar = 100.0;
-	public var fov:Null<Float> = null;
-	public var fixedFovRatio:Null<Float> = null;
+	public var fov:Float = 45;
+	public var fovRatio:Float = 16 / 9;
 	public var rightHanded = true;
 }
