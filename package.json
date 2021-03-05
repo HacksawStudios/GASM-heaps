@@ -20,7 +20,7 @@
   "homepage": "https://gitlab.hacksawstudios.com/gameclient/client-common/GASM-heaps",
   "devDependencies": {
     "@hacksawstudios/gitlab-ci-releaser": "2.0.1",
-    "fs-extra": "9.0.1"
+    "fs-extra": "9.1.0"
   },
   "dependencies": {
     "@hacksawstudios/haxe-module-installer": "1.2.1"

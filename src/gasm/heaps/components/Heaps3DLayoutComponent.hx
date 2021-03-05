@@ -14,8 +14,6 @@ import h3d.scene.Object;
 import h3d.scene.Scene;
 
 class Heaps3DLayoutComponent extends Component {
-	public var enabled = true;
-
 	final _config:Heaps3DLayoutConfig;
 	final _margins:Margins;
 	var _s3d:Scene;
@@ -25,6 +23,7 @@ class Heaps3DLayoutComponent extends Component {
 	var _stageW = 0.0;
 	var _stageH = 0.0;
 	var _model:ThreeDModelComponent;
+	var _enabled = true;
 
 	public function new(config:Heaps3DLayoutConfig) {
 		componentType = Actor;
@@ -204,6 +203,14 @@ class Heaps3DLayoutComponent extends Component {
 		object.setScale(ratio);
 		object.x = xRatio == ratio ? lMarg - (xoff * 0.5) : 0;
 		object.y = yRatio == ratio ? bMarg - (yoff * 0.5) : 0;
+	}
+
+	override function get_enabled():Bool {
+		return _enabled;
+	}
+
+	override function set_enabled(val:Bool) {
+		return _enabled = val;
 	}
 }
 
