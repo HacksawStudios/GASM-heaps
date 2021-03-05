@@ -59,7 +59,6 @@ class Heaps3DViewportComponent extends Component {
 
 @:structInit
 class Heaps3DViewportConfig {
-	public var name = 'default';
 	public var cameraPos = new Vector(2, 3, 4);
 	public var cameraTarget = new Vector(-0.00001);
 	public var zNear = 1.0;
