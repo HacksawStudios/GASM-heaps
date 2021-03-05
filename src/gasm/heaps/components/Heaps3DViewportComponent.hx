@@ -6,8 +6,6 @@ import gasm.core.enums.ComponentType;
 import gasm.heaps.components.HeapsScene3DComponent;
 import h3d.Vector;
 
-using Safety;
-
 class Heaps3DViewportComponent extends Component {
 	public var fov(default, set):Float;
 	public var fovRatio(default, set):Float;
