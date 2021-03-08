@@ -3,11 +3,13 @@ package gasm.heaps.components;
 import gasm.core.Component;
 import gasm.core.components.AppModelComponent;
 import gasm.core.enums.ComponentType;
+import gasm.core.utils.Assert;
 import gasm.heaps.components.HeapsScene3DComponent;
 import h3d.Vector;
 
 class Heaps3DViewportComponent extends Component {
 	public var fov(default, set):Float;
+	public var fovRatio(default, set):Float;
 
 	var _config:Heaps3DViewportConfig;
 	var _scale:Float;
@@ -38,8 +40,10 @@ class Heaps3DViewportComponent extends Component {
 		cam.target = _config.cameraTarget;
 		cam.zNear = _config.zNear;
 		cam.zFar = _config.zFar;
+
 		if (_config.fov != null) {
 			fov = _config.fov;
+			fovRatio = _config.fovRatio;
 		}
 
 		if (_config.boundsObject != null) {
@@ -48,12 +52,15 @@ class Heaps3DViewportComponent extends Component {
 	}
 
 	function set_fov(val:Float) {
-		if (_appModel != null) {
-			final high = Math.max(_appModel.stageSize.x, _appModel.stageSize.y);
-			final low = Math.min(_appModel.stageSize.x, _appModel.stageSize.y);
-			fov = val;
-			_s3d.camera.setFovX(fov, high / low);
-		}
+		fov = val;
+		_s3d.camera.setFovX(fov, fovRatio);
+		return val;
+	}
+
+	function set_fovRatio(val:Float) {
+		Assert.that(fov != null, 'Trying to set fovRatio without a set fov');
+		fovRatio = val;
+		fov = fov;
 		return val;
 	}
 
@@ -77,7 +84,7 @@ class Heaps3DViewportComponent extends Component {
 					_s3d.camera.update();
 					_scale = ratio;
 					if (fov != null) {
-						_s3d.camera.setFovX(fov, ratio);
+						fovRatio = ratio;
 					}
 				}
 				_hasBounds = true;
@@ -96,5 +103,6 @@ class Heaps3DViewportConfig {
 	public var zNear = 1.0;
 	public var zFar = 100.0;
 	public var fov:Null<Float> = null;
+	public var fovRatio:Float = 4 / 3;
 	public var rightHanded = true;
 }
