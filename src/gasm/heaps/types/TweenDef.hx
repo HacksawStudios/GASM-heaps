@@ -46,7 +46,11 @@ abstract TweenConf(TweenDef) from TweenDef to TweenDef {
 }
 
 /**
-	TWeen definition
+	Tween definition. 
+
+	Data object for tweens defined in json.
+
+	NOTE: Will convert degrees to rads for rotation. In code you should define ObjectTween directly and not use this.
 **/
 @:structInit class TweenDef {
 	/**
