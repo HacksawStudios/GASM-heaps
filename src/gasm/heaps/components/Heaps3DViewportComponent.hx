@@ -45,6 +45,10 @@ class Heaps3DViewportComponent extends Component {
 			fov = _config.fov;
 			fovRatio = _config.fovRatio;
 		}
+
+		if (_config.boundsObject != null) {
+			_s3d.visible = false;
+		}
 	}
 
 	function set_fov(val:Float) {
