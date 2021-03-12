@@ -82,6 +82,22 @@ class HeapsContext extends App implements Context {
 		_assetConfig = {};
 	}
 
+	function when(predicate:Void->Bool) {
+		final trigger = Future.trigger();
+		checkPredicate({trigger: trigger, predicate: predicate});
+		return trigger.asFuture();
+	}
+
+	function checkPredicate(predicateItem:{trigger:FutureTrigger<Noise>, predicate:Void->Bool}) {
+		if (predicateItem.predicate()) {
+			predicateItem.trigger.trigger(Noise);
+		} else {
+			haxe.Timer.delay(() -> {
+				checkPredicate(predicateItem);
+			}, 0);
+		}
+	}
+
 	public function preload(progress:Int->Void, done:Void->Void) {
 		#if js
 		_soundSupport = (Reflect.field(js.Browser.window, "AudioContext") != null
@@ -239,10 +255,11 @@ class HeapsContext extends App implements Context {
 			final imagePath = 'fonts/$name.png';
 			final fontData = item.data;
 			_fileSystem.add(fontPath, fontData);
-			if (_fileSystem.exists(imagePath)) {
+			// Wait for image to be loaded
+			when(() -> _fileSystem.exists(imagePath)).handle(() -> {
 				final font = new hxd.res.BitmapFont(_fileSystem.get(fontPath));
 				_assetContainers.bitmapFonts.set(item.id, font);
-			}
+			});
 		});
 
 		loader.addHandler(AssetType.BitmapFontImage, function(item:HandlerItem) {
@@ -251,10 +268,6 @@ class HeapsContext extends App implements Context {
 			final imagePath = 'fonts/$name.png';
 			final imageData = item.data;
 			_fileSystem.add(imagePath, imageData);
-			if (_fileSystem.exists(fontPath)) {
-				final font = new hxd.res.BitmapFont(_fileSystem.get(fontPath));
-				_assetContainers.bitmapFonts.set(item.id, font);
-			}
 		});
 
 		loader.addHandler(AssetType.Atlas, function(item:HandlerItem) {
@@ -271,74 +284,33 @@ class HeapsContext extends App implements Context {
 					Reflect.setField(_assetContainers.atlases, item.id, atlas);
 				});
 			}
-			final validExt = ['.basis', '.png', '.jpg', '.jpeg'].find(ext -> _fileSystem.exists('atlas/$name$ext'));
-			if (validExt != null) {
-				final imagePath = 'atlas/$name$validExt';
-				getAtlas(imagePath, validExt.substr(1));
-			}
+
+			final imageExtensions = ['.basis', '.png', '.jpg', '.jpeg'];
+
+			// Wait for image to be loaded
+			when(() -> {
+				return imageExtensions.find(ext -> _fileSystem.exists('atlas/$name$ext')) != null;
+			}).handle(() -> {
+				final ext = imageExtensions.find(ext -> _fileSystem.exists('atlas/$name$ext'));
+				final imagePath = 'atlas/$name$ext';
+				getAtlas(imagePath, ext.substr(1));
+			});
 		});
 
 		loader.addHandler(AssetType.AtlasImage, function(item:HandlerItem) {
 			final name = item.id;
 			final ext = Path.extension(item.path);
-			final atlasPath = 'atlas/$name.atlas';
 			final imagePath = 'atlas/$name.$ext';
 			final imageData = item.data;
 			_fileSystem.add(imagePath, imageData);
-			if (_fileSystem.exists(atlasPath)) {
-				getImageTexture(imagePath, ext, 'atlas/$name').then((texture) -> {
-					// Don't need to allocate atlas again
-					_fileSystem.remove(imagePath);
-					queued.remove('atlas:${item.id}');
-					final isSd = item.path.contains('/sd/');
-					final t = Tile.fromTexture(texture);
-					final atlas = parseAtlas('$name.$ext', _fileSystem.get(atlasPath).getBytes(), t, isSd ? sdScale : 1.0);
-					Reflect.setField(_assetContainers.atlases, item.id, atlas);
-				});
-			}
 		});
 
 		loader.addHandler(AssetType.SpineAtlas, function(item:HandlerItem) {
-			final name = item.id;
-			_fileSystem.add('spine/$name.atlas', item.data);
-
-			final configPath = 'spine/$name.json';
-			final imageFormat = _assetConfig.formats.find(val -> val.type == AssetType.SpineImage);
-			final preferredExt = imageFormat != null ? imageFormat.extension : null;
-			final getSpine = (path, ext) -> {
-				getImageTexture(path, ext, 'spine/$name').then((texture) -> {
-					final t = Tile.fromTexture(texture);
-					final spine = parseSpine('$name.$ext', item.data, t, _fileSystem.get(configPath).getBytes());
-					queued.remove('spine:${item.id}');
-					Reflect.setField(_assetContainers.spines, item.id, spine);
-				});
-			}
-
-			final validExt = ['.basis', '.png', '.jpg', '.jpeg'].find(ext -> _fileSystem.exists('spine/$name$ext'));
-			if (validExt != null && _fileSystem.exists(configPath)) {
-				final imagePath = 'atlas/$name$validExt';
-				getSpine(imagePath, validExt.substr(1));
-			}
+			_fileSystem.add('spine/' + item.id + '.atlas', item.data);
 		});
 
 		loader.addHandler(AssetType.SpineImage, function(item:HandlerItem) {
-			final name = item.id;
-			final ext = Path.extension(item.path);
-			final atlasPath = 'spine/$name.atlas';
-			final imagePath = 'spine/$name.$ext';
-			final configPath = 'spine/$name.json';
-			final imageData = item.data;
-			_fileSystem.add(imagePath, imageData);
-			if (_fileSystem.exists(atlasPath) && _fileSystem.exists(configPath)) {
-				getImageTexture(imagePath, ext, 'spine/$name').then((texture) -> {
-					// Don't need to allocate atlas again
-					_fileSystem.remove(imagePath);
-					queued.remove('spine:${item.id}');
-					final t = Tile.fromTexture(texture);
-					final spine = parseSpine('$name.$ext', _fileSystem.get(atlasPath).getBytes(), t, _fileSystem.get(configPath).getBytes());
-					Reflect.setField(_assetContainers.spines, item.id, spine);
-				});
-			}
+			_fileSystem.add('spine/' + item.id + '.' + Path.extension(item.path), item.data);
 		});
 
 		loader.addHandler(AssetType.SpineConfig, function(item:HandlerItem) {
@@ -349,13 +321,17 @@ class HeapsContext extends App implements Context {
 			final atlasPath = 'spine/$name.atlas';
 			final imagePath = 'spine/$name.png';
 			_fileSystem.add(configPath, configData);
-			if (_fileSystem.exists(atlasPath) && _fileSystem.exists(imagePath)) {
+
+			// Wait for atlas and image to be loaded
+			when(() -> _fileSystem.exists(atlasPath) && _fileSystem.exists(imagePath)).handle(() -> {
 				getImageTexture(imagePath, ext, 'spine/$name').then((texture) -> {
+					_fileSystem.remove(imagePath);
+					queued.remove('spine:${item.id}');
 					final t = Tile.fromTexture(texture);
 					final spine = parseSpine('$name.$ext', _fileSystem.get(atlasPath).getBytes(), t, item.data);
 					Reflect.setField(_assetContainers.spines, item.id, spine);
 				});
-			}
+			});
 		});
 
 		loader.addHandler(AssetType.Gradient, function(item:HandlerItem) {
