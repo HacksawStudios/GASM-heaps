@@ -226,7 +226,7 @@ class HeapsContext extends App implements Context {
 			final ext = Path.extension(item.path);
 			final imagePath = '$name.$ext';
 			_fileSystem.add(imagePath, item.data);
-			getImageTexture(imagePath, ext, name).then((texture) -> {
+			getImageTexture(imagePath, ext, name).handle(texture -> {
 				queued.remove('image:${item.id}');
 				Reflect.setField(_assetContainers.images, item.id, Tile.fromTexture(texture));
 			});
@@ -251,86 +251,66 @@ class HeapsContext extends App implements Context {
 
 		loader.addHandler(AssetType.BitmapFont, function(item:HandlerItem) {
 			final name = item.id.split('.')[0];
-			final fontPath = 'fonts/$name.fnt';
-			final imagePath = 'fonts/$name.png';
-			final fontData = item.data;
-			_fileSystem.add(fontPath, fontData);
-			// Wait for image to be loaded
-			when(() -> _fileSystem.exists(imagePath)).handle(() -> {
-				final font = new hxd.res.BitmapFont(_fileSystem.get(fontPath));
-				_assetContainers.bitmapFonts.set(item.id, font);
+			_fileSystem.add('fonts/$name.font', item.data);
+			tryLoadBitmapFont(name).handle(success -> {
+				if (success) {
+					queued.remove('fonts:$name');
+				}
 			});
 		});
 
 		loader.addHandler(AssetType.BitmapFontImage, function(item:HandlerItem) {
 			final name = item.id.split('.')[0];
-			final fontPath = 'fonts/$name.fnt';
-			final imagePath = 'fonts/$name.png';
-			final imageData = item.data;
-			_fileSystem.add(imagePath, imageData);
+			_fileSystem.add('fonts/$name.png', item.data);
+			tryLoadBitmapFont(name).handle(success -> {
+				if (success) {
+					queued.remove('fonts:$name');
+				}
+			});
 		});
 
 		loader.addHandler(AssetType.Atlas, function(item:HandlerItem) {
-			final name = item.id;
-			_fileSystem.add('atlas/$name.atlas', item.data);
-			final imageFormat = _assetConfig.formats.find(val -> val.type == AssetType.AtlasImage);
-			final preferredExt = imageFormat != null ? imageFormat.extension : null;
-			final getAtlas = (path, ext) -> {
-				getImageTexture(path, ext, 'atlas/$name').then((texture) -> {
-					final isSd = item.path.contains('/sd/');
-					final t = Tile.fromTexture(texture);
-					final atlas = parseAtlas('$name.$ext', item.data, t, isSd ? sdScale : 1.0);
+			_fileSystem.add('atlas/${item.id}.atlas', item.data);
+			tryLoadAtlas(item.id).handle(success -> {
+				if (success) {
 					queued.remove('atlas:${item.id}');
-					Reflect.setField(_assetContainers.atlases, item.id, atlas);
-				});
-			}
-
-			final imageExtensions = ['.basis', '.png', '.jpg', '.jpeg'];
-
-			// Wait for image to be loaded
-			when(() -> {
-				return imageExtensions.find(ext -> _fileSystem.exists('atlas/$name$ext')) != null;
-			}).handle(() -> {
-				final ext = imageExtensions.find(ext -> _fileSystem.exists('atlas/$name$ext'));
-				final imagePath = 'atlas/$name$ext';
-				getAtlas(imagePath, ext.substr(1));
+				}
 			});
 		});
 
 		loader.addHandler(AssetType.AtlasImage, function(item:HandlerItem) {
-			final name = item.id;
-			final ext = Path.extension(item.path);
-			final imagePath = 'atlas/$name.$ext';
-			final imageData = item.data;
-			_fileSystem.add(imagePath, imageData);
+			_fileSystem.add('atlas/${item.id}.${Path.extension(item.path)}', item.data);
+			tryLoadAtlas(item.id).handle(success -> {
+				if (success) {
+					queued.remove('atlas:${item.id}');
+				}
+			});
 		});
 
 		loader.addHandler(AssetType.SpineAtlas, function(item:HandlerItem) {
-			_fileSystem.add('spine/' + item.id + '.atlas', item.data);
+			_fileSystem.add('spine/${item.id}.atlas', item.data);
+			tryLoadSpine(item.id).handle(success -> {
+				if (success) {
+					queued.remove('spine:${item.id}');
+				}
+			});
 		});
 
 		loader.addHandler(AssetType.SpineImage, function(item:HandlerItem) {
-			_fileSystem.add('spine/' + item.id + '.' + Path.extension(item.path), item.data);
+			_fileSystem.add('spine/${item.id}.' + Path.extension(item.path), item.data);
+			tryLoadSpine(item.id).handle(success -> {
+				if (success) {
+					queued.remove('spine:${item.id}');
+				}
+			});
 		});
 
 		loader.addHandler(AssetType.SpineConfig, function(item:HandlerItem) {
-			final name = item.id;
-			final ext = Path.extension(item.path);
-			final configData = item.data;
-			final configPath = 'spine/$name.$ext';
-			final atlasPath = 'spine/$name.atlas';
-			final imagePath = 'spine/$name.png';
-			_fileSystem.add(configPath, configData);
-
-			// Wait for atlas and image to be loaded
-			when(() -> _fileSystem.exists(atlasPath) && _fileSystem.exists(imagePath)).handle(() -> {
-				getImageTexture(imagePath, ext, 'spine/$name').then((texture) -> {
-					_fileSystem.remove(imagePath);
+			_fileSystem.add('spine/${item.id}.json', item.data);
+			tryLoadSpine(item.id).handle(success -> {
+				if (success) {
 					queued.remove('spine:${item.id}');
-					final t = Tile.fromTexture(texture);
-					final spine = parseSpine('$name.$ext', _fileSystem.get(atlasPath).getBytes(), t, item.data);
-					Reflect.setField(_assetContainers.spines, item.id, spine);
-				});
+				}
 			});
 		});
 
@@ -353,6 +333,85 @@ class HeapsContext extends App implements Context {
 			var model = hxd.res.Any.fromBytes('${item.path}', item.data).to(hxd.res.Model);
 			Reflect.setField(_assetContainers.models, item.id, model);
 		});
+	}
+
+	function tryLoadBitmapFont(name:String) {
+		return Future.async(cb -> {
+			final imagePath = getLoadedImagePath(name, 'fonts');
+			final fontPath = 'fonts/$name.fnt';
+			if (!detectFilesLoaded([fontPath]) || imagePath == null) {
+				cb(false);
+			} else {
+				final font = new hxd.res.BitmapFont(_fileSystem.get(fontPath));
+				_assetContainers.bitmapFonts.set(name, font);
+				cb(true);
+			}
+			null;
+		});
+	}
+
+	function tryLoadSpine(name:String) {
+		return Future.async(cb -> {
+			final imagePath = getLoadedImagePath(name, 'spine');
+			final atlasPath = 'spine/$name.atlas';
+			final configPath = 'spine/$name.json';
+
+			if (!detectFilesLoaded([atlasPath, configPath]) || imagePath == null) {
+				cb(false);
+			} else {
+				getImageTexture(imagePath, Path.extension(imagePath), 'spine/$name').handle(texture -> {
+					// Parse spine
+					final t = Tile.fromTexture(texture);
+					final spine = parseSpine(imagePath, _fileSystem.get(atlasPath).getBytes(), t, _fileSystem.get(configPath).getBytes());
+					// Assign data to spine
+					Reflect.setField(_assetContainers.spines, name, spine);
+					// Clean up
+					_fileSystem.remove(imagePath);
+					_fileSystem.remove(configPath);
+					_fileSystem.remove(atlasPath);
+					cb(true);
+				});
+			}
+			null;
+		});
+	}
+
+	function tryLoadAtlas(name:String) {
+		return Future.async(cb -> {
+			final imagePath = getLoadedImagePath(name, 'atlas');
+			final atlasPath = 'atlas/$name.atlas';
+			if (!detectFilesLoaded([atlasPath]) || imagePath == null) {
+				cb(false);
+			} else {
+				getImageTexture(imagePath, Path.extension(imagePath), 'atlas/$name').handle(texture -> {
+					final t = Tile.fromTexture(texture);
+					final atlas = parseAtlas(atlasPath, _fileSystem.get(atlasPath).getBytes(), t, 1.0);
+					Reflect.setField(_assetContainers.atlases, name, atlas);
+					_fileSystem.remove(imagePath);
+					_fileSystem.remove(atlasPath);
+					cb(true);
+				});
+			}
+			null;
+		});
+	}
+
+	function detectFilesLoaded(filenames:Array<String>) {
+		for (filename in filenames) {
+			if (!_fileSystem.exists(filename)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	function getLoadedImagePath(name:String, folder:String):String {
+		final imageExtensions = ['.basis', '.png', '.jpg', '.jpeg'];
+		final ext = imageExtensions.find(ext -> _fileSystem.exists('$folder/$name$ext'));
+		if (ext == null) {
+			return null;
+		}
+		return '$folder/$name$ext';
 	}
 
 	override function init() {
@@ -460,20 +519,22 @@ class HeapsContext extends App implements Context {
 		}
 	}
 
-	function getImageTexture(path:String, ext:String, name:String):js.lib.Promise<h3d.mat.Texture> {
-		final bytes = _fileSystem.get(path).getBytes();
-		return switch ext {
-			case 'basis':
-				hxd.res.BasisTextureLoader.getTexture(bytes.getData());
-			default:
-				try {
-					final texture = hxd.res.Any.fromBytes(path, bytes).toTexture();
-					texture.realloc = null;
-					return js.lib.Promise.resolve(texture);
-				} catch (e:Dynamic) {
-					throw 'Unable to decode image $path. $e';
-				}
-		}
+	function getImageTexture(path:String, ext:String, name:String):Future<h3d.mat.Texture> {
+		return Future.async(cb -> {
+			final bytes = _fileSystem.get(path).getBytes();
+			switch ext {
+				case 'basis':
+					hxd.res.BasisTextureLoader.getTexture(bytes.getData()).then(texture -> cb(texture));
+				default:
+					try {
+						final texture = hxd.res.Any.fromBytes(path, bytes).toTexture();
+						texture.realloc = null;
+						cb(texture);
+					} catch (e:Dynamic) {
+						throw 'Unable to decode image $path. $e';
+					}
+			}
+		});
 	}
 
 	function mapInjections() {
