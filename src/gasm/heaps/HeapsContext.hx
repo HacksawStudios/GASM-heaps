@@ -339,7 +339,7 @@ class HeapsContext extends App implements Context {
 		return Future.async(cb -> {
 			final imagePath = getLoadedImagePath(name, 'fonts');
 			final fontPath = 'fonts/$name.fnt';
-			if (!detectFilesLoaded([fontPath]) || imagePath == null) {
+			if (!areFilesLoaded([fontPath]) || imagePath == null) {
 				cb(false);
 			} else {
 				final font = new hxd.res.BitmapFont(_fileSystem.get(fontPath));
@@ -356,7 +356,7 @@ class HeapsContext extends App implements Context {
 			final atlasPath = 'spine/$name.atlas';
 			final configPath = 'spine/$name.json';
 
-			if (!detectFilesLoaded([atlasPath, configPath]) || imagePath == null) {
+			if (!areFilesLoaded([atlasPath, configPath]) || imagePath == null) {
 				cb(false);
 			} else {
 				getImageTexture(imagePath, Path.extension(imagePath), 'spine/$name').handle(texture -> {
@@ -380,7 +380,7 @@ class HeapsContext extends App implements Context {
 		return Future.async(cb -> {
 			final imagePath = getLoadedImagePath(name, 'atlas');
 			final atlasPath = 'atlas/$name.atlas';
-			if (!detectFilesLoaded([atlasPath]) || imagePath == null) {
+			if (!areFilesLoaded([atlasPath]) || imagePath == null) {
 				cb(false);
 			} else {
 				getImageTexture(imagePath, Path.extension(imagePath), 'atlas/$name').handle(texture -> {
@@ -396,7 +396,7 @@ class HeapsContext extends App implements Context {
 		});
 	}
 
-	function detectFilesLoaded(filenames:Array<String>) {
+	function areFilesLoaded(filenames:Array<String>) {
 		for (filename in filenames) {
 			if (!_fileSystem.exists(filename)) {
 				return false;
