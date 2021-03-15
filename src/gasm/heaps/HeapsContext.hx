@@ -251,7 +251,7 @@ class HeapsContext extends App implements Context {
 
 		loader.addHandler(AssetType.BitmapFont, function(item:HandlerItem) {
 			final name = item.id.split('.')[0];
-			_fileSystem.add('fonts/$name.font', item.data);
+			_fileSystem.add('fonts/$name.fnt', item.data);
 			tryLoadBitmapFont(name).handle(success -> {
 				if (success) {
 					queued.remove('fonts:$name');
@@ -261,7 +261,7 @@ class HeapsContext extends App implements Context {
 
 		loader.addHandler(AssetType.BitmapFontImage, function(item:HandlerItem) {
 			final name = item.id.split('.')[0];
-			_fileSystem.add('fonts/$name.png', item.data);
+			_fileSystem.add('fonts/$name.${Path.extension(item.path)}', item.data);
 			tryLoadBitmapFont(name).handle(success -> {
 				if (success) {
 					queued.remove('fonts:$name');
