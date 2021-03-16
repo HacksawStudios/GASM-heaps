@@ -82,22 +82,6 @@ class HeapsContext extends App implements Context {
 		_assetConfig = {};
 	}
 
-	function when(predicate:Void->Bool) {
-		final trigger = Future.trigger();
-		checkPredicate({trigger: trigger, predicate: predicate});
-		return trigger.asFuture();
-	}
-
-	function checkPredicate(predicateItem:{trigger:FutureTrigger<Noise>, predicate:Void->Bool}) {
-		if (predicateItem.predicate()) {
-			predicateItem.trigger.trigger(Noise);
-		} else {
-			haxe.Timer.delay(() -> {
-				checkPredicate(predicateItem);
-			}, 0);
-		}
-	}
-
 	public function preload(progress:Int->Void, done:Void->Void) {
 		#if js
 		_soundSupport = (Reflect.field(js.Browser.window, "AudioContext") != null
