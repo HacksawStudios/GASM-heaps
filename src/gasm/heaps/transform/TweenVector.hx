@@ -178,9 +178,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 	public function tween(target:VectorTween):Future<Bool> {
 		return Future.async(done -> {
 			target = target.clone();
-			target.time = 0.0;
 			if (target.delay > 0) {
-				cancelUsedAxis(target);
 				this._scheduled.push(target);
 			} else {
 				target = setupTween(target);
@@ -199,7 +197,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 
 	public function cancelUsedAxis(t:VectorTween) {
 		var remove = [];
-		for (tween in this._active.concat(this._scheduled)) {
+		for (tween in this._active) {
 			// Replace axis if input not null
 			tween.to.x = t.to.x == null ? tween.to.x : null;
 			tween.to.y = t.to.y == null ? tween.to.y : null;
@@ -264,13 +262,14 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 		final hasTo = tween.to != null;
 		Assert.that(tween.to != null || tween.from != null, 'Must supply to or from to tween');
 		// Ensure all input values have a valid start and endpoint
-		// If no tween is specified. Tween to position at activation time
+
+		// If 'to' not specified, tween to position at activation time
 		if (!hasTo) {
 			// Clone tween from to preserve nulls
 			tween.to = tween.from.clone();
 			tween.to.set(this);
 		}
-		// If only tween is specified. Tween from origin
+		// If 'from' is not specified, tween from origin
 		if (!hasFrom) {
 			// Clone tween from to preserve nulls
 			tween.from = tween.to.clone();
@@ -305,7 +304,10 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 
 	/**
 		Update current animating vector
+
 		@param dt Delta time
+
+		@return True if there was a tween to update
 	**/
 	public function update(dt:Float) {
 		final tweening = this._active.concat(this._scheduled).length > 0;
@@ -392,7 +394,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 				continue;
 			}
 		}
-		return true;
+		return this._active.length > 0;
 	}
 
 	@:from
