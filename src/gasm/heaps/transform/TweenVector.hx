@@ -307,7 +307,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 
 		@param dt Delta time
 
-		@return True if there was a tween to update
+		@return True if values are updated or scheduled to be updated
 	**/
 	public function update(dt:Float) {
 		final tweening = this._active.concat(this._scheduled).length > 0;
@@ -394,7 +394,7 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 				continue;
 			}
 		}
-		return this._active.length > 0;
+		return true;
 	}
 
 	@:from
