@@ -12,7 +12,7 @@
 		"leo.bergman"
 	],
 	"releasenote": "",
-	"version": "17.0.0",
+	"version": "17.1.0-rc.2",
 	"url": "https://github.com/HacksawStudios/gasm-heaps",
 	 "dependencies": {
 	    "heaps": "",
