@@ -55,6 +55,17 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		super.init();
 	}
 
+	inline function calculateBounds():h3d.col.Bounds {
+		// Object needs worlspace calculation if configured. Is performed in getBounds()
+		var realBounds = _object.getBounds().clone();
+		if (_config.bounds != null) {
+			final configBounds = _config.bounds.clone();
+			configBounds.transform(_object.getAbsPos());
+			return configBounds;
+		}
+		return realBounds;
+	}
+
 	override public function update(dt:Float) {
 		super.update(dt);
 
@@ -65,7 +76,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		final engine = Engine.getCurrent();
 		_object.setScale(1.0);
 
-		final preBounds = _config.bounds != null ? _config.bounds : _object.getBounds();
+		final preBounds = calculateBounds();
 
 		if (Math.abs(preBounds.zMax) >= _camera.zFar) {
 			return;
@@ -90,7 +101,7 @@ class HeapsObjectFitComponent extends Heaps3DComponent {
 		_object.x = screenLeft + (screenRight - screenLeft) * 0.5;
 		_object.y = screenBottom + (screenTop - screenBottom) * 0.5;
 
-		final bounds = _config.bounds != null ? _config.bounds : _object.getBounds().clone();
+		final bounds = calculateBounds();
 
 		var rotScale = 1.0;
 		final tileTarget = owner.firstChild != null ? owner.firstChild.get(TileTargetComponent) : null;
