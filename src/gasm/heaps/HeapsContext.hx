@@ -488,6 +488,7 @@ class HeapsContext extends App implements Context {
 				for (scene in sceneModel.scenes) {
 					if (!scene.is3D) {
 						final sceneComp = scene.entity.getFromParents(HeapsScene2DComponent);
+						sceneComp.scene2d.defaultSmooth = true;
 						sceneComp.render(e);
 					} else {
 						final sceneComp = scene.entity.getFromParents(HeapsScene3DComponent);
