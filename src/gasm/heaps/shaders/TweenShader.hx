@@ -14,7 +14,6 @@ class TweenShader extends hxsl.Shader {
 	public var z(get, set):Float;
 	public var w(get, set):Float;
 
-	// final _tweens:Array<{vector:TweenVector, def:VectorTween}> = [];
 	final _tweenVector:TweenVector = new TweenVector(0, 0, 0, 0);
 
 	public function tween(tweens:Array<VectorTween>) {
