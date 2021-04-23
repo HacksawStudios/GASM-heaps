@@ -32,10 +32,6 @@ class TweenShader extends hxsl.Shader {
 		return Future.ofMany(futures);
 	}
 
-	public function cancel(completeActive:Bool) {
-		_tweenVector.cancel(completeActive);
-	}
-
 	public function update(dt:Float) {
 		time += dt;
 		_tweenVector.update(dt);
