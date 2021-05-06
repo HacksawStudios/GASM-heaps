@@ -1,7 +1,7 @@
 package gasm.heaps.types;
 
 /**
-	Abstract Int with implicit conversions from float and string
+	Abstract Int with implicit conversions from string
 **/
 @:forward
 @:forwardStatics
