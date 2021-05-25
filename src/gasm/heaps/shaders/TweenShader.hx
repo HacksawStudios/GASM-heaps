@@ -25,6 +25,11 @@ class TweenShader extends hxsl.Shader {
 					duration: tween.duration,
 					onUpdate: tween.onUpdate,
 					delay: tween.delay,
+					curve: tween.curve,
+					repeat: tween.repeat,
+					relative: tween.relative,
+					curveDuration: tween.curveDuration,
+					onDone: tween.onDone,
 				});
 			}
 		];
