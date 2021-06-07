@@ -322,10 +322,14 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 				this._active.push(setupTween(tween));
 			}
 		}
+
 		for (tween in this._active) {
 			tween.time += dt;
 			var done = false;
-			var p = tween.time / tween.duration;
+			var p = tween.time > 0 ? tween.time / tween.duration : 0.0;
+			if (Math.isNaN(p)) {
+				p = 1.0;
+			}
 			if (p >= 1.0) {
 				done = tween.repeat ? false : true;
 				tween.time = tween.repeat ? 0.0 : tween.time;
@@ -391,7 +395,6 @@ abstract TweenVector(TweenVectorBacking) from TweenVectorBacking to TweenVectorB
 			}
 			if (done) {
 				tween.onDone(true);
-				continue;
 			}
 		}
 		return true;
