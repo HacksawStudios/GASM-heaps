@@ -13,7 +13,6 @@ import gasm.heaps.transform.TweenObject;
 import h3d.col.ObjectCollider;
 import h3d.mat.BlendMode;
 import h3d.mat.Texture;
-import h3d.prim.ModelCache;
 import h3d.scene.Interactive;
 import h3d.scene.Mesh;
 import h3d.scene.Object;
