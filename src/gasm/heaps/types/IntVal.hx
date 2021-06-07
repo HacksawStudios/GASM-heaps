@@ -41,4 +41,12 @@ abstract IntVal(Int) from Int {
 	@:op(A >= B) function beq(b) {
 		return this >= b;
 	}
+
+	@:op(A > B) function gt(b) {
+		return this > b;
+	}
+
+	@:op(A < B) function lt(b) {
+		return this < b;
+	}
 }
